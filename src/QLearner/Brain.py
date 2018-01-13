@@ -14,17 +14,17 @@ from Types import ACTIONS
 
 class Brain():
 
-    def __init__(self, input_shape, available_actions):
+    def __init__(self, available_actions):
         self.weight_backup = "weight_backup.h5"
-        self.input_shape = input_shape
+        self.input_shape = (55,150,4)
         self.available_actions = available_actions
         self.memory = deque(maxlen=100000)
-        self.learning_rate = 0.001
+        self.learning_rate = 0.0001
         self.gamma = 0.99
         self.exploration_rate = 1.0
-        self.exploration_min = 0.05
-        self.exploration_decay = 0.995
-        self.sample_batch_size = 128
+        self.exploration_min = 0.1
+        self.exploration_decay = 0.9925
+        self.sample_batch_size = 64
         self.model = Sequential()
 
         self._build_model()
@@ -32,13 +32,13 @@ class Brain():
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         # Hidden layers
-        self.model.add(Conv2D(24, kernel_size=8, strides=4, input_shape=self.input_shape, activation='relu'))
-        self.model.add(Conv2D(32, kernel_size=4, strides=2, activation='relu'))
-        self.model.add(Conv2D(48, kernel_size=3, strides=1, activation='relu'))
+        self.model.add(Conv2D(32, kernel_size=8, strides=4, input_shape=self.input_shape, activation='relu'))
+        self.model.add(Conv2D(64, kernel_size=4, strides=2, activation='relu'))
+        self.model.add(Conv2D(64, kernel_size=3, strides=1, activation='relu'))
         self.model.add(Flatten())
-        self.model.add(Dense(256, activation='relu'))
+        self.model.add(Dense(512, activation='relu'))
         self.model.add(Dense(len(self.available_actions), activation='linear')) # Output Layer
-        self.model.compile(loss='mae', optimizer=Adam(lr=self.learning_rate))
+        self.model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1.)) # Clip gradients
         print(self.model.summary())
 
         now = datetime.datetime.now()
@@ -56,7 +56,8 @@ class Brain():
     def load_model(self):
         if os.path.isfile(self.weight_backup):
             self.model.load_weights(self.weight_backup)
-            self.exploration_rate = 1
+            self.exploration_rate = self.exploration_min
+            print("Successfully loaded weights!")
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
@@ -66,9 +67,12 @@ class Brain():
             return
         sample_batch = random.sample(self.memory, self.sample_batch_size)
         for state, action_string, reward, next_state, done in sample_batch:
-            target = reward
+
             if not done:
                 target = reward + self.gamma * np.amax(self.model.predict(self.get_state_for_NN(next_state))[0])
+            else:
+                target = reward
+
             target_f = self.model.predict(self.get_state_for_NN(state))
 
             action_index = self.get_index_of_action(action_string)
@@ -98,7 +102,7 @@ class Brain():
         for k, v in enumerate(self.available_actions):
             if action_string == v:
                 return k
-
+        assert 1 == 0, "Could not find action"
     # Keras expects a 4D array (batch_size, x, y, z)
     # Our image is just a 3D array of (x, y, z)
     def get_state_for_NN(self, state):

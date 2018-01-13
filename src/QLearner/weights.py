@@ -1,6 +1,8 @@
 import cv2
 import matplotlib.pyplot as plt
 
+from State import State
+
 plt.rcParams.update({'figure.max_open_warning': 0})
 import os
 from keras import backend as K
@@ -66,11 +68,11 @@ def get_filters_for_layer(layer_number, layer_outputs):
 
 def plot_filters_for_layer(layer_filters, layer_number, episode_number):
     # Show all the filters
-    rows = 7
-    cols = 7
+    rows = 8
+    cols = 8
 
     plt.figure()
-    plt.suptitle("Layer number: {}".format(layer_number + 1))
+    plt.suptitle("Episode: {} - Layer number: {}".format(episode_number, layer_number + 1))
 
     for index, img in enumerate(layer_filters):
         # cv2.imwrite("output.png", img)
@@ -85,15 +87,20 @@ def plot_filters_for_layer(layer_filters, layer_number, episode_number):
     plt.savefig(filename, bbox_inches='tight')
 
 
-def get_test_input(image):
-    test_image = cv2.imread(image)
-    test_image = cv2.resize(test_image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
-    test_image = np.array(test_image)
-    return test_image
+def get_test_input():
+    im1 = State.get_single_frame('QLearner/samples/original/Step - 304.png')
+    im2 = State.get_single_frame('QLearner/samples/original/Step - 308.png')
+    im3 = State.get_single_frame('QLearner/samples/original/Step - 312.png')
+    im4 = State.get_single_frame('QLearner/samples/original/Step - 316.png')
+
+    images = [im1, im2, im3, im4]
+    stacks = np.stack(images, axis=2)
+
+    return stacks
 
 
 def plot_all_layers(model, episode_number):
-    test_image = get_test_input('QLearner/sample.png')
+    test_image = get_test_input()
     # test_image = get_test_input(CompetitionParameters.SCREENSHOT_FILENAME)
 
     # Show the original picture
