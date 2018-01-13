@@ -16,9 +16,9 @@ class Brain():
 
     def __init__(self, available_actions):
         self.weight_backup = "weight_backup.h5"
-        self.input_shape = (55,150,3)
+        self.input_shape = (55, 150, 3)
         self.available_actions = available_actions
-        self.memory = deque(maxlen=20000)
+        self.memory = deque(maxlen=50000)
         self.learning_rate = 0.0001
         self.gamma = 0.99
         self.exploration_rate = 1.0
@@ -37,7 +37,7 @@ class Brain():
         self.model.add(Conv2D(64, kernel_size=3, strides=1, activation='relu'))
         self.model.add(Flatten())
         self.model.add(Dense(512, activation='relu'))
-        self.model.add(Dense(len(self.available_actions), activation='linear')) # Output Layer
+        self.model.add(Dense(len(self.available_actions), activation='linear'))  # Output Layer
         # Clip gradients, set metrics
         self.model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1.), metrics=[self.mean_Q])
         print(self.model.summary())
@@ -54,7 +54,7 @@ class Brain():
         dstfolder = "game-snapshots/Episode {}/".format(episodes);
         if not os.path.isdir(dstfolder):
             os.makedirs(dstfolder)  # create all directories, raise an error if it already exists
-        self.model.save(os.path.join(dstfolder,self.weight_backup))
+        self.model.save(os.path.join(dstfolder, self.weight_backup))
 
     def load_model(self):
         if os.path.isfile(self.weight_backup):
@@ -68,23 +68,37 @@ class Brain():
     def replay(self):
         if len(self.memory) < self.sample_batch_size:
             return
+
+        inputs, targets = self.get_batch()
+        self.model.fit(x=inputs, y=targets,
+                       epochs=1, verbose=0,
+                       batch_size=self.sample_batch_size,
+                       steps_per_epoch=1,
+                       callbacks=self.callbacks)
+
+        if self.exploration_rate > self.exploration_min:
+            self.exploration_rate *= self.exploration_decay
+
+    def get_batch(self):
         sample_batch = random.sample(self.memory, self.sample_batch_size)
+        inputs = np.zeros((self.sample_batch_size, 55, 150, 3))
+        targets = np.zeros(self.sample_batch_size)
+
         for state, action_string, reward, next_state, done in sample_batch:
 
             if not done:
-                target = reward + self.gamma * np.amax(self.model.predict(self.get_state_for_NN(next_state))[0])
+                next_q = self.model.predict(self.get_state_for_NN(next_state))
+                target = reward + self.gamma * np.amax(next_q[0])
             else:
                 target = reward
 
             target_f = self.model.predict(self.get_state_for_NN(state))
-
             action_index = self.get_index_of_action(action_string)
             target_f[0][action_index] = target
-            self.model.fit(x=self.get_state_for_NN(state), y=target_f,
-                           epochs=1, verbose=0, callbacks=self.callbacks)
+            np.append(inputs, state)
+            np.append(target_f)
 
-        if self.exploration_rate > self.exploration_min:
-            self.exploration_rate *= self.exploration_decay
+        return inputs, targets
 
     def get_action(self, state, available_actions):
         if np.random.rand() <= self.exploration_rate:
@@ -105,6 +119,7 @@ class Brain():
             if action_string == v:
                 return k
         assert 1 == 0, "Could not find action"
+
     # Keras expects a 4D array (batch_size, x, y, z)
     # Our image is just a 3D array of (x, y, z)
     def get_state_for_NN(self, state):

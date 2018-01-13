@@ -1,6 +1,8 @@
 #Custom 
 *.png
 Graph/*
+filters/*
+game-snapshots/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

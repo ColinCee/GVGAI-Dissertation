@@ -1,56 +1,43 @@
 import csv
 
+
 class Statistics():
     def __init__(self):
-        self.episode_count = 0
         self.episodes_since_last_train = 0
         self.steps_since_last_train = 0
-
-        self.episode_step = 0
-        self.current_episode_rewards = []  # Each game stores the current reward
-        self.episode_rewards_history = []  # Tracks the total reward at the end of each game
+        self.episode_history = []  # Tracks the total reward at the end of each game
 
     # Adds the reward to the current episode history
     def add_reward(self, reward):
-        self.current_episode_rewards.append(reward)
+        self.get_current_episode().add_reward(reward)
 
-    # Used when the game is over and the reward is re-calculated
-    def remove_last_reward(self):
-        del self.current_episode_rewards[-1]
+    def get_episode_step(self):
+        return self.get_current_episode().step
+
+    def increment_episode_step(self):
+        self.get_current_episode().step += 1
+
+    def get_episode_count(self):
+        return len(self.episode_history)
 
     def start_new_episode(self):
-        self.episode_count += 1
-        self.episode_rewards_history.append(sum(self.current_episode_rewards))
-        self.reset_on_new_episode()
+        self.episode_history.append(Episode(self.get_episode_count() + 1))
 
-    def reset_on_new_episode(self):
-        self.episode_step = 0
-        self.current_episode_rewards = []
+    def get_current_episode(self) -> 'Episode':
+        return self.episode_history[-1]
 
     def reset_on_train(self):
         self.episodes_since_last_train = 0
         self.steps_since_last_train = 0
 
     def output_episode_stats(self, sso, exploration_rate):
-
-        win = "True " if "WIN" in sso.gameWinner else "False"
-        print(
-            "{}. Win: {} | "
-            "Tot. Reward: {:2d} | "
-            "Game Ticks: {:3d} | "
-            "Epsilon: {:.3f} | ".format(
-                self.episode_count,
-                win,
-                sum(self.current_episode_rewards),
-                sso.gameTick,
-                exploration_rate))
-
         self.steps_since_last_train += 1
         self.episodes_since_last_train += 1
+        self.get_current_episode().output_episode_stats(sso, exploration_rate)
 
     def output_training_stats(self):
         mean_episode_reward = sum(
-            self.episode_rewards_history[-self.episodes_since_last_train:]) / self.episodes_since_last_train
+            self.episode_history[-self.episodes_since_last_train:]) / self.episodes_since_last_train
         print("[{}]. Eps since last train - with mean reward: {:2.2f}".format(self.episodes_since_last_train,
                                                                               mean_episode_reward))
         self.log_training_to_csv()
@@ -58,6 +45,29 @@ class Statistics():
 
     def log_training_to_csv(self):
         with open('reward_history.csv', 'a+') as file:
-            for reward in self.episode_rewards_history[-self.episodes_since_last_train:]:
-                file.write("{},\n".format(reward))
+            for episode in self.episode_history[-self.episodes_since_last_train:]:  # type: Episode
+                file.write("{},\n".format(episode.total_reward))
         file.close()
+
+
+class Episode:
+    def __init__(self, episode_number):
+        self.step = 0
+        self.episode_number = episode_number
+        self.total_reward = 0
+
+    def add_reward(self, reward):
+        self.total_reward += reward
+
+    def output_episode_stats(self, sso, exploration_rate):
+        win = "True " if "WIN" in sso.gameWinner else "False"
+        print(
+            "{}. Win: {} | "
+            "Tot. Reward: {:2d} | "
+            "Game Ticks: {:3d} | "
+            "Epsilon: {:.3f} | ".format(
+                self.episode_number,
+                win,
+                self.total_reward,
+                sso.gameTick,
+                exploration_rate))
