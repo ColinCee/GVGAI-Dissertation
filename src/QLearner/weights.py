@@ -91,9 +91,9 @@ def get_test_input():
     im1 = State.get_single_frame('QLearner/samples/original/Step - 304.png')
     im2 = State.get_single_frame('QLearner/samples/original/Step - 308.png')
     im3 = State.get_single_frame('QLearner/samples/original/Step - 312.png')
-    im4 = State.get_single_frame('QLearner/samples/original/Step - 316.png')
+    #im4 = State.get_single_frame('QLearner/samples/original/Step - 316.png')
 
-    images = [im1, im2, im3, im4]
+    images = [im1, im2, im3]
     stacks = np.stack(images, axis=2)
 
     return stacks

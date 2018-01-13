@@ -7,6 +7,7 @@ from Types import *
 import weights
 from Brain import Brain
 from State import State
+from Statistics import Statistics
 
 
 class Agent(AbstractPlayer):
@@ -15,20 +16,16 @@ class Agent(AbstractPlayer):
         AbstractPlayer.__init__(self)
         self.lastSsoType = LEARNING_SSO_TYPE.BOTH
         self.brain = None
-        self.total_episodes = 0
-        self.total_steps = 0
-        self.warmup_steps = 1e5
-        self.steps_between_training = 1e3
-        self.snapshot_frequency = 20  # how often to save a full game in episodes
+        self.warmup_steps = 1e4
+        self.steps_between_training = 2e3
         self.img_stacks = 3
 
         self.prev_state = None
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.episode_step = 0
-        self.episode_reward_history = []
         self.state = State(self.img_stacks)
+        self.statistics = Statistics()
 
     def init(self, sso, timer):
         """
@@ -41,8 +38,6 @@ class Agent(AbstractPlayer):
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.episode_step = 0
-        self.episode_reward_history = []
 
     def act(self, sso: 'SerializableStateObservation', timer):
         """
@@ -58,17 +53,17 @@ class Agent(AbstractPlayer):
         if self.brain is None:
             self.brain = Brain(sso.availableActions)
             # Load from a previous save?
-            #self.brain.load_model()
+            # self.brain.load_model()
 
-        if self.episode_step % self.img_stacks != 0 or self.episode_step == 0:
+        if self.statistics.episode_step % self.img_stacks != 0 or self.statistics.episode_step == 0:
             self.state.add_frame()
-            self.episode_step += 1
-            # Don't move between frames
-            return ACTIONS.ACTION_NIL
+            self.statistics.episode_step += 1
+            # Repeat previous move during frame skip if possible
+            if self.prev_action is None:
+                return ACTIONS.ACTION_NIL
+            else:
+                return self.prev_action
         else:
-            if self.total_episodes % self.snapshot_frequency == 0:
-                self.state.save_game_state(self.total_episodes, self.episode_step)
-
             current_state = self.state.get_frame_stack()
             action = self.brain.get_action(current_state, sso.availableActions)
             if self.prev_state is not None:
@@ -77,10 +72,14 @@ class Agent(AbstractPlayer):
             self.prev_state = current_state
             self.prev_action = action
             self.prev_reward = self.calculate_reward(sso)
-            self.episode_reward_history.append(self.prev_reward)
+            self.statistics.add_reward(self.prev_reward)
             self.prev_game_score = sso.gameScore
-            self.episode_step += 1
-            return action
+            self.statistics.steps_since_last_train += 1
+
+            self.save_game_state()
+
+        self.statistics.episode_step += 1
+        return action
 
     def result(self, sso: 'SerializableStateObservation', timer):
         """
@@ -95,38 +94,29 @@ class Agent(AbstractPlayer):
         * The level is bound in the range of [0,2]. If the input is any different, then the level
         * chosen will be ignored, and the game will play a random one instead.
         """
-        self.episode_reward_history.append(self.prev_reward)
         # Add the new frame
         self.state.add_frame()
-        self.state.save_game_state(self.total_episodes, self.episode_step)
+        # Remove last reward since we assumed the game was not over
+        self.statistics.remove_last_reward()
         # calculate the terminal reward, the previous reward assumed the game was still in progress
         self.prev_reward = self.calculate_reward(sso)
-
+        self.statistics.add_reward(self.prev_reward)
         # We need one final remember when we get into the terminal state
         self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
-
         # Train after we have filled our replay memory a little, also delay training
-        if self.total_steps >= self.warmup_steps and self.total_steps % self.steps_between_training == 0:
-            mean_episode_reward = sum(self.episode_reward_history[-20:]) / 20
-            print("Begin training. Mean reward for past 20 games: {}".format(mean_episode_reward))
+        episode_count = self.statistics.episode_count
+        steps_since_last_trained = self.statistics.steps_since_last_train
+
+        if len(self.brain.memory) >= self.warmup_steps and steps_since_last_trained >= self.steps_between_training:
             self.brain.replay()
-            self.brain.save_model(self.total_episodes)
-            weights.plot_all_layers(self.brain.model, self.total_episodes)
+            self.brain.save_model(episode_count)
+            self.state.save_game_state(episode_count, self.statistics.episode_step)
+            weights.plot_all_layers(self.brain.model, episode_count)
+            self.statistics.output_training_stats()
+        else:
+            self.statistics.output_episode_stats(sso, self.brain.exploration_rate)
 
-
-        win = "True " if "WIN" in sso.gameWinner else "False"
-        avg_reward = sum(self.episode_reward_history) / len(self.episode_reward_history)
-
-        print(
-            "{}. Win: {} | Tot. Reward: {:.5f} | Mean Reward {:.5f} | Game Ticks: {} | Epsilon: {:.3f}".format(
-                self.total_episodes,
-                win,
-                sum(self.episode_reward_history),
-                avg_reward,
-                sso.gameTick,
-                self.brain.exploration_rate))
-
-        self.total_episodes += 1
+        self.statistics.start_new_episode()
         return random.randint(0, 2)
 
     # Clip rewards, all positive rewards are set to 1, all negative rewards are set to -1, 0 is unchanged
@@ -143,3 +133,7 @@ class Agent(AbstractPlayer):
                 return 1
             else:
                 return 0
+
+    # Save snapshots of a full game
+    def save_game_state(self):
+        self.state.save_game_state(self.statistics.episode_count, self.statistics.episode_step)

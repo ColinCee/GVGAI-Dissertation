@@ -9,22 +9,22 @@ from keras.layers import Dense, Conv2D, Activation, Flatten, Dropout
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 import datetime
-from Types import ACTIONS
+import keras.backend as K
 
 
 class Brain():
 
     def __init__(self, available_actions):
         self.weight_backup = "weight_backup.h5"
-        self.input_shape = (55,150,4)
+        self.input_shape = (55,150,3)
         self.available_actions = available_actions
-        self.memory = deque(maxlen=100000)
+        self.memory = deque(maxlen=20000)
         self.learning_rate = 0.0001
         self.gamma = 0.99
         self.exploration_rate = 1.0
         self.exploration_min = 0.1
         self.exploration_decay = 0.9925
-        self.sample_batch_size = 64
+        self.sample_batch_size = 32
         self.model = Sequential()
 
         self._build_model()
@@ -38,14 +38,17 @@ class Brain():
         self.model.add(Flatten())
         self.model.add(Dense(512, activation='relu'))
         self.model.add(Dense(len(self.available_actions), activation='linear')) # Output Layer
-        self.model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1.)) # Clip gradients
+        # Clip gradients, set metrics
+        self.model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1.), metrics=[self.mean_Q])
         print(self.model.summary())
 
         now = datetime.datetime.now()
-        tb_callback = TensorBoard(log_dir='./Graph/' + now.strftime("%I %M"),
-                                  write_graph=True, write_images=True)
-        tb_callback.set_model(self.model)
+        tb_callback = TensorBoard(log_dir='./Graph/' + now.strftime("%d %b - %H.%M"),
+                                  write_graph=True)
         self.callbacks = [tb_callback]
+
+    def mean_Q(self, y_true, y_pred):
+        return K.mean(y_pred)
 
     def save_model(self, episodes):
         dstfolder = "game-snapshots/Episode {}/".format(episodes);
@@ -78,8 +81,7 @@ class Brain():
             action_index = self.get_index_of_action(action_string)
             target_f[0][action_index] = target
             self.model.fit(x=self.get_state_for_NN(state), y=target_f,
-                           batch_size=self.sample_batch_size, epochs=1,
-                           verbose=0, callbacks=self.callbacks)
+                           epochs=1, verbose=0, callbacks=self.callbacks)
 
         if self.exploration_rate > self.exploration_min:
             self.exploration_rate *= self.exploration_decay
