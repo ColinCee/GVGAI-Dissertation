@@ -60,7 +60,6 @@ class Agent(AbstractPlayer):
             return ACTIONS.ACTION_NIL
 
         self.state.add_frame(sso.imageArray)
-        sso.convertBytesToPng(sso.imageArray)
         current_step = self.statistics.get_episode_step()
         if current_step % self.img_stacks != 0 or current_step == 0:
             # Repeat previous move during frame skip if possible

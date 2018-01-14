@@ -2,7 +2,6 @@ import io
 import os
 from collections import deque
 
-import cv2
 import numpy as np
 from CompetitionParameters import CompetitionParameters
 from PIL import Image
@@ -25,7 +24,7 @@ class State:
         resized_image = self.resize_image(image)
 
         self.original_frames.append(np.array(image))
-        self.resized_frames.append(resized_image)
+        self.resized_frames.append(np.array(resized_image))
 
     def add_final_frame(self):
         image = Image.open(CompetitionParameters.SCREENSHOT_FILENAME)
@@ -41,9 +40,11 @@ class State:
         return image
 
     def resize_image(self, image):
-        image = np.array(image.convert('L'))
-        resized_image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
-
+        b_and_w = image.convert('L')
+        width, height = image.size
+        new_width = int(width / 2)
+        new_height = int(height / 2)
+        resized_image = b_and_w.resize((new_width, new_height), resample=Image.LANCZOS)
         return resized_image
 
     def save_game_state(self, nb_episode, episode_step):
