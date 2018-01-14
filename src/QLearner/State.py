@@ -65,5 +65,7 @@ class State:
         if not os.path.exists(os.path.dirname(resized_file)):
             os.makedirs(os.path.dirname(resized_file))
 
-        cv2.imwrite(original_file, original_image)
-        cv2.imwrite(resized_file, resized_image)
+        original = Image.fromarray(original_image)
+        original.save(original_file)
+        resized = Image.fromarray(resized_image)
+        resized.save(resized_file)
