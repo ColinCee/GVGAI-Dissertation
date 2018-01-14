@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="033b456e-ea54-4321-9750-4f800691bf8d" name="Default" comment="Update batch training, fixed snapshot frequency">
-      <change beforePath="" afterPath="$PROJECT_DIR$/src/weight_backup.h5" />
+    <list default="true" id="033b456e-ea54-4321-9750-4f800691bf8d" name="Default" comment="Remove redundant files">
+      <change beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change beforePath="$PROJECT_DIR$/.idea/GVGAI-PythonClient.iml" afterPath="$PROJECT_DIR$/.idea/GVGAI-PythonClient.iml" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/src/ercumentilhan/Agent.py" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/src/game-snapshots/Episode 1/weight_backup.h5" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/src/game-snapshots/Episode 2/weight_backup.h5" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/src/game-snapshots/Episode 3/weight_backup.h5" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/src/logs/clientLog.txt" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/src/logs/output_server_redirect.txt" afterPath="" />
-      <change beforePath="$PROJECT_DIR$/src/logs/output_server_redirect_err.txt" afterPath="" />
+      <change beforePath="$PROJECT_DIR$/src/QLearner/Agent.py" afterPath="$PROJECT_DIR$/src/QLearner/Agent.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -34,7 +29,7 @@
       <file leaf-file-name="TestLearningClient.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/TestLearningClient.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1219">
+            <state relative-caret-position="1426">
               <caret line="62" column="37" lean-forward="false" selection-start-line="62" selection-start-column="37" selection-end-line="62" selection-end-column="37" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
@@ -43,20 +38,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CompetitionParameters.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/utils/CompetitionParameters.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="552">
-              <caret line="24" column="42" lean-forward="false" selection-start-line="24" selection-start-column="42" selection-end-line="24" selection-end-column="42" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Brain.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Brain.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/QLearner/Brain.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="230">
+            <state relative-caret-position="989">
               <caret line="58" column="2" lean-forward="false" selection-start-line="58" selection-start-column="2" selection-end-line="58" selection-end-column="2" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
@@ -65,14 +50,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Agent.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Agent.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/QLearner/Agent.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
-              <caret line="115" column="35" lean-forward="false" selection-start-line="115" selection-start-column="35" selection-end-line="115" selection-end-column="35" />
+            <state relative-caret-position="598">
+              <caret line="26" column="36" lean-forward="false" selection-start-line="26" selection-start-column="36" selection-end-line="26" selection-end-column="36" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
-                <marker date="1515901176490" expanded="true" signature="5887:5998" ph="..." />
               </folding>
             </state>
           </provider>
@@ -130,9 +114,9 @@
         <option value="$PROJECT_DIR$/src/QLearner/weights.py" />
         <option value="$PROJECT_DIR$/src/QLearner/meanQ.py" />
         <option value="$PROJECT_DIR$/src/QLearner/Brain.py" />
-        <option value="$PROJECT_DIR$/src/QLearner/Agent.py" />
         <option value="$PROJECT_DIR$/src/QLearner/Statistics.py" />
         <option value="$PROJECT_DIR$/src/utils/CompetitionParameters.py" />
+        <option value="$PROJECT_DIR$/src/QLearner/Agent.py" />
       </list>
     </option>
   </component>
@@ -389,7 +373,14 @@
       <option name="project" value="LOCAL" />
       <updated>1515881260139</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Remove redundant files">
+      <created>1515901376064</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1515901376064</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -398,7 +389,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2489339" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="0" y="0" width="434" height="856" />
-      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32993197" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25623584" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32879817" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="SLIDING" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.3281768" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" x="2068" y="173" width="1638" height="779" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
@@ -428,7 +419,8 @@
     <MESSAGE value="Major changes:&#10;&#10;1. Gradient clipping&#10;2. Reward clipping&#10;3. NN layers same as deepmind&#10;4. Warmup phase&#10;5. Delayed Training" />
     <MESSAGE value="Moved statistics to it's own class. Frame skipping changed from 4 to 3." />
     <MESSAGE value="Update batch training, fixed snapshot frequency" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update batch training, fixed snapshot frequency" />
+    <MESSAGE value="Remove redundant files" />
+    <option name="LAST_COMMIT_MESSAGE" value="Remove redundant files" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -627,6 +619,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1058">
           <caret line="46" column="3" lean-forward="false" selection-start-line="46" selection-start-column="3" selection-end-line="46" selection-end-column="39" />
+          <folding>
+            <element signature="e#0#9#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -683,6 +678,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="805">
           <caret line="42" column="46" lean-forward="false" selection-start-line="39" selection-start-column="12" selection-end-line="42" selection-end-column="46" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -758,17 +754,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/QLearner/Agent.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="115" column="35" lean-forward="false" selection-start-line="115" selection-start-column="35" selection-end-line="115" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-            <marker date="1515901176490" expanded="true" signature="5887:5998" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/QLearner/Statistics.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1679">
@@ -789,7 +774,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/TestLearningClient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1219">
+        <state relative-caret-position="1426">
           <caret line="62" column="37" lean-forward="false" selection-start-line="62" selection-start-column="37" selection-end-line="62" selection-end-column="37" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
@@ -799,8 +784,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/QLearner/Brain.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
+        <state relative-caret-position="989">
           <caret line="58" column="2" lean-forward="false" selection-start-line="58" selection-start-column="2" selection-end-line="58" selection-end-column="2" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/QLearner/Agent.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="598">
+          <caret line="26" column="36" lean-forward="false" selection-start-line="26" selection-start-column="36" selection-end-line="26" selection-end-column="36" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>

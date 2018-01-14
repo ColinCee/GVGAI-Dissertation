@@ -24,7 +24,7 @@ class Agent(AbstractPlayer):
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.snapshot_frequency = 2
+        self.snapshot_frequency = 10
         self.state = State(self.img_stacks)
         self.statistics = Statistics()
 
