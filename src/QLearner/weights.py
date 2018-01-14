@@ -1,14 +1,10 @@
+import cv2
 import matplotlib.pyplot as plt
-
-from State import State
 
 plt.rcParams.update({'figure.max_open_warning': 0})
 import os
 from keras import backend as K
-from keras import Sequential
-from keras.layers import Conv2D, Activation, Flatten, Dense, np
-from keras.optimizers import Adam
-from CompetitionParameters import CompetitionParameters
+from keras.layers import np
 
 
 # def get_model(input_shape, output_size):
@@ -86,16 +82,21 @@ def plot_filters_for_layer(layer_filters, layer_number, episode_number):
 
 
 def get_test_input():
-    im1 = State.get_single_frame('QLearner/samples/original/Step - 285.png')
-    im2 = State.get_single_frame('QLearner/samples/original/Step - 286.png')
-    im3 = State.get_single_frame('QLearner/samples/original/Step - 287.png')
-    im4 = State.get_single_frame('QLearner/samples/original/Step - 288.png')
+    im1 = get_single_frame('QLearner/samples/original/Step - 285.png')
+    im2 = get_single_frame('QLearner/samples/original/Step - 286.png')
+    im3 = get_single_frame('QLearner/samples/original/Step - 287.png')
+    im4 = get_single_frame('QLearner/samples/original/Step - 288.png')
 
     images = [im1, im2, im3, im4]
     stacks = np.stack(images, axis=2)
 
     return stacks
 
+
+def get_single_frame(image_name):
+    image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
+    resized_image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+    return np.array(resized_image)
 
 def plot_all_layers(model, episode_number):
     test_image = get_test_input()
