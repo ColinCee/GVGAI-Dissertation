@@ -1,9 +1,9 @@
 #Custom 
-graph/*
-filters/*
-game-snapshots/*
-logs/*
-.idea/*
+graph/
+filters/
+game-snapshots/
+logs/
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
