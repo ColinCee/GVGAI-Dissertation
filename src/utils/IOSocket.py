@@ -51,7 +51,7 @@ class IOSocket:
             if CompetitionParameters.OS_WIN:
                 self.socket.send(bytes(msg, 'utf8'))
             else:
-                self.socket.send(bytes(msg))
+                self.socket.send(bytes(msg, 'utf8'))
             if log:
                 self.writeToFile(msg.strip('\n'))
         except Exception as e:

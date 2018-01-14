@@ -1,4 +1,3 @@
-import cv2
 import matplotlib.pyplot as plt
 
 from State import State
@@ -75,7 +74,6 @@ def plot_filters_for_layer(layer_filters, layer_number, episode_number):
     plt.suptitle("Episode: {} - Layer number: {}".format(episode_number, layer_number + 1))
 
     for index, img in enumerate(layer_filters):
-        # cv2.imwrite("output.png", img)
         subplot_ax = plt.subplot(rows, cols, index + 1)
         subplot_ax.axis("off")
         im = subplot_ax.imshow(img, interpolation='nearest')
@@ -88,12 +86,12 @@ def plot_filters_for_layer(layer_filters, layer_number, episode_number):
 
 
 def get_test_input():
-    im1 = State.get_single_frame('QLearner/samples/original/Step - 304.png')
-    im2 = State.get_single_frame('QLearner/samples/original/Step - 308.png')
-    im3 = State.get_single_frame('QLearner/samples/original/Step - 312.png')
-    #im4 = State.get_single_frame('QLearner/samples/original/Step - 316.png')
+    im1 = State.get_single_frame('QLearner/samples/original/Step - 285.png')
+    im2 = State.get_single_frame('QLearner/samples/original/Step - 286.png')
+    im3 = State.get_single_frame('QLearner/samples/original/Step - 287.png')
+    im4 = State.get_single_frame('QLearner/samples/original/Step - 288.png')
 
-    images = [im1, im2, im3]
+    images = [im1, im2, im3, im4]
     stacks = np.stack(images, axis=2)
 
     return stacks

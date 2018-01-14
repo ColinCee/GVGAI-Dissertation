@@ -16,14 +16,14 @@ class Brain():
 
     def __init__(self, available_actions):
         self.weight_backup = "weight_backup.h5"
-        self.input_shape = (55, 150, 3)
+        self.input_shape = (55, 150, 4)
         self.available_actions = available_actions
         self.memory = deque(maxlen=50000)
         self.learning_rate = 0.0001
         self.gamma = 0.99
         self.exploration_rate = 1.0
         self.exploration_min = 0.1
-        self.exploration_decay = 0.9925
+        self.exploration_decay = 0.002  # 450 iterations to 0.1
         self.sample_batch_size = 32
         self.model = Sequential()
 
@@ -43,7 +43,7 @@ class Brain():
         print(self.model.summary())
 
         now = datetime.datetime.now()
-        tb_callback = TensorBoard(log_dir='./Graph/' + now.strftime("%d %b - %H.%M"),
+        tb_callback = TensorBoard(log_dir='./graph/' + now.strftime("%d %b - %H.%M"),
                                   write_graph=True)
         self.callbacks = [tb_callback]
 
@@ -51,7 +51,7 @@ class Brain():
         return K.mean(y_pred)
 
     def save_model(self, episodes):
-        dstfolder = "game-snapshots/Episode {}/".format(episodes);
+        dstfolder = "model-weights/Episode {}/".format(episodes);
         if not os.path.isdir(dstfolder):
             os.makedirs(dstfolder)  # create all directories, raise an error if it already exists
         self.model.save(os.path.join(dstfolder, self.weight_backup))
@@ -73,16 +73,15 @@ class Brain():
         self.model.fit(x=inputs, y=targets,
                        epochs=1, verbose=0,
                        batch_size=self.sample_batch_size,
-                       steps_per_epoch=1,
                        callbacks=self.callbacks)
 
         if self.exploration_rate > self.exploration_min:
-            self.exploration_rate *= self.exploration_decay
+            self.exploration_rate -= self.exploration_decay
 
     def get_batch(self):
         sample_batch = random.sample(self.memory, self.sample_batch_size)
-        inputs = np.zeros((self.sample_batch_size, 55, 150, 3))
-        targets = np.zeros(self.sample_batch_size)
+        inputs = np.zeros((self.sample_batch_size, 55, 150, 4))
+        targets = np.zeros((self.sample_batch_size, 3))
 
         for state, action_string, reward, next_state, done in sample_batch:
 
@@ -96,7 +95,7 @@ class Brain():
             action_index = self.get_index_of_action(action_string)
             target_f[0][action_index] = target
             np.append(inputs, state)
-            np.append(target_f)
+            np.append(targets, target_f[0])
 
         return inputs, targets
 

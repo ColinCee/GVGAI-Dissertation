@@ -17,14 +17,14 @@ class Agent(AbstractPlayer):
         self.lastSsoType = LEARNING_SSO_TYPE.BOTH
         self.brain = None
         self.warmup_steps = 1e4
-        self.steps_between_training = 5e3
-        self.img_stacks = 3
+        self.steps_between_training = 2e3
+        self.img_stacks = 4
 
         self.prev_state = None
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.snapshot_frequency = 10
+        self.snapshot_frequency = 2
         self.state = State(self.img_stacks)
         self.statistics = Statistics()
 
@@ -39,6 +39,7 @@ class Agent(AbstractPlayer):
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
+        self.statistics.start_new_episode()
 
     def act(self, sso: 'SerializableStateObservation', timer):
         """
@@ -55,15 +56,14 @@ class Agent(AbstractPlayer):
             self.brain = Brain(sso.availableActions)
             # Load from a previous save?
             # self.brain.load_model()
+        self.state.add_frame()
         current_step = self.statistics.get_episode_step()
         if current_step % self.img_stacks != 0 or current_step == 0:
-            self.state.add_frame()
-            self.statistics.increment_episode_step()
             # Repeat previous move during frame skip if possible
             if self.prev_action is None:
-                return ACTIONS.ACTION_NIL
+                action = ACTIONS.ACTION_NIL
             else:
-                return self.prev_action
+                action = self.prev_action
         else:
             current_state = self.state.get_frame_stack()
             action = self.brain.get_action(current_state, sso.availableActions)
@@ -107,14 +107,15 @@ class Agent(AbstractPlayer):
         episode_count = self.statistics.get_episode_count()
         steps_since_last_trained = self.statistics.steps_since_last_train
         self.statistics.output_episode_stats(sso, self.brain.exploration_rate)
+        self.save_game_state()
+
         if len(self.brain.memory) >= self.warmup_steps and steps_since_last_trained >= self.steps_between_training:
             self.brain.replay()
             self.brain.save_model(episode_count)
             weights.plot_all_layers(self.brain.model, episode_count)
             self.statistics.output_training_stats()
+            self.statistics.reset_on_train()
 
-        self.statistics.start_new_episode()
-        self.save_game_state()
         return random.randint(0, 2)
 
     # Clip rewards, all positive rewards are set to 1, all negative rewards are set to -1, 0 is unchanged
@@ -135,4 +136,5 @@ class Agent(AbstractPlayer):
     # Save snapshots of a full game
     def save_game_state(self):
         if self.statistics.get_episode_count() % self.snapshot_frequency == 0:
-            self.state.save_game_state(self.statistics.get_episode_count(), self.statistics.get_episode_step())
+            if self.statistics.get_episode_step() != 0:
+                self.state.save_game_state(self.statistics.get_episode_count(), self.statistics.get_episode_step())

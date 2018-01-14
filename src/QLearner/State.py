@@ -10,7 +10,7 @@ class State:
 
     def __init__(self, max_frames):
         self.max_frames = max_frames
-        self.frames = deque()
+        self.frames = deque(maxlen=self.max_frames)
 
     def get_frame_stack(self):
         assert len(self.frames) == self.max_frames, "{} - {}".format(len(self.frames), self.max_frames)
@@ -19,9 +19,6 @@ class State:
 
     def add_frame(self):
         self.frames.append(self.get_single_frame(CompetitionParameters.SCREENSHOT_FILENAME))
-        # Remove an element if it exceeds our capacity
-        if len(self.frames) > self.max_frames:
-            self.frames.popleft()
 
     @staticmethod
     def get_single_frame(image_name):
