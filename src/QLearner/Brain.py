@@ -19,11 +19,11 @@ class Brain():
         self.input_shape = (55, 150, 4)
         self.available_actions = available_actions
         self.memory = deque(maxlen=100000)
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.0002
         self.gamma = 0.99
         self.exploration_rate = 1.0
         self.exploration_min = 0.1
-        self.exploration_decay = 0.002  # 450 iterations to 0.1
+        self.exploration_decay = 0.004  # 225 iterations to 0.1
         self.sample_batch_size = 32
         self.model = Sequential()
 
@@ -44,14 +44,14 @@ class Brain():
 
         now = datetime.datetime.now()
         tb_callback = TensorBoard(log_dir='./graph/' + now.strftime("%d %b - %H.%M"),
-                                  write_graph=True, write_grads=True, histogram_freq=10)
+                                  write_graph=False)
         self.callbacks = [tb_callback]
 
     def mean_Q(self, y_true, y_pred):
         return K.mean(y_pred)
 
-    def save_model(self, episodes):
-        dstfolder = "model-weights/Episode {}/".format(episodes);
+    def save_model(self, episode_number):
+        dstfolder = "model-weights/Episode {}/".format(episode_number)
         if not os.path.isdir(dstfolder):
             os.makedirs(dstfolder)  # create all directories, raise an error if it already exists
         self.model.save(os.path.join(dstfolder, self.weight_backup))
@@ -65,15 +65,17 @@ class Brain():
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
-    def replay(self, train_count):
+    def replay(self):
         if len(self.memory) < self.sample_batch_size:
             return
 
         inputs, targets = self.get_batch()
         self.model.fit(x=inputs, y=targets,
-                       epochs=train_count, verbose=0,
-                       validation_split=0.2,
+                       initial_epoch=0,
+                       batch_size=self.sample_batch_size,
+                       verbose=0,
                        callbacks=self.callbacks)
+
         if self.exploration_rate > self.exploration_min:
             self.exploration_rate -= self.exploration_decay
 

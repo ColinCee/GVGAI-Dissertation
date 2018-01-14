@@ -16,8 +16,8 @@ class Agent(AbstractPlayer):
         AbstractPlayer.__init__(self)
         self.lastSsoType = LEARNING_SSO_TYPE.BOTH
         self.brain = None
-        self.warmup_steps = 1e4
-        self.steps_between_training = 3e4
+        self.warmup_steps = 2e4
+        self.steps_between_training = 2e3
         self.img_stacks = 4
 
         self.prev_state = None
@@ -54,6 +54,8 @@ class Agent(AbstractPlayer):
         """
         if self.brain is None:
             self.brain = Brain(sso.availableActions)
+        if sso.gameTick < 2:
+            return ACTIONS.ACTION_NIL
             # Load from a previous save?
             # self.brain.load_model()
         self.state.add_frame()
@@ -109,12 +111,14 @@ class Agent(AbstractPlayer):
         self.statistics.output_episode_stats(sso, self.brain.exploration_rate)
         self.save_game_state()
 
-        if len(self.brain.memory) >= self.warmup_steps and steps_since_last_trained >= self.steps_between_training:
-            self.brain.replay(self.statistics.train_count)
-            self.brain.save_model(episode_count)
-            weights.plot_all_layers(self.brain.model, episode_count)
-            self.statistics.output_training_stats()
-            self.statistics.reset_on_train()
+        if len(self.brain.memory) >= self.warmup_steps: # Only train after warmup steps have past
+            if steps_since_last_trained >= self.steps_between_training:  # Delay training so that the agent can act out it's policy
+                self.statistics.start_train()
+                self.brain.replay()
+                self.brain.save_model(self.statistics.get_episode_count())
+                weights.plot_all_layers(self.brain.model, episode_count)
+                self.statistics.output_training_stats()
+                self.statistics.reset_on_train()
 
         return random.randint(0, 2)
 
@@ -136,5 +140,4 @@ class Agent(AbstractPlayer):
     # Save snapshots of a full game
     def save_game_state(self):
         if self.statistics.get_episode_count() % self.snapshot_frequency == 0:
-            if self.statistics.get_episode_step() != 0:
-                self.state.save_game_state(self.statistics.get_episode_count(), self.statistics.get_episode_step())
+            self.state.save_game_state(self.statistics.get_episode_count(), self.statistics.get_episode_step())
