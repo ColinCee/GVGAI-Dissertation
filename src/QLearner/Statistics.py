@@ -4,6 +4,7 @@ import csv
 class Statistics():
     def __init__(self):
         self.episide_count = 0
+        self.train_count = 1
         self.episodes_since_last_train = 0
         self.steps_since_last_train = 0
         self.episode_history = []  # Tracks the total reward at the end of each game
@@ -29,6 +30,7 @@ class Statistics():
         return self.episode_history[-1]
 
     def reset_on_train(self):
+        self.train_count += 1
         self.steps_since_last_train = 0
         self.episodes_since_last_train = 0
         self.episode_history = []

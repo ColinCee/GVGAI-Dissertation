@@ -17,7 +17,7 @@ class Agent(AbstractPlayer):
         self.lastSsoType = LEARNING_SSO_TYPE.BOTH
         self.brain = None
         self.warmup_steps = 1e4
-        self.steps_between_training = 2e3
+        self.steps_between_training = 3e4
         self.img_stacks = 4
 
         self.prev_state = None
@@ -110,7 +110,7 @@ class Agent(AbstractPlayer):
         self.save_game_state()
 
         if len(self.brain.memory) >= self.warmup_steps and steps_since_last_trained >= self.steps_between_training:
-            self.brain.replay()
+            self.brain.replay(self.statistics.train_count)
             self.brain.save_model(episode_count)
             weights.plot_all_layers(self.brain.model, episode_count)
             self.statistics.output_training_stats()
