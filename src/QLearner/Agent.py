@@ -16,15 +16,15 @@ class Agent(AbstractPlayer):
         AbstractPlayer.__init__(self)
         self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
         self.brain = None
-        self.warmup_steps = 1e2
-        self.steps_between_training = 1e3
+        self.warmup_steps = 1e4
+        self.steps_between_training = 2e3
         self.img_stacks = 4
 
         self.prev_state = None
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.snapshot_frequency = 1
+        self.snapshot_frequency = 10
         self.state = State(self.img_stacks)
         self.statistics = Statistics()
 
