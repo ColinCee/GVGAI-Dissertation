@@ -64,7 +64,7 @@ class Episode:
             "Tot. Reward: {:2d} | "
             "Game Ticks: {:3d} | "
             "Epsilon: {:.3f} | "
-            "Total Steps: {:5d} | ".format(
+            "Total Steps: {:6d} | ".format(
                 self.episode_number,
                 win,
                 self.total_reward,
