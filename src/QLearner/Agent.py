@@ -103,6 +103,11 @@ class Agent(AbstractPlayer):
         # Add the new frame
         self.state.add_final_frame()
         self.save_game_state()
+        # Backup the weights
+        if self.statistics.episide_count % self.snapshot_frequency == 0:
+            self.brain.save_model(self.get_model_backup_filename())
+            weights.plot_all_layers(self.brain.primary_network, self.statistics.episide_count)
+
         # calculate the terminal reward, the previous reward assumed the game was still in progress
         self.prev_reward = self.calculate_reward(sso)
         self.statistics.add_reward(self.prev_reward)
@@ -111,6 +116,7 @@ class Agent(AbstractPlayer):
 
         self.statistics.increment_train_update_steps()
         self.statistics.output_episode_stats(sso, self.brain.exploration_rate, self.statistics.total_steps)
+
         return random.randint(0, 2)
 
     # Clip rewards, all positive rewards are set to 1, all negative rewards are set to -1, 0 is unchanged
@@ -132,9 +138,6 @@ class Agent(AbstractPlayer):
     def save_game_state(self):
         if self.statistics.episide_count % self.snapshot_frequency == 0:
             self.state.save_game_state(self.statistics.episide_count, self.statistics.get_episode_step())
-            # Backup the weights
-            self.brain.save_model(self.get_model_backup_filename())
-            weights.plot_all_layers(self.brain.primary_network, self.statistics.episide_count)
 
     def train_network(self):
         # Train after we have filled our replay memory a little
