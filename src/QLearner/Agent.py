@@ -74,6 +74,7 @@ class Agent(AbstractPlayer):
             action = self.brain.get_action(current_state, sso.availableActions)
             if self.prev_state is not None:
                 self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, current_state, 0)
+                self.statistics.total_steps += 1
 
             self.prev_state = current_state
             self.prev_action = action
@@ -113,7 +114,7 @@ class Agent(AbstractPlayer):
         self.statistics.add_reward(self.prev_reward)
         # We need one final remember when we get into the terminal state
         self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
-
+        self.statistics.total_steps += 1
         self.statistics.increment_train_update_steps()
         self.statistics.output_episode_stats(sso, self.brain.exploration_rate, self.statistics.total_steps)
 

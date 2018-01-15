@@ -25,7 +25,6 @@ class Statistics():
 
     def start_new_episode(self):
         self.episide_count += 1
-        self.total_steps += self.current_episode.current_step
         self.current_episode = Episode(self.episide_count)
 
     def get_current_episode(self) -> 'Episode':
