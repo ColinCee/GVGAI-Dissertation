@@ -1,13 +1,9 @@
-import csv
-
-
 class Statistics():
     def __init__(self):
         self.episide_count = 0
-        self.train_count = 1
-        self.episodes_since_last_train = 0
+        self.train_count = 0
         self.steps_since_last_train = 0
-        self.episode_history = []  # Tracks the total reward at the end of each game
+        self.current_episode = Episode(0)  # Tracks the total reward at the end of each game
         self.mean_reward_since_train = 0
         self.mean_duration_since_train = 0
 
@@ -26,47 +22,23 @@ class Statistics():
 
     def start_new_episode(self):
         self.episide_count += 1
-        self.episode_history.append(Episode(self.get_episode_count()))
+        self.current_episode = Episode(self.get_episode_count())
 
     def get_current_episode(self) -> 'Episode':
-        return self.episode_history[-1]
+        return self.current_episode
 
     def reset_on_train(self):
         self.train_count += 1
         self.steps_since_last_train = 0
-        self.episodes_since_last_train = 0
-        self.episode_history = []
 
     def output_episode_stats(self, sso, exploration_rate):
         self.steps_since_last_train += 1
-        self.episodes_since_last_train += 1
         self.get_current_episode().output_episode_stats(sso, exploration_rate)
+        self.log_episode_stats()
 
-    def start_train(self):
-        mean_episode_reward = 0
-        mean_episode_duration = 0
-        for episode in self.episode_history[-self.episodes_since_last_train:]:  # type: Episode
-            mean_episode_reward += episode.total_reward
-            mean_episode_duration += episode.current_step
-        mean_episode_reward /= self.episodes_since_last_train
-        mean_episode_duration /= self.episodes_since_last_train
-
-        self.mean_reward_since_train = mean_episode_reward
-        self.mean_duration_since_train = mean_episode_duration
-
-    def output_training_stats(self):
-
-        print("[{}]. Eps since last train - with mean reward: {:2.2f} | duration: {:3.2f}".format(
-            self.episodes_since_last_train,
-            self.mean_reward_since_train,
-            self.mean_duration_since_train))
-
-        self.log_training_to_csv()
-
-    def log_training_to_csv(self):
+    def log_episode_stats(self):
         with open('reward_history.csv', 'a+') as file:
-            for episode in self.episode_history[-self.episodes_since_last_train:]:  # type: Episode
-                file.write("{}, {}\n".format(episode.total_reward, episode.current_step))
+            file.write("{}, {}\n".format(self.current_episode.total_reward, self.current_episode.current_step))
         file.close()
 
 
