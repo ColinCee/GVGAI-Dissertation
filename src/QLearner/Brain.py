@@ -22,7 +22,7 @@ class Brain():
         self.gamma = 0.99
         self.exploration_rate = 1.0
         self.exploration_min = 0.1
-        self.exploration_decay = 0.00025  # 225 iterations to 0.1
+        self.exploration_decay = 0.0001  # per step
         self.sample_batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()

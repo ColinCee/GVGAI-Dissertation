@@ -110,7 +110,7 @@ class Agent(AbstractPlayer):
         self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
 
         self.statistics.increment_train_update_steps()
-        self.statistics.output_episode_stats(sso, self.brain.exploration_rate)
+        self.statistics.output_episode_stats(sso, self.brain.exploration_rate, self.statistics.total_steps)
         return random.randint(0, 2)
 
     # Clip rewards, all positive rewards are set to 1, all negative rewards are set to -1, 0 is unchanged
@@ -132,16 +132,15 @@ class Agent(AbstractPlayer):
     def save_game_state(self):
         if self.statistics.episide_count % self.snapshot_frequency == 0:
             self.state.save_game_state(self.statistics.episide_count, self.statistics.get_episode_step())
+            # Backup the weights
+            self.brain.save_model(self.get_model_backup_filename())
+            weights.plot_all_layers(self.brain.primary_network, self.statistics.episide_count)
 
     def train_network(self):
-        # Train after we have filled our replay memory a little, also delay training
-        episode_count = self.statistics.episide_count
-        steps_since_last_trained = self.statistics.steps_since_last_train
+        # Train after we have filled our replay memory a little
         if len(self.brain.memory) >= self.warmup_steps:  # Only train after warmup steps have past
-            if steps_since_last_trained >= self.training_frequency:  # Delay training so that the agent can act out it's policy
+            if self.statistics.steps_since_last_train >= self.training_frequency:  # Delay training so that the agent can act out it's policy
                 self.brain.replay()
-                self.brain.save_model(self.get_model_backup_filename())
-                weights.plot_all_layers(self.brain.primary_network, episode_count)
                 self.statistics.reset_on_train()
 
             if self.statistics.steps_since_last_update > self.target_update_frequency:
@@ -150,5 +149,4 @@ class Agent(AbstractPlayer):
 
     def get_model_backup_filename(self):
         folder = "model-weights/Episode {}/".format(self.statistics.episide_count)
-
         return os.path.join(folder, self.brain.weight_backup)

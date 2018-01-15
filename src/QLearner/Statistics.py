@@ -1,5 +1,6 @@
 class Statistics():
     def __init__(self):
+        self.total_steps = 0
         self.episide_count = 0
         self.train_count = 0
         self.steps_since_last_train = 0
@@ -24,6 +25,7 @@ class Statistics():
 
     def start_new_episode(self):
         self.episide_count += 1
+        self.total_steps += self.current_episode.current_step
         self.current_episode = Episode(self.episide_count)
 
     def get_current_episode(self) -> 'Episode':
@@ -36,8 +38,8 @@ class Statistics():
     def reset_on_update(self):
         self.steps_since_last_update = 0
 
-    def output_episode_stats(self, sso, exploration_rate):
-        self.get_current_episode().output_episode_stats(sso, exploration_rate)
+    def output_episode_stats(self, sso, exploration_rate, total_steps):
+        self.get_current_episode().output_episode_stats(sso, exploration_rate, total_steps)
         self.log_episode_stats()
 
     def log_episode_stats(self):
@@ -55,15 +57,17 @@ class Episode:
     def add_reward(self, reward):
         self.total_reward += reward
 
-    def output_episode_stats(self, sso, exploration_rate):
+    def output_episode_stats(self, sso, exploration_rate, total_steps):
         win = "True " if "WIN" in sso.gameWinner else "False"
         print(
             "{}. Win: {} | "
             "Tot. Reward: {:2d} | "
             "Game Ticks: {:3d} | "
-            "Epsilon: {:.3f} | ".format(
+            "Epsilon: {:.3f} | "
+            "Total Steps: {:5d} | ".format(
                 self.episode_number,
                 win,
                 self.total_reward,
                 sso.gameTick,
-                exploration_rate))
+                exploration_rate,
+                total_steps))
