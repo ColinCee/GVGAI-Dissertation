@@ -3,6 +3,7 @@ class Statistics():
         self.episide_count = 0
         self.train_count = 0
         self.steps_since_last_train = 0
+        self.steps_since_last_update = 0
         self.current_episode = Episode(0)  # Tracks the total reward at the end of each game
         self.mean_reward_since_train = 0
         self.mean_duration_since_train = 0
@@ -17,12 +18,13 @@ class Statistics():
     def increment_episode_step(self):
         self.get_current_episode().current_step += 1
 
-    def get_episode_count(self):
-        return self.episide_count
+    def increment_train_update_steps(self):
+        self.steps_since_last_train += 1
+        self.steps_since_last_update += 1
 
     def start_new_episode(self):
         self.episide_count += 1
-        self.current_episode = Episode(self.get_episode_count())
+        self.current_episode = Episode(self.episide_count)
 
     def get_current_episode(self) -> 'Episode':
         return self.current_episode
@@ -31,8 +33,10 @@ class Statistics():
         self.train_count += 1
         self.steps_since_last_train = 0
 
+    def reset_on_update(self):
+        self.steps_since_last_update = 0
+
     def output_episode_stats(self, sso, exploration_rate):
-        self.steps_since_last_train += 1
         self.get_current_episode().output_episode_stats(sso, exploration_rate)
         self.log_episode_stats()
 

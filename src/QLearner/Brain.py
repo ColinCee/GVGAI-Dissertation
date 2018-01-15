@@ -18,11 +18,11 @@ class Brain():
         self.input_shape = (55, 150, 4)
         self.available_actions = available_actions
         self.memory = deque(maxlen=100000)
-        self.learning_rate = 0.0002
+        self.learning_rate = 0.0001
         self.gamma = 0.99
         self.exploration_rate = 1.0
         self.exploration_min = 0.1
-        self.exploration_decay = 0.004  # 225 iterations to 0.1
+        self.exploration_decay = 0.00025  # 225 iterations to 0.1
         self.sample_batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()
@@ -66,9 +66,9 @@ class Brain():
         return K.mean(y_pred)
 
     def save_model(self, filename):
-        if not os.path.isdir(filename):
-            os.makedirs(filename)  # create all directories, raise an error if it already exists
-        self.primary_network.save(os.path.join(filename, self.weight_backup))
+        if not os.path.isdir(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))  # create all directories, raise an error if it already exists
+        self.primary_network.save(os.path.join(filename))
 
     def load_model(self, filename):
         if os.path.isfile(filename):
@@ -82,7 +82,7 @@ class Brain():
         self.save_model(backup)
         if os.path.isfile(backup):
             self.target_network.load_weights(backup)
-            print("Successfully updated target weights!")
+            print("Updating target network...")
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))

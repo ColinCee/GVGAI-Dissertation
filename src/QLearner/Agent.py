@@ -1,12 +1,14 @@
+import os
 import random
 
-import weights
 from AbstractPlayer import AbstractPlayer
-from Brain import Brain
 from SerializableStateObservation import SerializableStateObservation
+from Types import *
+
+import weights
+from Brain import Brain
 from State import State
 from Statistics import Statistics
-from Types import *
 
 
 class Agent(AbstractPlayer):
@@ -15,16 +17,16 @@ class Agent(AbstractPlayer):
         AbstractPlayer.__init__(self)
         self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
         self.brain = None
-        self.warmup_steps = 1e3
+        self.warmup_steps = 1e4
         self.training_frequency = 4
-        self.target_update_frequency = 2e3  # Update frequency in steps
+        self.target_update_frequency = 5e2  # Update frequency in steps
         self.img_stacks = 4
 
         self.prev_state = None
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.snapshot_frequency = 1
+        self.snapshot_frequency = 10
         self.state = State(self.img_stacks)
         self.statistics = Statistics()
 
@@ -78,7 +80,7 @@ class Agent(AbstractPlayer):
             self.prev_reward = self.calculate_reward(sso)
             self.statistics.add_reward(self.prev_reward)
             self.prev_game_score = sso.gameScore
-            self.statistics.steps_since_last_train += 1
+            self.statistics.increment_train_update_steps()
 
         self.statistics.increment_episode_step()
         self.train_network()
@@ -107,8 +109,8 @@ class Agent(AbstractPlayer):
         # We need one final remember when we get into the terminal state
         self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
 
+        self.statistics.increment_train_update_steps()
         self.statistics.output_episode_stats(sso, self.brain.exploration_rate)
-
         return random.randint(0, 2)
 
     # Clip rewards, all positive rewards are set to 1, all negative rewards are set to -1, 0 is unchanged
@@ -128,12 +130,12 @@ class Agent(AbstractPlayer):
 
     # Save snapshots of a full game
     def save_game_state(self):
-        if self.statistics.get_episode_count() % self.snapshot_frequency == 0:
-            self.state.save_game_state(self.statistics.get_episode_count(), self.statistics.get_episode_step())
+        if self.statistics.episide_count % self.snapshot_frequency == 0:
+            self.state.save_game_state(self.statistics.episide_count, self.statistics.get_episode_step())
 
     def train_network(self):
         # Train after we have filled our replay memory a little, also delay training
-        episode_count = self.statistics.get_episode_count()
+        episode_count = self.statistics.episide_count
         steps_since_last_trained = self.statistics.steps_since_last_train
         if len(self.brain.memory) >= self.warmup_steps:  # Only train after warmup steps have past
             if steps_since_last_trained >= self.training_frequency:  # Delay training so that the agent can act out it's policy
@@ -142,9 +144,11 @@ class Agent(AbstractPlayer):
                 weights.plot_all_layers(self.brain.primary_network, episode_count)
                 self.statistics.reset_on_train()
 
-                if self.statistics.train_count % self.target_update_frequency:
-                    self.brain.update_target_network()
+            if self.statistics.steps_since_last_update > self.target_update_frequency:
+                self.brain.update_target_network()
+                self.statistics.reset_on_update()
 
     def get_model_backup_filename(self):
-        filename = "model-weights/Episode {}/".format(self.statistics.get_episode_count())
-        return filename
+        folder = "model-weights/Episode {}/".format(self.statistics.episide_count)
+
+        return os.path.join(folder, self.brain.weight_backup)
