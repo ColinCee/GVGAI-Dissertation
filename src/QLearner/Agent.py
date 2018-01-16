@@ -17,9 +17,9 @@ class Agent(AbstractPlayer):
         AbstractPlayer.__init__(self)
         self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
         self.brain = None
-        self.warmup_steps = 1e4
+        self.warmup_steps = 2e4
         self.training_frequency = 4
-        self.target_update_frequency = 5e2  # Update frequency in steps
+        self.target_update_frequency = 4000  # Update frequency in steps
         self.img_stacks = 4
 
         self.prev_state = None
@@ -56,8 +56,11 @@ class Agent(AbstractPlayer):
         """
         if self.brain is None:
             self.brain = Brain(sso.availableActions)
+            self.brain.load_model(self.brain.weight_backup)
+            self.brain.exploration_rate = 0.472
+            self.statistics.total_steps = int(124833 - self.warmup_steps)
+            self.statistics.episide_count = 892
             # Load from a previous save?
-            # self.brain.load_model()
         if sso.gameTick < 1:
             return ACTIONS.ACTION_NIL
 

@@ -22,7 +22,7 @@ class Brain():
         self.gamma = 0.99
         self.exploration_rate = 1.0
         self.exploration_min = 0.1
-        self.exploration_decay = 0.0001  # per step
+        self.exploration_decay = 1 / 75000  # per step
         self.sample_batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()
@@ -40,7 +40,7 @@ class Brain():
         self.primary_network.add(Dense(512, activation='relu'))
         self.primary_network.add(Dense(len(self.available_actions), activation='linear'))  # Output Layer
         # Clip gradients, set metrics
-        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1.),
+        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-5),
                                      metrics=[self.mean_Q])
         print(self.primary_network.summary())
 
@@ -54,8 +54,8 @@ class Brain():
         self.target_network.add(Dense(512, activation='relu'))
         self.target_network.add(Dense(len(self.available_actions), activation='linear'))  # Output Layer
         # Clip gradients, set metrics
-        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1.),
-                                     metrics=[self.mean_Q])
+        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-6),
+                                     metrics=[self.mean_Q, self.lr])
 
         now = datetime.datetime.now()
         tb_callback = TensorBoard(log_dir='./graph/' + now.strftime("%d %b - %H.%M"),
@@ -64,6 +64,9 @@ class Brain():
 
     def mean_Q(self, y_true, y_pred):
         return K.mean(y_pred)
+
+    def lr(self, y_true, y_pred):
+        return K.variable(K.eval(self.primary_network.optimizer.lr))
 
     def save_model(self, filename):
         if not os.path.isdir(os.path.dirname(filename)):
@@ -93,7 +96,6 @@ class Brain():
 
         inputs, targets = self.get_batch()
         self.primary_network.fit(x=inputs, y=targets,
-                                 initial_epoch=0,
                                  batch_size=self.sample_batch_size,
                                  verbose=0,
                                  callbacks=self.callbacks)
