@@ -42,6 +42,7 @@ class Agent(AbstractPlayer):
         self.prev_reward = 0
         self.prev_game_score = 0
         self.statistics.start_new_episode()
+        self.state.start_new_episode()
 
     def act(self, sso: 'SerializableStateObservation', timer):
         """
@@ -57,9 +58,10 @@ class Agent(AbstractPlayer):
         if self.brain is None:
             self.brain = Brain(sso.availableActions)
             self.brain.load_model(self.brain.weight_backup)
-            self.brain.exploration_rate = 0.472
-            self.statistics.total_steps = int(124833 - self.warmup_steps)
-            self.statistics.episide_count = 892
+            self.brain.exploration_rate = 0.01
+            # self.statistics.total_steps = int(198176 - self.warmup_steps)
+            # self.statistics.episide_count = 1400
+            # self.statistics.get_current_episode().episode_number = 1400
             # Load from a previous save?
         if sso.gameTick < 1:
             return ACTIONS.ACTION_NIL

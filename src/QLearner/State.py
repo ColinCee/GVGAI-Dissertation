@@ -14,6 +14,10 @@ class State:
         self.original_frames = deque(maxlen=self.max_frames)
         self.resized_frames = deque(maxlen=self.max_frames)
 
+    def start_new_episode(self):
+        self.original_frames.clear()
+        self.resized_frames.clear()
+
     def get_frame_stack(self):
         assert len(self.resized_frames) == self.max_frames, "{} - {}".format(len(self.resized_frames), self.max_frames)
         stacks = np.stack(self.resized_frames, axis=2)
