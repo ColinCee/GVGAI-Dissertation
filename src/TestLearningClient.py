@@ -1,9 +1,9 @@
+import argparse
 import logging
 import os
 import subprocess
 import sys
 import traceback
-import argparse
 
 sys.path.append("./utils")
 

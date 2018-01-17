@@ -17,9 +17,9 @@ class Agent(AbstractPlayer):
         AbstractPlayer.__init__(self)
         self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
         self.brain = None
-        self.warmup_steps = 2e4
+        self.warmup_steps = 1e4
         self.training_frequency = 4
-        self.target_update_frequency = 4000  # Update frequency in steps
+        self.target_update_frequency = 1e3  # Update frequency in steps
         self.img_stacks = 4
 
         self.prev_state = None
@@ -27,6 +27,7 @@ class Agent(AbstractPlayer):
         self.prev_reward = 0
         self.prev_game_score = 0
         self.snapshot_frequency = 10
+        self.validation = False
         self.state = State(self.img_stacks)
         self.statistics = Statistics()
 
@@ -57,8 +58,9 @@ class Agent(AbstractPlayer):
         """
         if self.brain is None:
             self.brain = Brain(sso.availableActions)
-            self.brain.load_model(self.brain.weight_backup)
-            self.brain.exploration_rate = 0.01
+            # self.brain.load_model(self.brain.weight_backup)
+            # self.brain.exploration_rate = 0
+            # self.validation = True
             # self.statistics.total_steps = int(198176 - self.warmup_steps)
             # self.statistics.episide_count = 1400
             # self.statistics.get_current_episode().episode_number = 1400
@@ -121,7 +123,7 @@ class Agent(AbstractPlayer):
         self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
         self.statistics.total_steps += 1
         self.statistics.increment_train_update_steps()
-        self.statistics.output_episode_stats(sso, self.brain.exploration_rate, self.statistics.total_steps)
+        self.statistics.output_episode_stats(sso, self.brain.exploration_rate)
 
         return random.randint(0, 2)
 
@@ -134,15 +136,11 @@ class Agent(AbstractPlayer):
                 return -1
         else:
             score_diff = (sso.gameScore - self.prev_game_score)
-
-            if score_diff > 0:
-                return 1
-            else:
-                return 0
+            return score_diff / 10
 
     # Save snapshots of a full game
     def save_game_state(self):
-        if self.statistics.episide_count % self.snapshot_frequency == 0:
+        if self.statistics.episide_count % self.snapshot_frequency == 0 or self.validation:
             self.state.save_game_state(self.statistics.episide_count, self.statistics.get_episode_step())
 
     def train_network(self):

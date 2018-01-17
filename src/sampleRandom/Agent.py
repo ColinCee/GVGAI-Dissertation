@@ -1,11 +1,9 @@
 import random
 
 from AbstractPlayer import AbstractPlayer
+from SerializableStateObservation import SerializableStateObservation
 from Types import *
-from CompetitionParameters import CompetitionParameters
-from SerializableStateObservation import SerializableStateObservation, Observation
-from PIL import Image
-import numpy as np
+
 
 class Agent(AbstractPlayer):
     def __init__(self):
@@ -38,8 +36,6 @@ class Agent(AbstractPlayer):
             return "ACTION_ESCAPE"
         else:
             index = random.randint(0, len(sso.availableActions) - 1)
-
-            print(sso.availableActions[index])
             return sso.availableActions[index]
 
     def print_obersvation_grid(self, observation_grid):

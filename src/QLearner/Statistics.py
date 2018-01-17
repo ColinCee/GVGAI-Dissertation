@@ -37,14 +37,14 @@ class Statistics():
     def reset_on_update(self):
         self.steps_since_last_update = 0
 
-    def output_episode_stats(self, sso, exploration_rate, total_steps):
-        self.get_current_episode().output_episode_stats(sso, exploration_rate, total_steps)
+    def output_episode_stats(self, sso, exploration_rate):
+        self.get_current_episode().output_episode_stats(sso, exploration_rate, self.total_steps)
         self.log_episode_stats()
 
     def log_episode_stats(self):
         with open('reward_history.csv', 'a+') as file:
-            file.write("{}, {}, {}\n".format(self.get_current_episode().total_reward, self.get_episode_step(),
-                                             self.get_current_episode().win))
+            file.write("{:.3f}, {}, {}\n".format(self.get_current_episode().total_reward, self.get_episode_step(),
+                                                 self.get_current_episode().win))
         file.close()
 
 
@@ -62,7 +62,7 @@ class Episode:
         self.win = "True " if "WIN" in sso.gameWinner else "False"
         print(
             "{}. Win: {} | "
-            "Tot. Reward: {:2d} | "
+            "Tot. Reward: {:.3f} | "
             "Game Ticks: {:3d} | "
             "Epsilon: {:.3f} | "
             "Total Steps: {:<6d} ".format(
