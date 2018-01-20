@@ -19,7 +19,7 @@ class Agent(AbstractPlayer):
         self.brain = None
         self.img_stacks = 4
         self.warmup_steps = 2e4
-        self.target_update_frequency = 5e3  # Update frequency in steps
+        self.target_update_frequency = 3e3  # Update frequency in steps
         self.training_frequency = self.img_stacks
 
         self.prev_state = None
@@ -65,6 +65,7 @@ class Agent(AbstractPlayer):
             # self.statistics.episide_count = 1400
             # self.statistics.get_current_episode().episode_number = 1400
             # Load from a previous save?
+
         if sso.gameTick < 1:
             return ACTIONS.ACTION_NIL
 
@@ -111,10 +112,7 @@ class Agent(AbstractPlayer):
         # Add the new frame
         self.state.add_final_frame()
         self.save_game_state()
-        # Backup the weights
-        if self.statistics.episide_count % self.snapshot_frequency == 0:
-            self.brain.save_model(self.get_model_backup_filename())
-            weights.plot_all_layers(self.brain.primary_network, self.statistics.episide_count)
+        self.save_model_weights()
 
         # calculate the terminal reward, the previous reward assumed the game was still in progress
         self.prev_reward = self.calculate_reward(sso)
@@ -145,6 +143,15 @@ class Agent(AbstractPlayer):
                 or self.validation:
             self.state.save_game_state(self.statistics.episide_count, self.statistics.get_episode_step())
 
+    # Backup the weights and output the filter visualisations
+    def save_model_weights(self):
+
+        if self.statistics.episide_count % self.snapshot_frequency == 0:
+            folder = "model-weights/Episode {}/".format(self.statistics.episide_count)
+            filename = os.path.join(folder, self.brain.weight_backup)
+            self.brain.save_model(filename)
+            weights.plot_all_layers(self.brain.primary_network, self.statistics.episide_count)
+
     def train_network(self):
         # Train after we have filled our replay memory a little
         if len(self.brain.memory) >= self.warmup_steps:  # Only train after warmup steps have past
@@ -155,7 +162,3 @@ class Agent(AbstractPlayer):
             if self.statistics.steps_since_last_update > self.target_update_frequency:
                 self.brain.update_target_network()
                 self.statistics.reset_on_update()
-
-    def get_model_backup_filename(self):
-        folder = "model-weights/Episode {}/".format(self.statistics.episide_count)
-        return os.path.join(folder, self.brain.weight_backup)
