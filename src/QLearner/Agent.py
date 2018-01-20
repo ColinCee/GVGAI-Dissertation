@@ -17,10 +17,10 @@ class Agent(AbstractPlayer):
         AbstractPlayer.__init__(self)
         self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
         self.brain = None
-        self.warmup_steps = 1e4
-        self.training_frequency = 4
-        self.target_update_frequency = 1e3  # Update frequency in steps
         self.img_stacks = 4
+        self.warmup_steps = 2e4
+        self.target_update_frequency = 5e3  # Update frequency in steps
+        self.training_frequency = self.img_stacks
 
         self.prev_state = None
         self.prev_action = None
@@ -140,7 +140,9 @@ class Agent(AbstractPlayer):
 
     # Save snapshots of a full game
     def save_game_state(self):
-        if self.statistics.episide_count % self.snapshot_frequency == 0 or self.validation:
+        if (self.statistics.episide_count % self.snapshot_frequency == 0
+            and self.statistics.total_steps >= self.warmup_steps) \
+                or self.validation:
             self.state.save_game_state(self.statistics.episide_count, self.statistics.get_episode_step())
 
     def train_network(self):

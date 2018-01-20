@@ -21,8 +21,8 @@ class Brain():
         self.learning_rate = 0.0001
         self.gamma = 0.99
         self.exploration_rate = 1.0
-        self.exploration_min = 0.1
-        self.exploration_decay = 1 / 50000  # per step
+        self.exploration_min = 0.01
+        self.exploration_decay = 1 / 100000  # per step
         self.sample_batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()
@@ -105,7 +105,7 @@ class Brain():
 
     def get_batch(self):
         sample_batch = random.sample(self.memory, self.sample_batch_size)
-        inputs = np.zeros((self.sample_batch_size, 55, 150, 4))
+        inputs = np.zeros((self.sample_batch_size, self.input_shape[0], self.input_shape[1], self.input_shape[2]))
         targets = np.zeros((self.sample_batch_size, 3))
         counter = 0
 
