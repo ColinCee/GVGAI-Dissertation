@@ -8,7 +8,7 @@ from Types import *
 class Agent(AbstractPlayer):
     def __init__(self):
         AbstractPlayer.__init__(self)
-        self.lastSsoType = LEARNING_SSO_TYPE.BOTH
+        self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
 
     """
     * Public method to be called at the start of every level of a game.

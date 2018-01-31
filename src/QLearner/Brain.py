@@ -21,8 +21,8 @@ class Brain():
         self.learning_rate = 0.0001
         self.gamma = 0.99
         self.exploration_rate = 1.0
-        self.exploration_min = 0.01
-        self.exploration_decay = 1 / 100000  # per step
+        self.exploration_min = 0.05
+        self.exploration_decay = 1 / 10000  # per train
         self.sample_batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()
@@ -40,8 +40,9 @@ class Brain():
         self.primary_network.add(Dense(512, activation='relu'))
         self.primary_network.add(Dense(len(self.available_actions), activation='linear'))  # Output Layer
         # Clip gradients, set metrics
-        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-5),
-                                     metrics=[self.mean_Q])
+        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-4))
+        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-4),
+                                     metrics=[self.mean_Q, self.lr])
         print(self.primary_network.summary())
 
         # Target Network
@@ -54,8 +55,8 @@ class Brain():
         self.target_network.add(Dense(512, activation='relu'))
         self.target_network.add(Dense(len(self.available_actions), activation='linear'))  # Output Layer
         # Clip gradients, set metrics
-        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-6),
-                                     metrics=[self.mean_Q, self.lr])
+        self.target_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-4),
+                                    metrics=[self.mean_Q])
 
         now = datetime.datetime.now()
         tb_callback = TensorBoard(log_dir='./graph/' + now.strftime("%d %b - %H.%M"),

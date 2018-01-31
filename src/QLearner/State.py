@@ -37,6 +37,9 @@ class State:
         self.original_frames.append(np.array(image))
         self.resized_frames.append(np.array(resized_image))
 
+        image.close()  # Close connection to the image
+        resized_image.close()
+
     def get_image_from_array(self, pixels):
         for i, e in enumerate(pixels):
             pixels[i] = e & 0xFF

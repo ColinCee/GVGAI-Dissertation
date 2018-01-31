@@ -17,10 +17,10 @@ class Agent(AbstractPlayer):
         AbstractPlayer.__init__(self)
         self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
         self.brain = None
-        self.img_stacks = 4
-        self.warmup_steps = 2e4
-        self.target_update_frequency = 3e3  # Update frequency in steps
-        self.training_frequency = self.img_stacks
+        self.frames_per_stack = 4
+        self.warmup_steps = 1e4
+        self.target_update_frequency = 1e3  # Update frequency in steps
+        self.training_frequency = 8
 
         self.prev_state = None
         self.prev_action = None
@@ -28,7 +28,7 @@ class Agent(AbstractPlayer):
         self.prev_game_score = 0
         self.snapshot_frequency = 10
         self.validation = False
-        self.state = State(self.img_stacks)
+        self.state = State(self.frames_per_stack)
         self.statistics = Statistics()
 
     def init(self, sso, timer):
@@ -66,18 +66,13 @@ class Agent(AbstractPlayer):
             # self.statistics.get_current_episode().episode_number = 1400
             # Load from a previous save?
 
-        if sso.gameTick < 1:
+        if sso.gameTick <= 1:
             return ACTIONS.ACTION_NIL
 
         self.state.add_frame(sso.imageArray)
         current_step = self.statistics.get_episode_step()
-        if current_step % self.img_stacks != 0 or current_step == 0:
-            # Repeat previous move during frame skip if possible
-            if self.prev_action is None:
-                action = ACTIONS.ACTION_NIL
-            else:
-                action = self.prev_action
-        else:
+
+        if current_step % self.frames_per_stack == 0 and current_step > 0:
             current_state = self.state.get_frame_stack()
             action = self.brain.get_action(current_state, sso.availableActions)
             if self.prev_state is not None:
@@ -88,11 +83,18 @@ class Agent(AbstractPlayer):
             self.prev_action = action
             self.prev_reward = self.calculate_reward(sso)
             self.statistics.add_reward(self.prev_reward)
-            self.prev_game_score = sso.gameScore
-            self.statistics.increment_train_update_steps()
+            self.statistics.increment_stacks_since_last_train()
+            self.statistics.increment_stacks_since_last_update()
+            self.train_network()
+
+        else:
+            # Repeat previous move during frame skip if possible
+            if self.prev_action is None:
+                action = ACTIONS.ACTION_NIL
+            else:
+                action = self.prev_action
 
         self.statistics.increment_episode_step()
-        self.train_network()
         self.save_game_state()
         return action
 
@@ -120,7 +122,8 @@ class Agent(AbstractPlayer):
         # We need one final remember when we get into the terminal state
         self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
         self.statistics.total_steps += 1
-        self.statistics.increment_train_update_steps()
+        self.statistics.increment_stacks_since_last_train()
+        self.statistics.increment_stacks_since_last_update()
         self.statistics.output_episode_stats(sso, self.brain.exploration_rate)
 
         return random.randint(0, 2)
@@ -134,6 +137,7 @@ class Agent(AbstractPlayer):
                 return -1
         else:
             score_diff = (sso.gameScore - self.prev_game_score)
+            self.prev_game_score = sso.gameScore
             return score_diff / 10
 
     # Save snapshots of a full game
@@ -146,7 +150,9 @@ class Agent(AbstractPlayer):
     # Backup the weights and output the filter visualisations
     def save_model_weights(self):
 
-        if self.statistics.episide_count % self.snapshot_frequency == 0:
+        if (self.statistics.episide_count % self.snapshot_frequency == 0
+            and self.statistics.total_steps >= self.warmup_steps) \
+                or self.validation:
             folder = "model-weights/Episode {}/".format(self.statistics.episide_count)
             filename = os.path.join(folder, self.brain.weight_backup)
             self.brain.save_model(filename)
@@ -155,10 +161,10 @@ class Agent(AbstractPlayer):
     def train_network(self):
         # Train after we have filled our replay memory a little
         if len(self.brain.memory) >= self.warmup_steps:  # Only train after warmup steps have past
-            if self.statistics.steps_since_last_train >= self.training_frequency:  # Delay training so that the agent can act out it's policy
+            if self.statistics.stacks_since_last_train >= self.training_frequency:
                 self.brain.replay()
-                self.statistics.reset_on_train()
+                self.statistics.log_train()
 
-            if self.statistics.steps_since_last_update > self.target_update_frequency:
+            if self.statistics.stacks_since_last_update >= self.target_update_frequency:
                 self.brain.update_target_network()
-                self.statistics.reset_on_update()
+                self.statistics.log_update()

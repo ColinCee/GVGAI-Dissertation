@@ -3,8 +3,9 @@ class Statistics():
         self.total_steps = 0
         self.episide_count = 0
         self.train_count = 0
-        self.steps_since_last_train = 0
-        self.steps_since_last_update = 0
+        self.update_count = 0
+        self.stacks_since_last_train = 0
+        self.stacks_since_last_update = 0
         self.current_episode = Episode(0)  # Tracks the total reward at the end of each game
         self.mean_reward_since_train = 0
         self.mean_duration_since_train = 0
@@ -19,9 +20,11 @@ class Statistics():
     def increment_episode_step(self):
         self.get_current_episode().current_step += 1
 
-    def increment_train_update_steps(self):
-        self.steps_since_last_train += 1
-        self.steps_since_last_update += 1
+    def increment_stacks_since_last_train(self):
+        self.stacks_since_last_train += 1
+
+    def increment_stacks_since_last_update(self):
+        self.stacks_since_last_update += 1
 
     def start_new_episode(self):
         self.episide_count += 1
@@ -30,21 +33,23 @@ class Statistics():
     def get_current_episode(self) -> 'Episode':
         return self.current_episode
 
-    def reset_on_train(self):
+    def log_train(self):
         self.train_count += 1
-        self.steps_since_last_train = 0
+        self.stacks_since_last_train = 0
 
-    def reset_on_update(self):
-        self.steps_since_last_update = 0
+    def log_update(self):
+        self.update_count += 1
+        self.stacks_since_last_update = 0
 
     def output_episode_stats(self, sso, exploration_rate):
-        self.get_current_episode().output_episode_stats(sso, exploration_rate, self.total_steps)
-        self.log_episode_stats()
+        self.get_current_episode().output_episode_stats(sso, exploration_rate, self.total_steps, self.train_count)
+        self.log_episode_stats(exploration_rate)
 
-    def log_episode_stats(self):
+    def log_episode_stats(self, exploration_rate):
         with open('reward_history.csv', 'a+') as file:
-            file.write("{:.3f}, {}, {}\n".format(self.get_current_episode().total_reward, self.get_episode_step(),
-                                                 self.get_current_episode().win))
+            file.write(
+                "{:.3f}, {}, {}, {:.3f}\n".format(self.get_current_episode().total_reward, self.get_episode_step(),
+                                                  self.get_current_episode().win, exploration_rate))
         file.close()
 
 
@@ -58,17 +63,19 @@ class Episode:
     def add_reward(self, reward):
         self.total_reward += reward
 
-    def output_episode_stats(self, sso, exploration_rate, total_steps):
+    def output_episode_stats(self, sso, exploration_rate, total_steps, total_train):
         self.win = "True " if "WIN" in sso.gameWinner else "False"
         print(
             "{}. Win: {} | "
             "Tot. Reward: {:.3f} | "
             "Game Ticks: {:3d} | "
             "Epsilon: {:.3f} | "
-            "Total Steps: {:<6d} ".format(
+            "Total Steps: {:<6d} "
+            "Total Trains: {}".format(
                 self.episode_number,
                 self.win,
                 self.total_reward,
                 sso.gameTick,
                 exploration_rate,
-                total_steps))
+                total_steps,
+                total_train))
