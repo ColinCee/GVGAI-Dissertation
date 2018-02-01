@@ -138,7 +138,7 @@ class Agent(AbstractPlayer):
         else:
             score_diff = (sso.gameScore - self.prev_game_score)
             self.prev_game_score = sso.gameScore
-            return score_diff / 10
+            return score_diff / 1000
 
     # Save snapshots of a full game
     def save_game_state(self):

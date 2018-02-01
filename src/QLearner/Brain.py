@@ -17,12 +17,12 @@ class Brain():
         self.weight_backup = "weight_backup.h5"
         self.input_shape = (55, 150, 4)
         self.available_actions = available_actions
-        self.memory = deque(maxlen=100000)
+        self.memory = deque(maxlen=50000)
         self.learning_rate = 0.0001
         self.gamma = 0.99
         self.exploration_rate = 1.0
         self.exploration_min = 0.05
-        self.exploration_decay = 1 / 10000  # per train
+        self.exploration_decay = 1 / 25000  # per train
         self.sample_batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()

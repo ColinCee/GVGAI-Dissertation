@@ -47,9 +47,10 @@ class Statistics():
 
     def log_episode_stats(self, exploration_rate):
         with open('reward_history.csv', 'a+') as file:
+            win_as_int = 1 if self.get_current_episode().win else 0
             file.write(
                 "{:.3f}, {}, {}, {:.3f}\n".format(self.get_current_episode().total_reward, self.get_episode_step(),
-                                                  self.get_current_episode().win, exploration_rate))
+                                                  win_as_int, exploration_rate))
         file.close()
 
 

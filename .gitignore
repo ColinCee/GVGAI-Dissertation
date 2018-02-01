@@ -1,9 +1,14 @@
 #Custom 
+.idea/
+logs/
 graph/
 filters/
 game-snapshots/
-logs/
-.idea/
+model-weights/
+src/QLearner/model-backup
+*.csv
+*.png
+*.class
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
