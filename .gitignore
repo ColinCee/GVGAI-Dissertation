@@ -5,10 +5,11 @@ graph/
 filters/
 game-snapshots/
 model-weights/
+server-out/
 src/QLearner/model-backup
 *.csv
-*.png
-*.class
+*.txt
+*.h5
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
