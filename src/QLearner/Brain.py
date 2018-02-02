@@ -22,7 +22,7 @@ class Brain():
         self.gamma = 0.99
         self.exploration_rate = 1.0
         self.exploration_min = 0.05
-        self.exploration_decay = 1 / 25000  # per train
+        self.exploration_decay = 1 / 20000  # per train
         self.sample_batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()
@@ -40,9 +40,8 @@ class Brain():
         self.primary_network.add(Dense(512, activation='relu'))
         self.primary_network.add(Dense(len(self.available_actions), activation='linear'))  # Output Layer
         # Clip gradients, set metrics
-        self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-4))
         self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-4),
-                                     metrics=[self.mean_Q, self.lr])
+                                     metrics=[self.mean_Q])
         print(self.primary_network.summary())
 
         # Target Network
@@ -65,9 +64,6 @@ class Brain():
 
     def mean_Q(self, y_true, y_pred):
         return K.mean(y_pred)
-
-    def lr(self, y_true, y_pred):
-        return K.variable(K.eval(self.primary_network.optimizer.lr))
 
     def save_model(self, filename):
         if not os.path.isdir(os.path.dirname(filename)):

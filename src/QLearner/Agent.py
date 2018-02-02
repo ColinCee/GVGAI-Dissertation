@@ -26,7 +26,7 @@ class Agent(AbstractPlayer):
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.snapshot_frequency = 10
+        self.snapshot_frequency = 25
         self.validation = False
         self.state = State(self.frames_per_stack)
         self.statistics = Statistics()
@@ -114,7 +114,7 @@ class Agent(AbstractPlayer):
         # Add the new frame
         self.state.add_final_frame()
         self.save_game_state()
-        self.save_model_weights()
+        # self.save_model_weights()
 
         # calculate the terminal reward, the previous reward assumed the game was still in progress
         self.prev_reward = self.calculate_reward(sso)
