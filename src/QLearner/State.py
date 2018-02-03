@@ -27,15 +27,15 @@ class State:
         image = self.get_image_from_array(image_array)
         resized_image = self.resize_image(image)
 
-        self.original_frames.append(np.array(image))
-        self.resized_frames.append(np.array(resized_image))
+        self.original_frames.append(self.convert_image_to_array(image))
+        self.resized_frames.append(self.convert_image_to_array(resized_image))
 
     def add_final_frame(self):
         image = Image.open(CompetitionParameters.SCREENSHOT_FILENAME)
         resized_image = self.resize_image(image)
 
-        self.original_frames.append(np.array(image))
-        self.resized_frames.append(np.array(resized_image))
+        self.original_frames.append(self.convert_image_to_array(image))
+        self.resized_frames.append(self.convert_image_to_array(resized_image))
 
         image.close()  # Close connection to the image
         resized_image.close()
@@ -53,6 +53,12 @@ class State:
         new_height = int(height / 2)
         resized_image = b_and_w.resize((new_width, new_height), resample=Image.LANCZOS)
         return resized_image
+
+    # Need to specify uint8 to reduce memory usage each frame takes
+    def convert_image_to_array(self, image):
+        #print("Standard {} ".format(np.array(image).nbytes))
+        #print("Reduced {} ".format(np.array(image, dtype='uint8').nbytes))
+        return np.array(image, dtype='uint8')
 
     def save_game_state(self, nb_episode, episode_step):
         # Save a snapshot of the game, both original and resized
