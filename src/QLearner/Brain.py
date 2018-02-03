@@ -17,12 +17,12 @@ class Brain():
         self.weight_backup = "weight_backup.h5"
         self.input_shape = (55, 150, 4)
         self.available_actions = available_actions
-        self.memory = deque(maxlen=50000)
-        self.learning_rate = 0.0001
+        self.memory = deque(maxlen=100000)
+        self.learning_rate = 0.00025
         self.gamma = 0.99
         self.exploration_rate = 1.0
-        self.exploration_min = 0.05
-        self.exploration_decay = 1 / 20000  # per train
+        self.exploration_min = 0.1
+        self.episodes_until_exp_rate_min = 1000
         self.sample_batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()
@@ -84,6 +84,11 @@ class Brain():
             self.target_network.load_weights(backup)
             print("Updating target network...")
 
+    def reduce_exploration_rate(self):
+        if self.exploration_rate > self.exploration_min:
+            # This will make it so that the exploration rate decays over x episodes until it reaches min
+            self.exploration_rate -= (1-self.exploration_min)/self.episodes_until_exp_rate_min
+
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
@@ -96,9 +101,6 @@ class Brain():
                                  batch_size=self.sample_batch_size,
                                  verbose=0,
                                  callbacks=self.callbacks)
-
-        if self.exploration_rate > self.exploration_min:
-            self.exploration_rate -= self.exploration_decay
 
     def get_batch(self):
         sample_batch = random.sample(self.memory, self.sample_batch_size)

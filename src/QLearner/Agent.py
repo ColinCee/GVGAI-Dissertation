@@ -18,9 +18,9 @@ class Agent(AbstractPlayer):
         self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
         self.brain = None
         self.frames_per_stack = 4
-        self.warmup_steps = 1e4
-        self.target_update_frequency = 1e3  # Update frequency in steps
-        self.training_frequency = 8
+        self.warmup_stacks = 1e4
+        self.target_update_frequency = 1e3  # Update frequency in stacks
+        self.training_frequency = 4
 
         self.prev_state = None
         self.prev_action = None
@@ -72,21 +72,19 @@ class Agent(AbstractPlayer):
         self.state.add_frame(sso.imageArray)
         current_step = self.statistics.get_episode_step()
 
+        # Check if a new stack is available to be processed, also skip initial step
         if current_step % self.frames_per_stack == 0 and current_step > 0:
             current_state = self.state.get_frame_stack()
             action = self.brain.get_action(current_state, sso.availableActions)
             if self.prev_state is not None:
                 self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, current_state, 0)
-                self.statistics.total_steps += 1
+                self.statistics.total_stacks += 1
 
             self.prev_state = current_state
             self.prev_action = action
             self.prev_reward = self.calculate_reward(sso)
             self.statistics.add_reward(self.prev_reward)
-            self.statistics.increment_stacks_since_last_train()
-            self.statistics.increment_stacks_since_last_update()
-            self.train_network()
-
+            self.statistics.stacks_since_last_update += 1
         else:
             # Repeat previous move during frame skip if possible
             if self.prev_action is None:
@@ -121,11 +119,12 @@ class Agent(AbstractPlayer):
         self.statistics.add_reward(self.prev_reward)
         # We need one final remember when we get into the terminal state
         self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
-        self.statistics.total_steps += 1
-        self.statistics.increment_stacks_since_last_train()
-        self.statistics.increment_stacks_since_last_update()
+        self.statistics.increment_episode_step()
+        self.statistics.stacks_since_last_update += 1
+        self.train_network()
+        self.statistics.total_steps += self.statistics.get_episode_step()
         self.statistics.output_episode_stats(sso, self.brain.exploration_rate)
-
+        self.brain.reduce_exploration_rate()
         return random.randint(0, 2)
 
     # Clip rewards, all positive rewards are set to 1, all negative rewards are set to -1, 0 is unchanged
@@ -138,12 +137,17 @@ class Agent(AbstractPlayer):
         else:
             score_diff = (sso.gameScore - self.prev_game_score)
             self.prev_game_score = sso.gameScore
-            return score_diff / 1000
+            if score_diff > 0:
+                return 1
+            elif score_diff < 0:
+                return -1
+            else:
+                return 0
 
     # Save snapshots of a full game
     def save_game_state(self):
         if (self.statistics.episide_count % self.snapshot_frequency == 0
-            and self.statistics.total_steps >= self.warmup_steps) \
+            and self.statistics.total_steps >= self.warmup_stacks) \
                 or self.validation:
             self.state.save_game_state(self.statistics.episide_count, self.statistics.get_episode_step())
 
@@ -151,7 +155,7 @@ class Agent(AbstractPlayer):
     def save_model_weights(self):
 
         if (self.statistics.episide_count % self.snapshot_frequency == 0
-            and self.statistics.total_steps >= self.warmup_steps) \
+            and self.statistics.total_steps >= self.warmup_stacks) \
                 or self.validation:
             folder = "model-weights/Episode {}/".format(self.statistics.episide_count)
             filename = os.path.join(folder, self.brain.weight_backup)
@@ -160,8 +164,13 @@ class Agent(AbstractPlayer):
 
     def train_network(self):
         # Train after we have filled our replay memory a little
-        if len(self.brain.memory) >= self.warmup_steps:  # Only train after warmup steps have past
-            if self.statistics.stacks_since_last_train >= self.training_frequency:
+        if len(self.brain.memory) >= self.warmup_stacks:  # Only train after warmup steps have past
+            # Calculate how many training iterations to use
+            stacks_in_episode = self.statistics.get_episode_step() / self.frames_per_stack
+            # We multiply by 2 so that network hopefully makes uses of a sample more than once
+            training_iterations = int(2 * stacks_in_episode / self.brain.sample_batch_size)
+
+            for i in range(training_iterations):
                 self.brain.replay()
                 self.statistics.log_train()
 
