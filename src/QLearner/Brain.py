@@ -111,7 +111,7 @@ class Brain():
         for state, action_string, reward, next_state, done in sample_batch:
 
             if not done:
-                next_q = self.target_network.predict(self.get_state_for_NN(next_state))
+                next_q = self.primary_network.predict(self.get_state_for_NN(next_state))
                 target = reward + self.gamma * np.amax(next_q[0])
             else:
                 target = reward
