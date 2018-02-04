@@ -122,7 +122,7 @@ class Brain():
             unique_idx.add(idx)
             # Calculate the target depending on if the game has finished or not
             if not data.done:
-                next_q = self.target_network.predict(Brain.transform_input_for_single_sample(data.next_state))
+                next_q = self.primary_network.predict(Brain.transform_input_for_single_sample(data.next_state))
                 target = data.reward + self.gamma * np.amax(next_q[0])
             else:
                 target = data.reward
