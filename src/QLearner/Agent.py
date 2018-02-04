@@ -19,7 +19,7 @@ class Agent(AbstractPlayer):
         self.brain = None
         self.frames_per_stack = 4
         self.warmup_stacks = 1e4
-        self.target_update_frequency = 1e3  # Update frequency in stacks
+        self.target_update_frequency = 5e3  # Update frequency in stacks
         self.training_frequency = 4
 
         self.prev_state = None
@@ -122,7 +122,6 @@ class Agent(AbstractPlayer):
         self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
         self.train_network()
         self.statistics.finish_episode(sso, self.brain.exploration_rate)
-        self.brain.reduce_exploration_rate()
         return random.randint(0, 2)
 
     # Clip rewards, all positive rewards are set to 1, all negative rewards are set to -1, 0 is unchanged
@@ -162,16 +161,16 @@ class Agent(AbstractPlayer):
 
     def train_network(self):
         # Train after we have filled our replay memory a little
-        if len(self.brain.memory) >= self.warmup_stacks:  # Only train after warmup steps have past
+        if self.statistics.total_stacks >= self.warmup_stacks:  # Only train after warmup steps have past
             # Calculate how many training iterations to use
             stacks_in_episode = self.statistics.get_current_episode_step() / self.frames_per_stack
             # We multiply by 2 so that network hopefully makes uses of a sample more than once
-            training_iterations = int(2 * stacks_in_episode / self.brain.sample_batch_size)
+            training_iterations = int(2 * stacks_in_episode / self.brain.batch_size)
 
             for i in range(training_iterations):
-                self.brain.replay()
+                self.brain.train()
                 self.statistics.log_train()
-
+            self.brain.reduce_exploration_rate()
             if self.statistics.stacks_since_last_update >= self.target_update_frequency:
                 self.brain.update_target_network()
                 self.statistics.log_update()
