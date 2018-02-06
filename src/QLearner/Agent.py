@@ -18,7 +18,8 @@ class Agent(AbstractPlayer):
         self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
         self.brain = None
         self.frames_per_stack = 4
-        self.warmup_stacks = 1e4
+        self.frame_downscaling_factor = 2
+        self.warmup_stacks = 2e4
         self.target_update_frequency = 5e3  # Update frequency in stacks
         self.training_frequency = 4
 
@@ -26,9 +27,9 @@ class Agent(AbstractPlayer):
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.snapshot_frequency = 25
+        self.snapshot_frequency = 20
         self.validation = False
-        self.state = State(self.frames_per_stack)
+        self.state = State(self.frames_per_stack, self.frame_downscaling_factor)
         self.statistics = Statistics()
 
     def init(self, sso, timer):
@@ -45,15 +46,13 @@ class Agent(AbstractPlayer):
         self.statistics.start_new_episode()
         self.state.start_new_episode()
 
-        if self.brain is None:
-            self.brain = Brain(sso.availableActions)
-            # Load from a previous save?
-            # self.brain.load_model(self.brain.weight_backup)
-            # self.brain.exploration_rate = 0
-            # self.validation = True
-            # self.statistics.total_steps = int(198176 - self.warmup_steps)
-            # self.statistics.episide_count = 1400
-            # self.statistics.get_current_episode().episode_number = 1400
+        # Load from a previous save?
+        # self.brain.load_model(self.brain.weight_backup)
+        # self.brain.exploration_rate = 0
+        # self.validation = True
+        # self.statistics.total_steps = int(198176 - self.warmup_steps)
+        # self.statistics.episide_count = 1400
+        # self.statistics.get_current_episode().episode_number = 1400
 
     def act(self, sso: 'SerializableStateObservation', timer):
         """
@@ -66,6 +65,8 @@ class Agent(AbstractPlayer):
         * @param elapsedTimer Timer (40ms)
         * @return The action to be performed by the agent.
         """
+        if self.brain is None:
+            self.init_brain(sso)
         # Ignore the first 2 frames (Redundant)
         if sso.gameTick <= 1:
             return ACTIONS.ACTION_NIL
@@ -132,14 +133,16 @@ class Agent(AbstractPlayer):
             else:
                 return -1
         else:
-            score_diff = (sso.gameScore - self.prev_game_score)
-            self.prev_game_score = sso.gameScore
-            if score_diff > 0:
-                return 1
-            elif score_diff < 0:
-                return -1
-            else:
-                return 0
+            return 0
+            # score_diff = (sso.gameScore - self.prev_game_score)
+            # self.prev_game_score = sso.gameScore
+            # return score_diff/10
+            # if score_diff > 0:
+            #     return 1
+            # elif score_diff < 0:
+            #     return -1
+            # else:
+            #     return 0
 
     # Save snapshots of a full game
     def save_game_state(self):
@@ -174,3 +177,11 @@ class Agent(AbstractPlayer):
             if self.statistics.stacks_since_last_update >= self.target_update_frequency:
                 self.brain.update_target_network()
                 self.statistics.log_update()
+
+    def init_brain(self, sso):
+        x, y, z = self.state.get_image_dimensions(sso.imageArray)
+        new_x = int(x/self.frame_downscaling_factor)
+        new_y = int(y/self.frame_downscaling_factor)
+        input_shape = (new_x, new_y, self.frames_per_stack)
+        print (input_shape)
+        self.brain = Brain(sso.availableActions, input_shape)

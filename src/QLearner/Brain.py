@@ -15,15 +15,15 @@ from keras.optimizers import Adam
 
 class Brain():
 
-    def __init__(self, available_actions):
+    def __init__(self, available_actions, input_shape):
         self.weight_backup = "weight_backup.h5"
         self.available_actions = available_actions
-        self.input_shape = (55, 150, 4)
+        self.input_shape = input_shape
         self.learning_rate = 0.00025
         self.gamma = 0.99
         self.exploration_rate = 1.0
-        self.exploration_min = 0.1
-        self.episodes_until_exp_rate_min = 1000
+        self.exploration_min = 0.05
+        self.episodes_until_exp_rate_min = 1500
         self.batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()

@@ -27,7 +27,7 @@ class Statistics():
         self.get_current_episode().current_step += 1
 
     def start_new_episode(self):
-        self.episode_history.append(Episode(self.get_episode_count()))
+        self.episode_history.append(Episode(self.get_episode_count() + 1))
 
     def finish_episode(self, sso, exploration_rate):
         self.increment_current_episode_step()
@@ -52,7 +52,6 @@ class Statistics():
             "Tot. Reward: {:.3f} | "
             "Game Ticks: {:3d} | "
             "Epsilon: {:.3f} | "
-            "Total Steps: {:<6d} | "
             "Total Stacks: {:<6d} | "
             "Total Trains: {}".format(
                 current_episode.episode_number,

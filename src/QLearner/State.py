@@ -9,10 +9,11 @@ from PIL import Image
 
 class State:
 
-    def __init__(self, max_frames):
+    def __init__(self, max_frames, downscale_factor):
         self.max_frames = max_frames
         self.original_frames = deque(maxlen=self.max_frames)
         self.resized_frames = deque(maxlen=self.max_frames)
+        self.downscale_factor = downscale_factor
 
     def start_new_episode(self):
         self.original_frames.clear()
@@ -49,8 +50,8 @@ class State:
     def resize_image(self, image):
         b_and_w = image.convert('L')
         width, height = image.size
-        new_width = int(width / 2)
-        new_height = int(height / 2)
+        new_width = int(width / self.downscale_factor)
+        new_height = int(height / self.downscale_factor)
         resized_image = b_and_w.resize((new_width, new_height), resample=Image.LANCZOS)
         return resized_image
 
@@ -59,6 +60,9 @@ class State:
         #print("Standard {} ".format(np.array(image).nbytes))
         #print("Reduced {} ".format(np.array(image, dtype='uint8').nbytes))
         return np.array(image, dtype='uint8')
+
+    def get_image_dimensions(self, image_array):
+        return np.array(self.get_image_from_array(image_array)).shape
 
     def save_game_state(self, nb_episode, episode_step):
         # Save a snapshot of the game, both original and resized
