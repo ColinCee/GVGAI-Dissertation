@@ -59,7 +59,6 @@ class Statistics():
                 current_episode.total_reward,
                 sso.gameTick,
                 exploration_rate,
-                self.total_steps,
                 self.total_stacks,
                 self.train_count))
 

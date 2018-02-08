@@ -22,8 +22,8 @@ class Brain():
         self.learning_rate = 0.00025
         self.gamma = 0.99
         self.exploration_rate = 1.0
-        self.exploration_min = 0.05
-        self.episodes_until_exp_rate_min = 1500
+        self.exploration_min = 0.1
+        self.episodes_until_exp_rate_min = 1000
         self.batch_size = 32
         self.primary_network = Sequential()
         self.target_network = Sequential()
@@ -121,9 +121,10 @@ class Brain():
             sample_batch.append((idx, priority, data))
             unique_idx.add(idx)
             # Calculate the target depending on if the game has finished or not
+            q1_next_state = self.primary_network.predict(Brain.transform_input_for_single_sample(data.next_state))
+            q2_next_state = self.target_network.predict(Brain.transform_input_for_single_sample(data.next_state))
             if not data.done:
-                next_q = self.primary_network.predict(Brain.transform_input_for_single_sample(data.next_state))
-                target = data.reward + self.gamma * np.amax(next_q[0])
+                target = data.reward + self.gamma * q2_next_state[0][np.argmax(q1_next_state[0])]
             else:
                 target = data.reward
 

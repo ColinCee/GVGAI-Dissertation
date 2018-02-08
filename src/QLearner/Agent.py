@@ -114,7 +114,7 @@ class Agent(AbstractPlayer):
         # Add the new frame
         self.state.add_final_frame()
         self.save_game_state()
-        # self.save_model_weights()
+        self.save_model_weights()
 
         # calculate the terminal reward, the previous reward assumed the game was still in progress
         self.prev_reward = self.calculate_reward(sso)
@@ -133,16 +133,14 @@ class Agent(AbstractPlayer):
             else:
                 return -1
         else:
-            return 0
-            # score_diff = (sso.gameScore - self.prev_game_score)
-            # self.prev_game_score = sso.gameScore
-            # return score_diff/10
-            # if score_diff > 0:
-            #     return 1
-            # elif score_diff < 0:
-            #     return -1
-            # else:
-            #     return 0
+            score_diff = (sso.gameScore - self.prev_game_score)
+            self.prev_game_score = sso.gameScore
+            if score_diff > 0:
+                return 1
+            elif score_diff < 0:
+                return -1
+            else:
+                return 0
 
     # Save snapshots of a full game
     def save_game_state(self):
@@ -169,7 +167,6 @@ class Agent(AbstractPlayer):
             stacks_in_episode = self.statistics.get_current_episode_step() / self.frames_per_stack
             # We multiply by 2 so that network hopefully makes uses of a sample more than once
             training_iterations = int(2 * stacks_in_episode / self.brain.batch_size)
-
             for i in range(training_iterations):
                 self.brain.train()
                 self.statistics.log_train()
