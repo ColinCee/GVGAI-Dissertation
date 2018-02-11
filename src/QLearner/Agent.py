@@ -1,6 +1,7 @@
 import os
 import random
 
+import numpy as np
 from AbstractPlayer import AbstractPlayer
 from SerializableStateObservation import SerializableStateObservation
 from Types import *
@@ -27,10 +28,12 @@ class Agent(AbstractPlayer):
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.snapshot_frequency = 20
+        self.snapshot_frequency = 25
         self.validation = False
         self.state = State(self.frames_per_stack, self.frame_downscaling_factor)
         self.statistics = Statistics()
+
+        self.transitions = []
 
     def init(self, sso, timer):
         """
@@ -45,7 +48,7 @@ class Agent(AbstractPlayer):
         self.prev_game_score = 0
         self.statistics.start_new_episode()
         self.state.start_new_episode()
-
+        self.transitions = []
         # Load from a previous save?
         # self.brain.load_model(self.brain.weight_backup)
         # self.brain.exploration_rate = 0
@@ -79,7 +82,7 @@ class Agent(AbstractPlayer):
             current_state = self.state.get_frame_stack()
             action = self.brain.get_action(current_state, sso.availableActions)
             if self.prev_state is not None:
-                self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, current_state, 0)
+                self.store_transition(self.prev_state, self.prev_action, self.prev_reward, current_state, 0)
                 self.statistics.total_stacks += 1
 
             self.prev_state = current_state
@@ -114,13 +117,13 @@ class Agent(AbstractPlayer):
         # Add the new frame
         self.state.add_final_frame()
         self.save_game_state()
-        self.save_model_weights()
+        # self.save_model_weights()
 
         # calculate the terminal reward, the previous reward assumed the game was still in progress
         self.prev_reward = self.calculate_reward(sso)
         self.statistics.add_reward_to_current_episode(self.prev_reward)
         # We need one final remember when we get into the terminal state
-        self.brain.remember(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
+        self.store_transition(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
         self.train_network()
         self.statistics.finish_episode(sso, self.brain.exploration_rate)
         return random.randint(0, 2)
@@ -159,6 +162,18 @@ class Agent(AbstractPlayer):
             filename = os.path.join(folder, self.brain.weight_backup)
             self.brain.save_model(filename)
             weights.plot_all_layers(self.brain.primary_network, self.statistics.get_episode_count())
+
+    def store_transition(self, prev_state, prev_action, prev_reward, current_state, done):
+        self.transitions.append(np.array([prev_state, prev_action, prev_reward, current_state, done]))
+
+        if done:
+            for i in range(len(self.transitions)):
+                x = self.transitions[i]  # one sample
+                if prev_reward == -1:
+                    x[2] -= 0.5  # alter reward
+                    if x[2] < -1:
+                        x[2] = -1
+                self.brain.remember(x[0], x[1], x[2], x[3], x[4])
 
     def train_network(self):
         # Train after we have filled our replay memory a little
