@@ -196,4 +196,4 @@ class Agent(AbstractPlayer):
         new_y = int(y/self.frame_downscaling_factor)
         input_shape = (new_x, new_y, self.frames_per_stack)
         print (input_shape)
-        self.brain = Brain(sso.availableActions, input_shape)
+        self.brain = Brain(input_shape, sso.availableActions)
