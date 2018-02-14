@@ -31,14 +31,16 @@ class Network:
 
     def dueling_network(self):
         inputs = Input(shape=self.input_shape)
-        net = Conv2D(16, 8, strides=(4, 4),
+        net = Conv2D(32, kernel_size=8, strides=4,
                      activation='relu')(inputs)
-        net = Conv2D(32, 4, strides=(2, 2),
+        net = Conv2D(64, kernel_size=4, strides=2,
+                     activation='relu')(net)
+        net = Conv2D(64, kernel_size=3, strides=1,
                      activation='relu')(net)
         net = Flatten()(net)
-        advt = Dense(256, activation='relu')(net)
+        advt = Dense(512, activation='relu')(net)
         advt = Dense(self.num_actions)(advt)
-        value = Dense(256, activation='relu')(net)
+        value = Dense(512, activation='relu')(net)
         value = Dense(1)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(

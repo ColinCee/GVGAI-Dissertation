@@ -68,8 +68,9 @@ class Statistics():
         with open('reward_history.csv', 'a+') as file:
             win_as_int = 1 if self.get_current_episode().win else 0
             file.write(
-                "{}, {:.3f}, {}, {}, {:.3f}\n".format(game_score,
-                                                      self.get_current_episode().total_reward,
-                                                      self.get_current_episode_step(),
-                                                      win_as_int, exploration_rate))
+                "{}, {}, {:.3f}, {}, {}, {:.3f}\n".format(self.get_episode_count(),
+                                                          game_score,
+                                                          self.get_current_episode().total_reward,
+                                                          self.get_current_episode_step(),
+                                                          win_as_int, exploration_rate))
         file.close()
