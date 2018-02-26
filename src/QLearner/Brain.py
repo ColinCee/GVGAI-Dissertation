@@ -6,15 +6,13 @@ import numpy as np
 from keras.callbacks import TensorBoard
 
 from Network import Network
-from Replay import Replay
-from Sample import Sample
+from Replay import Replay, Sample
 
 
-class Brain():
+class Brain:
 
     def __init__(self, input_shape, available_actions):
         self.weight_backup = "weight_backup.h5"
-        self.input_shape = input_shape
         self.available_actions = available_actions
         self.gamma = 0.99
         self.exploration_rate = 1.0

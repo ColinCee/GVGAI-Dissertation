@@ -38,9 +38,9 @@ class Network:
         net = Conv2D(64, kernel_size=3, strides=1,
                      activation='relu')(net)
         net = Flatten()(net)
-        advt = Dense(512, activation='relu')(net)
+        advt = Dense(256, activation='relu')(net)
         advt = Dense(self.num_actions)(advt)
-        value = Dense(512, activation='relu')(net)
+        value = Dense(256, activation='relu')(net)
         value = Dense(1)(value)
         # now to combine the two streams
         advt = Lambda(lambda advt: advt - tf.reduce_mean(
