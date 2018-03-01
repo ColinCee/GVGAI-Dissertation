@@ -20,6 +20,10 @@ class Network:
             self.primary_network = self.deep_q_network()
             self.target_network = None
 
+        if type == 1:
+            self.primary_network = self.deep_q_network()
+            self.target_network = self.deep_q_network()
+
         if type == 2:
             self.primary_network = self.dueling_network()
             self.target_network = self.dueling_network()
@@ -38,9 +42,6 @@ class Network:
         network.add(Dense(512, activation='relu'))
         network.add(Dense(self.num_actions, activation='linear'))
         return network
-
-    def double_deep_q_network(self):
-        pass
 
     def dueling_network(self):
         inputs = Input(shape=self.input_shape)

@@ -22,8 +22,6 @@ class Brain:
         self.batch_size = 32
         self.network = Network(Network.dqn, self.input_shape, len(available_actions))
         self.replay = Replay(memory_size=100000)
-        self.PER_alpha = 0.6
-        self.PER_epsilon = 0.01
         self._build_model()
 
     def _build_model(self):
@@ -68,19 +66,23 @@ class Brain:
         for i in range(self.batch_size):
             data = self.replay.get_sample()
             # Calculate the target depending on if the game has finished or not
-            q_current_state = self.network.primary_network.predict(
+            q1_current_state = self.network.primary_network.predict(
                 Brain.transform_input_for_single_sample(data.state))
+            # Calculate the target depending on if the game has finished or not
+            q1_next_state = self.network.primary_network.predict(
+                Brain.transform_input_for_single_sample(data.next_state))
+            q2_next_state = self.network.target_network.predict(
+                Brain.transform_input_for_single_sample(data.next_state))
+
             if not data.done:
-                q_next_state = self.network.primary_network.predict(
-                    Brain.transform_input_for_single_sample(data.next_state))
-                target = data.reward + self.gamma * np.amax(q_next_state[0])
+                target = data.reward + self.gamma * q2_next_state[0][np.argmax(q1_next_state[0])]
             else:
                 target = data.reward
 
             action_index = self.get_index_of_action(data.action_string)
-            q_current_state[0][action_index] = target
+            q1_current_state[0][action_index] = target
             inputs[counter] = data.state
-            targets[counter] = q_current_state[0]
+            targets[counter] = q1_current_state[0]
             counter += 1
 
         return inputs, targets
