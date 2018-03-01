@@ -12,6 +12,7 @@ from Replay import Replay, Sample
 class Brain:
 
     def __init__(self, input_shape, available_actions):
+        self.input_shape = input_shape
         self.weight_backup = "weight_backup.h5"
         self.available_actions = available_actions
         self.gamma = 0.99
@@ -19,7 +20,7 @@ class Brain:
         self.exploration_min = 0.1
         self.episodes_until_exp_rate_min = 1000
         self.batch_size = 32
-        self.network = Network(Network.dueling, input_shape, len(available_actions))
+        self.network = Network(Network.dqn, self.input_shape, len(available_actions))
         self.replay = Replay(memory_size=100000)
         self.PER_alpha = 0.6
         self.PER_epsilon = 0.01
@@ -43,72 +44,46 @@ class Brain:
             self.exploration_rate = self.exploration_min
             print("Successfully loaded weights!")
 
-    def update_target_network(self):
-        # Save the primary network weights
-        backup = os.path.join("QLearner/model-backup", self.weight_backup)
-        self.save_model(backup)
-        if os.path.isfile(backup):
-            self.network.target_network.load_weights(backup)
-            print("Updating target network...")
-
     def reduce_exploration_rate(self):
         if self.exploration_rate > self.exploration_min:
             # This will make it so that the exploration rate decays over x episodes until it reaches min
             self.exploration_rate -= (1 - self.exploration_min) / self.episodes_until_exp_rate_min
 
     def remember(self, state, action, reward, next_state, done):
-        data = Sample(state, action, reward, next_state, done)
-        self.replay.add_sample(data)
+        self.replay.add_sample(state, action, reward, next_state, done)
 
     def train(self):
-        inputs, targets = self.get_prioritized_batch()
+        inputs, targets = self.get_uniform_batch()
         self.network.primary_network.fit(x=inputs, y=targets,
                                          batch_size=self.batch_size,
                                          verbose=0,
                                          callbacks=self.callbacks)
 
-    def get_prioritized_batch(self):
-        sample_batch = []
-        unique_idx = set()
+    def get_uniform_batch(self):
         inputs = np.zeros((self.batch_size, self.input_shape[0], self.input_shape[1], self.input_shape[2]))
         targets = np.zeros((self.batch_size, len(self.available_actions)))
         counter = 0
 
         data: Sample
         for i in range(self.batch_size):
-            idx, priority, data = self.replay.get_sample()
-            while type(data) is not Sample or idx in unique_idx:
-                idx, priority, data = self.replay.get_sample()
-
-            # print("idx: {} - p: {}".format(idx,priority))
-            sample_batch.append((idx, priority, data))
-            unique_idx.add(idx)
+            data = self.replay.get_sample()
             # Calculate the target depending on if the game has finished or not
-            q1_next_state = self.network.primary_network.predict(
-                Brain.transform_input_for_single_sample(data.next_state))
-            q2_next_state = self.network.target_network.predict(
-                Brain.transform_input_for_single_sample(data.next_state))
+            q_current_state = self.network.primary_network.predict(
+                Brain.transform_input_for_single_sample(data.state))
             if not data.done:
-                target = data.reward + self.gamma * q2_next_state[0][np.argmax(q1_next_state[0])]
+                q_next_state = self.network.primary_network.predict(
+                    Brain.transform_input_for_single_sample(data.next_state))
+                target = data.reward + self.gamma * np.amax(q_next_state[0])
             else:
                 target = data.reward
 
-            target_Q = self.network.target_network.predict(Brain.transform_input_for_single_sample(data.state))
             action_index = self.get_index_of_action(data.action_string)
-            target_Q[0][action_index] = target
+            q_current_state[0][action_index] = target
             inputs[counter] = data.state
-            targets[counter] = target_Q[0]
-            # Set new priority
-            error = abs(target_Q[0][action_index] - target)
-            sample_batch[counter] = (idx, (error + self.PER_epsilon) ** self.PER_alpha, data)
+            targets[counter] = q_current_state[0]
             counter += 1
 
-        self.update_priorities(sample_batch)
         return inputs, targets
-
-    def update_priorities(self, sample_batch):
-        for idx, priority, sample in sample_batch:
-            self.replay.update_sample(idx, priority)
 
     def get_action(self, state, available_actions):
         if np.random.rand() <= self.exploration_rate:

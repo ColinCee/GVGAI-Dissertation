@@ -1,21 +1,16 @@
 import random
-
-from SumTree import SumTree
-
+from collections import deque
 
 class Replay:
     def __init__(self, memory_size):
-        self.memory = SumTree(memory_size)
+        self.memory = deque(maxlen=memory_size)
 
-    def add_sample(self, data):
-        self.memory.add(p=1, data=data)
+    def add_sample(self, state, action, reward, next_state, done):
+        data = Sample(state, action, reward, next_state, done)
+        self.memory.append(data)
 
     def get_sample(self):
-        p_i = random.randint(0, int(self.memory.total()))
-        return self.memory.get(p_i)
-
-    def update_sample(self, idx, priority):
-        self.memory.update(idx=idx, p=priority)
+        return random.sample(self.memory, 1)[0]
 
 
 class Sample:

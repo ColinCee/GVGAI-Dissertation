@@ -4,7 +4,7 @@ from keras.layers import Input
 from keras.layers.convolutional import Conv2D
 from keras.layers.core import Dense, Flatten, Lambda
 from keras.layers.merge import Add
-from keras.models import Model
+from keras.models import Model, Sequential
 from keras.optimizers import Adam
 
 
@@ -16,6 +16,10 @@ class Network:
         self.input_shape = input_shape
         self.num_actions = num_actions
 
+        if type == 0:
+            self.primary_network = self.deep_q_network()
+            self.target_network = None
+
         if type == 2:
             self.primary_network = self.dueling_network()
             self.target_network = self.dueling_network()
@@ -24,7 +28,16 @@ class Network:
         print(self.primary_network.summary())
 
     def deep_q_network(self):
-        pass
+        network = Sequential()
+        network.add(
+            Conv2D(32, kernel_size=8, strides=4, input_shape=self.input_shape, data_format="channels_last",
+                   activation='relu'))
+        network.add(Conv2D(64, kernel_size=4, strides=2, activation='relu'))
+        network.add(Conv2D(64, kernel_size=3, strides=1, activation='relu'))
+        network.add(Flatten())
+        network.add(Dense(512, activation='relu'))
+        network.add(Dense(self.num_actions, activation='linear'))
+        return network
 
     def double_deep_q_network(self):
         pass
@@ -61,5 +74,6 @@ class Network:
         # to have fast the network converges
         self.primary_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-4),
                                      metrics=[self.mean_Q])
-        self.target_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-4),
-                                    metrics=[self.mean_Q])
+        if self.target_network is not None:
+            self.target_network.compile(loss='mse', optimizer=Adam(lr=self.learning_rate, clipnorm=1., decay=1e-4),
+                                        metrics=[self.mean_Q])

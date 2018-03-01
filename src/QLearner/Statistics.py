@@ -7,8 +7,6 @@ class Statistics():
         self.total_steps = 0
         self.total_stacks = 0
         self.train_count = 0
-        self.update_count = 0
-        self.stacks_since_last_update = 0
 
     def get_current_episode(self) -> 'Episode':
         return self.episode_history[-1]
@@ -31,16 +29,11 @@ class Statistics():
 
     def finish_episode(self, sso, exploration_rate):
         self.increment_current_episode_step()
-        self.stacks_since_last_update += 1
         self.total_steps += self.get_current_episode_step()
         self.output_episode_stats(sso, exploration_rate)
 
     def log_train(self):
         self.train_count += 1
-
-    def log_update(self):
-        self.update_count += 1
-        self.stacks_since_last_update = 0
 
     def output_episode_stats(self, sso, exploration_rate):
         current_episode = self.get_current_episode()

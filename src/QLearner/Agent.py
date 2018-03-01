@@ -21,7 +21,6 @@ class Agent(AbstractPlayer):
         self.frames_per_stack = 4
         self.frame_downscaling_factor = 2
         self.warmup_stacks = 2e4
-        self.target_update_frequency = 5e3  # Update frequency in stacks
         self.training_frequency = 4
 
         self.prev_state = None
@@ -89,7 +88,6 @@ class Agent(AbstractPlayer):
             self.prev_action = action
             self.prev_reward = self.calculate_reward(sso)
             self.statistics.add_reward_to_current_episode(self.prev_reward)
-            self.statistics.stacks_since_last_update += 1
         else:
             # Repeat previous move during frame skip if possible
             if self.prev_action is None:
@@ -169,10 +167,11 @@ class Agent(AbstractPlayer):
         if done:
             for i in range(len(self.transitions)):
                 x = self.transitions[i]  # one sample
-                if prev_reward == -1:
-                    x[2] -= 0.5  # alter reward
-                    if x[2] < -1:
-                        x[2] = -1
+                # win-weighted reward
+                # if prev_reward == -1:
+                #     x[2] -= 0.5  # alter reward
+                #     if x[2] < -1:
+                #         x[2] = -1
                 self.brain.remember(x[0], x[1], x[2], x[3], x[4])
 
     def train_network(self):
@@ -186,9 +185,6 @@ class Agent(AbstractPlayer):
                 self.brain.train()
                 self.statistics.log_train()
             self.brain.reduce_exploration_rate()
-            if self.statistics.stacks_since_last_update >= self.target_update_frequency:
-                self.brain.update_target_network()
-                self.statistics.log_update()
 
     def init_brain(self, sso):
         x, y, z = self.state.get_image_dimensions(sso.imageArray)
