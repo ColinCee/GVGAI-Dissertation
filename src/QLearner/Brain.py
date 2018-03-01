@@ -65,16 +65,16 @@ class Brain:
         data: Sample
         for i in range(self.batch_size):
             data = self.replay.get_sample()
-            # Calculate the target depending on if the game has finished or not
+            # Always need to calculate this forward pass
             q1_current_state = self.network.primary_network.predict(
                 Brain.transform_input_for_single_sample(data.state))
-            # Calculate the target depending on if the game has finished or not
-            q1_next_state = self.network.primary_network.predict(
-                Brain.transform_input_for_single_sample(data.next_state))
-            q2_next_state = self.network.target_network.predict(
-                Brain.transform_input_for_single_sample(data.next_state))
 
             if not data.done:
+                # Calculate the target depending on if the game has finished or not
+                q1_next_state = self.network.primary_network.predict(
+                    Brain.transform_input_for_single_sample(data.next_state))
+                q2_next_state = self.network.target_network.predict(
+                    Brain.transform_input_for_single_sample(data.next_state))
                 target = data.reward + self.gamma * q2_next_state[0][np.argmax(q1_next_state[0])]
             else:
                 target = data.reward
