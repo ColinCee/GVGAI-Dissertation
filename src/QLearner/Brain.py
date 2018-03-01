@@ -22,8 +22,6 @@ class Brain:
         self.batch_size = 32
         self.network = Network(Network.dqn, self.input_shape, len(available_actions))
         self.replay = Replay(memory_size=100000)
-        self.PER_alpha = 0.6
-        self.PER_epsilon = 0.01
         self._build_model()
 
     def _build_model(self):
