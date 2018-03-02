@@ -21,8 +21,7 @@ class Agent(AbstractPlayer):
         self.frames_per_stack = 4
         self.frame_downscaling_factor = 2
         self.warmup_stacks = 2e4
-        self.training_frequency = 4
-
+        self.target_update_frequency = 5e3  # Update frequency in stacks
         self.prev_state = None
         self.prev_action = None
         self.prev_reward = 0
@@ -83,6 +82,7 @@ class Agent(AbstractPlayer):
             if self.prev_state is not None:
                 self.store_transition(self.prev_state, self.prev_action, self.prev_reward, current_state, 0)
                 self.statistics.total_stacks += 1
+                self.statistics.stacks_since_last_update += 1
 
             self.prev_state = current_state
             self.prev_action = action
@@ -122,6 +122,7 @@ class Agent(AbstractPlayer):
         self.statistics.add_reward_to_current_episode(self.prev_reward)
         # We need one final remember when we get into the terminal state
         self.store_transition(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
+        self.statistics.stacks_since_last_update += 1
         self.train_network()
         self.statistics.finish_episode(sso, self.brain.exploration_rate)
         return random.randint(0, 2)
@@ -185,6 +186,10 @@ class Agent(AbstractPlayer):
                 self.brain.train()
                 self.statistics.log_train()
             self.brain.reduce_exploration_rate()
+
+            if self.statistics.stacks_since_last_update >= self.target_update_frequency:
+                self.brain.update_target_network()
+                self.statistics.log_update()
 
     def init_brain(self, sso):
         x, y, z = self.state.get_image_dimensions(sso.imageArray)

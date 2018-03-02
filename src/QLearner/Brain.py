@@ -20,7 +20,7 @@ class Brain:
         self.exploration_min = 0.1
         self.episodes_until_exp_rate_min = 1000
         self.batch_size = 32
-        self.network = Network(Network.dqn, self.input_shape, len(available_actions))
+        self.network = Network(Network.ddqn, self.input_shape, len(available_actions))
         self.replay = Replay(memory_size=100000)
         self._build_model()
 
@@ -41,6 +41,14 @@ class Brain:
             self.network.primary_network.load_weights(self.weight_backup)
             self.exploration_rate = self.exploration_min
             print("Successfully loaded weights!")
+
+    def update_target_network(self):
+        # Save the primary network weights
+        backup = os.path.join("QLearner/model-backup", self.weight_backup)
+        self.save_model(backup)
+        if os.path.isfile(backup):
+            self.network.target_network.load_weights(backup)
+        print("Updating target network...")
 
     def reduce_exploration_rate(self):
         if self.exploration_rate > self.exploration_min:
