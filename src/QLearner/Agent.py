@@ -1,13 +1,13 @@
 import os
 import random
 
-import numpy as np
 from AbstractPlayer import AbstractPlayer
 from SerializableStateObservation import SerializableStateObservation
 from Types import *
 
 import weights
 from Brain import Brain
+from Replay import Sample
 from State import State
 from Statistics import Statistics
 
@@ -28,9 +28,10 @@ class Agent(AbstractPlayer):
         self.prev_game_score = 0
         self.snapshot_frequency = 25
         self.validation = False
+        self.warmup_phase = True
+
         self.state = State(self.frames_per_stack, self.frame_downscaling_factor)
         self.statistics = Statistics()
-
         self.transitions = []
 
     def init(self, sso, timer):
@@ -47,6 +48,8 @@ class Agent(AbstractPlayer):
         self.statistics.start_new_episode()
         self.state.start_new_episode()
         self.transitions = []
+        self.warmup_phase = self.statistics.total_stacks < self.warmup_stacks
+
         # Load from a previous save?
         # self.brain.load_model(self.brain.weight_backup)
         # self.brain.exploration_rate = 0
@@ -80,7 +83,8 @@ class Agent(AbstractPlayer):
             current_state = self.state.get_frame_stack()
             action = self.brain.get_action(current_state, sso.availableActions)
             if self.prev_state is not None:
-                self.store_transition(self.prev_state, self.prev_action, self.prev_reward, current_state, 0)
+                data = Sample(self.prev_state, self.prev_action, self.prev_reward, current_state, 0)
+                self.store_transition(data)
                 self.statistics.total_stacks += 1
                 self.statistics.stacks_since_last_update += 1
 
@@ -121,7 +125,8 @@ class Agent(AbstractPlayer):
         self.prev_reward = self.calculate_reward(sso)
         self.statistics.add_reward_to_current_episode(self.prev_reward)
         # We need one final remember when we get into the terminal state
-        self.store_transition(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
+        data = Sample(self.prev_state, self.prev_action, self.prev_reward, self.state.get_frame_stack(), 1)
+        self.store_transition(data)
         self.statistics.stacks_since_last_update += 1
         self.train_network()
         self.statistics.finish_episode(sso, self.brain.exploration_rate)
@@ -162,10 +167,10 @@ class Agent(AbstractPlayer):
             self.brain.save_model(filename)
             weights.plot_all_layers(self.brain.primary_network, self.statistics.get_episode_count())
 
-    def store_transition(self, prev_state, prev_action, prev_reward, current_state, done):
-        self.transitions.append(np.array([prev_state, prev_action, prev_reward, current_state, done]))
+    def store_transition(self, data):
+        self.transitions.append(data)
 
-        if done:
+        if data.done:
             for i in range(len(self.transitions)):
                 x = self.transitions[i]  # one sample
                 # win-weighted reward
@@ -173,11 +178,11 @@ class Agent(AbstractPlayer):
                 #     x[2] -= 0.5  # alter reward
                 #     if x[2] < -1:
                 #         x[2] = -1
-                self.brain.remember(x[0], x[1], x[2], x[3], x[4])
+                self.brain.remember(self.warmup_phase, x)
 
     def train_network(self):
         # Train after we have filled our replay memory a little
-        if self.statistics.total_stacks >= self.warmup_stacks:  # Only train after warmup steps have past
+        if not self.warmup_phase:  # Only train after warmup steps have past
             # Calculate how many training iterations to use
             stacks_in_episode = self.statistics.get_current_episode_step() / self.frames_per_stack
             # We multiply by 2 so that network hopefully makes uses of a sample more than once
