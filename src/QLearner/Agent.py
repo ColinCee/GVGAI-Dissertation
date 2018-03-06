@@ -172,12 +172,13 @@ class Agent(AbstractPlayer):
 
         if data.done:
             for i in range(len(self.transitions)):
+                x: Sample
                 x = self.transitions[i]  # one sample
                 # win-weighted reward
-                # if prev_reward == -1:
-                #     x[2] -= 0.5  # alter reward
-                #     if x[2] < -1:
-                #         x[2] = -1
+                if data.reward == -1:
+                    x.reward -= 0.5  # alter reward
+                    if x.reward < -1:
+                        x.reward = -1
                 self.brain.remember(self.warmup_phase, x)
 
     def train_network(self):

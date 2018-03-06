@@ -6,7 +6,7 @@ from SumTree import SumTree
 class Replay:
     def __init__(self, memory_size):
         self.PER_alpha = 0.6
-        self.PER_beta = 1e-3
+        self.PER_beta = 1e-4
         self.memory = SumTree(memory_size)
 
     def add_sample(self, priority, data):
