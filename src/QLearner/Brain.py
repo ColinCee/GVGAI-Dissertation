@@ -20,7 +20,7 @@ class Brain:
         self.exploration_min = 0.1
         self.episodes_until_exp_rate_min = 1000
         self.batch_size = 32
-        self.network = Network(Network.ddqn, self.input_shape, len(available_actions))
+        self.network = Network(Network.dueling, self.input_shape, len(available_actions))
         self.replay = Replay(memory_size=100000)
         self._build_model()
 
@@ -48,7 +48,7 @@ class Brain:
         self.save_model(backup)
         if os.path.isfile(backup):
             self.network.target_network.load_weights(backup)
-        print("Updating target network...")
+            print("Updating target network...")
 
     def reduce_exploration_rate(self):
         if self.exploration_rate > self.exploration_min:

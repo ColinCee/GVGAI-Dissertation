@@ -45,25 +45,20 @@ class Network:
 
     def dueling_network(self):
         inputs = Input(shape=self.input_shape)
-        net = Conv2D(32, kernel_size=8, strides=4,
-                     activation='relu')(inputs)
-        net = Conv2D(64, kernel_size=4, strides=2,
-                     activation='relu')(net)
-        net = Conv2D(64, kernel_size=3, strides=1,
-                     activation='relu')(net)
+        net = Conv2D(32, kernel_size=8, strides=4, activation='relu')(inputs)
+        net = Conv2D(64, kernel_size=4, strides=2, activation='relu')(net)
+        net = Conv2D(64, kernel_size=3, strides=1, activation='relu')(net)
         net = Flatten()(net)
         advt = Dense(256, activation='relu')(net)
         advt = Dense(self.num_actions)(advt)
         value = Dense(256, activation='relu')(net)
         value = Dense(1)(value)
-        # now to combine the two streams
-        advt = Lambda(lambda advt: advt - tf.reduce_mean(
-            advt, axis=-1, keep_dims=True))(advt)
+        # now to combine the two streams, this is the mean variant as discussed in the paper:
+        # https://arxiv.org/abs/1511.06581
+        advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keep_dims=True))(advt)
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)
         final = Add()([value, advt])
-        model = Model(
-            inputs=inputs,
-            outputs=final)
+        model = Model(inputs=inputs, outputs=final)
 
         return model
 
