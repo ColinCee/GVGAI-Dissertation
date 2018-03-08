@@ -56,6 +56,8 @@ class Network:
         # now to combine the two streams, this is the mean variant as discussed in the paper:
         # https://arxiv.org/abs/1511.06581
         advt = Lambda(lambda advt: advt - tf.reduce_mean(advt, axis=-1, keep_dims=True))(advt)
+        # This is the max variant
+        # advt = Lambda(lambda advt: advt - tf.reduce_max(advt, axis=-1, keep_dims=True))(advt)
         value = Lambda(lambda value: tf.tile(value, [1, self.num_actions]))(value)
         final = Add()([value, advt])
         model = Model(inputs=inputs, outputs=final)
