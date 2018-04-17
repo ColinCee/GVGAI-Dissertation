@@ -2,13 +2,14 @@ from Episode import Episode
 
 
 class Statistics():
-    def __init__(self):
+    def __init__(self, validation=False):
         self.episode_history = []
         self.total_steps = 0
         self.total_stacks = 0
         self.train_count = 0
         self.update_count = 0
         self.stacks_since_last_update = 0
+        self.validation = validation
 
     def get_current_episode(self) -> 'Episode':
         return self.episode_history[-1]
@@ -46,20 +47,30 @@ class Statistics():
         win = "WIN" in sso.gameWinner
         current_episode.set_win(win)
 
-        print(
-            "{}. Win: {} | "
-            "Tot. Reward: {:.3f} | "
-            "Game Ticks: {:3d} | "
-            "Epsilon: {:.3f} | "
-            "Total Stacks: {:<6d} | "
-            "Total Trains: {}".format(
-                current_episode.episode_number,
-                current_episode.win,
-                current_episode.total_reward,
-                sso.gameTick,
-                exploration_rate,
-                self.total_stacks,
-                self.train_count))
+        if not self.validation:
+            print(
+                "{}. Win: {:5s} | "
+                "Tot. Reward: {:.3f} | "
+                "Game Ticks: {:3d} | "
+                "Epsilon: {:.3f} | "
+                "Total Stacks: {:<6d} | "
+                "Total Trains: {}".format(
+                    current_episode.episode_number,
+                    str(current_episode.win),
+                    current_episode.total_reward,
+                    sso.gameTick,
+                    exploration_rate,
+                    self.total_stacks,
+                    self.train_count))
+        else:
+            print(
+                "{}. Win: {:5s} | "
+                "Score {} | "
+                "Game Ticks: {:3d} | ".format(
+                    current_episode.episode_number,
+                    str(current_episode.win),
+                    sso.gameScore,
+                    sso.gameTick, ))
 
         self.log_episode_stats(exploration_rate, sso.gameScore)
 

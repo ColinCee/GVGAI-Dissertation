@@ -38,7 +38,7 @@ class Brain:
 
     def load_model(self, filename):
         if os.path.isfile(filename):
-            self.network.primary_network.load_weights(self.weight_backup)
+            self.network.primary_network.load_weights(filename)
             self.exploration_rate = self.exploration_min
             print("Successfully loaded weights!")
 

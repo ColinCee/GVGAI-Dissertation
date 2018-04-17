@@ -26,8 +26,7 @@ class Agent(AbstractPlayer):
         self.prev_action = None
         self.prev_reward = 0
         self.prev_game_score = 0
-        self.snapshot_frequency = 25
-        self.validation = False
+        self.snapshot_frequency = 100
         self.warmup_phase = True
 
         self.state = State(self.frames_per_stack, self.frame_downscaling_factor)
