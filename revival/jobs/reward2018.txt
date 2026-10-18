@@ -1,0 +1,7 @@
+# Why the 2018 agent leads at equal ticks: modern DQN given the dissertation's reward (win/loss +-1, -0.5 on lost games)
+train_modern.py --game aliens --preset dqn-reward2018 --ticks 1014134 --seed 0 --name aliens-dqn-reward2018-b18-s0
+train_modern.py --game aliens --preset dqn-reward2018 --ticks 1014134 --seed 1 --name aliens-dqn-reward2018-b18-s1
+train_modern.py --game aliens --preset dqn-reward2018 --ticks 1014134 --seed 2 --name aliens-dqn-reward2018-b18-s2
+train_modern.py --game waferthinmints2018 --preset dqn-reward2018 --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-reward2018-b18-s0
+train_modern.py --game waferthinmints2018 --preset dqn-reward2018 --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-reward2018-b18-s1
+train_modern.py --game waferthinmints2018 --preset dqn-reward2018 --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-reward2018-b18-s2

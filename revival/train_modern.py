@@ -33,6 +33,7 @@ PRESETS = {
     "dqn-per-dueling": lambda: ModernConfig(per=True, dueling=True),
     "dqn-per-dueling-nstep": lambda: ModernConfig(per=True, dueling=True, n_step=3),
     "rainbow": rainbow,
+    "dqn-reward2018": lambda: ModernConfig(reward2018=True),  # modern DQN with the dissertation's reward
 }
 
 
@@ -182,7 +183,8 @@ def main() -> None:
             if ended.any():
                 for e in np.flatnonzero(ended):
                     final[e] = info["final_obs"][e]
-            agent.replay.add(newest, act, r, term, trunc, final)
+            won = info["final_info"]["win"] if ended.any() else None
+            agent.replay.add(newest, act, r, term, trunc, final, won)
             with torch.cuda.stream(agent.act_stream) if agent.act_stream else nullcontext():
                 stacks.push(obs, ended)  # on the acting stream, so it doesn't queue behind updates
             ticks += int(np.sum(info["ticks"]))

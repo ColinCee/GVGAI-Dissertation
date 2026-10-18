@@ -46,6 +46,10 @@ class ModernConfig:
     v_min: float = -10.0
     v_max: float = 10.0
     clip_reward: bool = True
+    # The dissertation's reward on top of clipped score changes: a game's last move gets +1 for a win
+    # or -1 otherwise (timeouts count as losses, as in 2018), and every move of a lost game -0.5,
+    # clipped at -1. Off by default: modern agents normally see only the score.
+    reward2018: bool = False
     grad_clip: float = 10.0
     action_repeat: int = 4
     amp: bool = True  # bf16 network passes on the GPU
@@ -176,13 +180,19 @@ class GpuReplay:
         self.slot_ids = torch.arange(cap, **z)
         self.offs = torch.arange(-STACK + 1, 1, **z)
 
-    def add(self, obs: np.ndarray, action, reward, term, trunc, final_obs: np.ndarray) -> None:
-        """obs[e]: the frame action[e] was chosen on; final_obs[e]: the frame after an episode ended."""
+    def add(self, obs: np.ndarray, action, reward, term, trunc, final_obs: np.ndarray, won=None) -> None:
+        """obs[e]: the frame action[e] was chosen on; final_obs[e]: the frame after an episode ended;
+        won[e]: whether an ended episode was won (needed for cfg.reward2018)."""
         es, ts, frames, acts, rews, terms, ends, starts, fo = [], [], [], [], [], [], [], [], []
+        lost: list[tuple[int, int, int]] = []  # (game, first, last) absolute slots of lost episodes
         for e in range(self.n):
             ended = bool(term[e] or trunc[e])
             es.append(e), ts.append(self.t_host[e]), frames.append(obs[e]), acts.append(int(action[e]))
             r = float(np.sign(reward[e])) if self.cfg.clip_reward else float(reward[e])
+            if self.cfg.reward2018 and ended:
+                r = 1.0 if won[e] else -1.0  # 2018 replaced the last move's score change with the outcome
+                if not won[e]:
+                    lost.append((e, int(self.ep_start[e]), int(self.t_host[e])))
             rews.append(r), terms.append(bool(term[e])), ends.append(ended), starts.append(self.ep_start[e])
             fo.append(False)
             self.t_host[e] += 1
@@ -205,6 +215,10 @@ class GpuReplay:
         p_new = self.max_p**self.cfg.per_alpha if self.cfg.per else torch.ones((), device=dev)
         self.weight[e_t * self.cap + k_t] = torch.where(fo_t, torch.zeros((), device=dev), p_new)
         self.t.copy_(upload(self.t_host, dev), non_blocking=True)
+        for e, first, last in lost:  # 2018's penalty on every move of a lost game (this one included)
+            first = max(first, last - self.cap + 1)
+            k = torch.arange(first, last + 1, device=dev) % self.cap
+            self.reward[e, k] = (self.reward[e, k] - 0.5).clamp(min=-1.0)
 
     def _stack(self, e: torch.Tensor, abs_t: torch.Tensor) -> torch.Tensor:
         ts = abs_t[:, None] + self.offs[None, :]
