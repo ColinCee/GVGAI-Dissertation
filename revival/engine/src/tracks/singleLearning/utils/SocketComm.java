@@ -47,7 +47,10 @@ public class SocketComm extends Comm {
 
             //Initialize input and output through socket.
             in = new Scanner(socket.getInputStream());
-            out = new PrintStream(socket.getOutputStream());
+            // One buffered write per message, sent at once: unbuffered small writes plus Nagle's algorithm
+            // left each tick waiting on the network stack.
+            socket.setTcpNoDelay(true);
+            out = new PrintStream(new BufferedOutputStream(socket.getOutputStream(), 1 << 20), false);
 
         } catch(java.net.BindException e)
         {
@@ -87,7 +90,7 @@ public class SocketComm extends Comm {
      */
     public void commSend(String msg) throws IOException {
         String message = messageId + TOKEN_SEP + msg + lineSep;
-        out.format(message);
+        out.print(message);
         out.flush();
         messageId++;
     }

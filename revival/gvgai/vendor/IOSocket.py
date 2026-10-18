@@ -31,6 +31,7 @@ class IOSocket:
             try:
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.connect((self.hostname, self.port))
+                self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 self.connected = True
                 pass  # print ("Client connected to server [OK]")
             except Exception as e:

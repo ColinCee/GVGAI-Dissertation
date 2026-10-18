@@ -28,6 +28,8 @@ public class SerializableStateObservation {
 
     // State Observation variables
     public byte[] imageArray;
+    public String imageRaw;  // base64 RGB, with -Dgvgai.rawFrames (see VGDLViewer.RAW_FRAMES)
+    public int imageWidth, imageHeight;
     public boolean isValidation;
     public float gameScore;
     public int gameTick;
@@ -71,6 +73,8 @@ public class SerializableStateObservation {
     public Observation[][] fromAvatarSpritesPositions;
     public int fromAvatarSpritesPositionsNum;
     public int fromAvatarSpritesPositionsMaxRow;
+
+    private static final Gson GSON = new Gson();  // building one per message was a measurable cost
 
     public SerializableStateObservation(StateObservation s, Boolean both){
         try {
@@ -118,6 +122,11 @@ public class SerializableStateObservation {
         gameTick = s.getGameTick();
         gameWinner = s.getGameWinner();
         isGameOver = s.isGameOver();
+        if (core.vgdl.VGDLViewer.RAW_FRAMES && core.vgdl.VGDLViewer.lastRgb != null) {
+            imageRaw = java.util.Base64.getEncoder().encodeToString(core.vgdl.VGDLViewer.lastRgb);
+            imageWidth = core.vgdl.VGDLViewer.lastWidth;
+            imageHeight = core.vgdl.VGDLViewer.lastHeight;
+        }
     }
 
     private void buildDataVariables(StateObservation s){
@@ -287,6 +296,7 @@ public class SerializableStateObservation {
 
 
     public byte[] imageToByteArray() throws IOException {
+        if (core.vgdl.VGDLViewer.RAW_FRAMES) return null;
         if (core.vgdl.VGDLViewer.lastPng != null) {
             imageArray = core.vgdl.VGDLViewer.lastPng;
             return imageArray;
@@ -314,7 +324,7 @@ public class SerializableStateObservation {
     public String serialize(String filename)
     {
         String message = "";
-        Gson gson = new Gson();
+        Gson gson = GSON;
         if(filename == null)
         {
             message = gson.toJson(this);

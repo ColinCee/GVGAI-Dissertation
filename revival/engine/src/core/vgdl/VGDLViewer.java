@@ -135,11 +135,32 @@ public class VGDLViewer extends JComponent
 
     public static byte[] lastPng = null;
 
+    // -Dgvgai.rawFrames=true: keep the frame as RGB bytes (alpha dropped, as the client's PNG->RGB did)
+    // and skip PNG encoding and the frame file. Off by default, so the original protocol still works.
+    public static final boolean RAW_FRAMES = Boolean.getBoolean("gvgai.rawFrames");
+    public static byte[] lastRgb = null;
+    public static int lastWidth, lastHeight;
+
     public void saveImage(String fileName)  {
         try {
             BufferedImage bi = new BufferedImage( (int) size.getWidth(), (int) size.getHeight(), BufferedImage.TYPE_INT_ARGB);
             Graphics2D graphics = bi.createGraphics();
             paintWithGraphics(graphics);
+            if (RAW_FRAMES) {
+                int[] argb = ((java.awt.image.DataBufferInt) bi.getRaster().getDataBuffer()).getData();
+                byte[] rgb = new byte[argb.length * 3];
+                for (int i = 0, j = 0; i < argb.length; i++) {
+                    int p = argb[i];
+                    rgb[j++] = (byte) (p >> 16);
+                    rgb[j++] = (byte) (p >> 8);
+                    rgb[j++] = (byte) p;
+                }
+                lastRgb = rgb;
+                lastWidth = bi.getWidth();
+                lastHeight = bi.getHeight();
+                graphics.dispose();
+                return;
+            }
             File file = new File(fileName);
             if (justImage) {
                 graphics.dispose();

@@ -24,8 +24,8 @@ def main() -> None:
     shutil.rmtree(OUT.parent / "_pristine_tmp")
     shutil.copytree(REPO / "revival" / "engine" / "games", OUT / "games")  # data, includes waferthinmints2018
     # The seed switch is LearningMachine.java's only change since the import; take that file as it is now.
-    changed = subprocess.run(["git", "diff", "--name-only", IMPORT_COMMIT, "HEAD", "--", "revival/engine/src/tracks"],
-                             cwd=REPO, capture_output=True, check=True, text=True).stdout.split()  # fmt: skip
+    diff = ["git", "diff", "--name-only", IMPORT_COMMIT, "HEAD", "--", "revival/engine/src/tracks"]
+    changed = subprocess.run(diff, cwd=REPO, capture_output=True, check=True, text=True).stdout.split()
     assert changed == ["revival/engine/src/tracks/LearningMachine.java"], changed
     shutil.copy(REPO / changed[0], OUT / "src" / "tracks" / "LearningMachine.java")
     print(OUT)

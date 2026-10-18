@@ -845,6 +845,26 @@ public abstract class VGDLSprite {
      * @param gphx graphics object to draw in.
      * @param game reference to the game that is being played now.
      */
+    // Scaling a sprite on every draw was ~40% of the server's time. Scale each image once per size,
+    // the same way drawImage did (default nearest-neighbour), and copy pixels exactly (Src composite).
+    private static final java.util.Map<Image, java.util.Map<Long, java.awt.image.BufferedImage>> SCALED =
+            java.util.Collections.synchronizedMap(new java.util.IdentityHashMap<>());
+
+    static Image scaled(Image image, int dw, int dh) {
+        if (dw <= 0 || dh <= 0) return image;
+        long key = ((long) dw << 32) | (dh & 0xffffffffL);
+        return SCALED.computeIfAbsent(image, k -> new java.util.concurrent.ConcurrentHashMap<>())
+                .computeIfAbsent(key, k -> {
+                    java.awt.image.BufferedImage out =
+                            new java.awt.image.BufferedImage(dw, dh, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = out.createGraphics();
+                    g.setComposite(java.awt.AlphaComposite.Src);
+                    g.drawImage(image, 0, 0, dw, dh, null);
+                    g.dispose();
+                    return out;
+                });
+    }
+
     public void _drawImage(Graphics2D gphx, Game game, Rectangle r)
     {
         if(shrinkfactor != 1)
@@ -860,7 +880,7 @@ public abstract class VGDLSprite {
         float scaleX = (float)r.width/w;
         float scaleY = (float)r.height/h;
 
-        gphx.drawImage(image, r.x, r.y, (int) (w*scaleX), (int) (h*scaleY), null);
+        gphx.drawImage(scaled(image, (int) (w*scaleX), (int) (h*scaleY)), r.x, r.y, null);
 
         //uncomment this to see lots of numbers around
         //gphx.setColor(Color.BLACK);

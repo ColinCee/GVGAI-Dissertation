@@ -1,3 +1,4 @@
+import base64
 import io
 import json
 import logging
@@ -9,6 +10,14 @@ import shutil
 
 import numpy as np
 from PIL import Image
+
+
+def _raw_frame(sso):
+    """RGB frame sent inline by an engine run with -Dgvgai.rawFrames=true, else None."""
+    raw = getattr(sso, "imageRaw", None)
+    if not raw:
+        return None
+    return np.frombuffer(base64.b64decode(raw), np.uint8).reshape(sso.imageHeight, sso.imageWidth, 3)
 
 
 def _imread(path):
@@ -92,7 +101,7 @@ class ClientCommGYM:
             score=0
         
         if self.sso.isGameOver==True or self.sso.gameWinner=='PLAYER_WINS' or self.sso.phase == "FINISH" or self.sso.phase=="ABORT" or self.sso.phase=="End":
-            self.sso.image = _imread(os.path.join(self.tempDir.name, 'gameStateByBytes.png'))
+            self.sso.image = _raw_frame(self.sso) if _raw_frame(self.sso) is not None else _imread(os.path.join(self.tempDir.name, 'gameStateByBytes.png'))
             self.sso.Terminal=True
             #self.lastScore=0
             #Score = self.lastScore
@@ -171,7 +180,7 @@ class ClientCommGYM:
 
                 if(self.sso.isGameOver==True or self.sso.gameWinner=='WINNER' or self.sso.phase == "FINISH" or self.sso.phase == "End"):
                     
-                    self.sso.image = _imread(os.path.join(self.tempDir.name, 'gameStateByBytes.png'))
+                    self.sso.image = _raw_frame(self.sso) if _raw_frame(self.sso) is not None else _imread(os.path.join(self.tempDir.name, 'gameStateByBytes.png'))
                     self.sso.Terminal=True
                     self.lastScore=0
                 else:
@@ -298,7 +307,10 @@ class ClientCommGYM:
             if self.sso.phase == "ACT":
                 if(self.lastSsoType == LEARNING_SSO_TYPE.IMAGE or self.lastSsoType == "IMAGE" \
                         or self.lastSsoType == LEARNING_SSO_TYPE.BOTH or self.lastSsoType == "BOTH"):
-                    if(self.sso.imageArray):
+                    raw = _raw_frame(self.sso)
+                    if raw is not None:
+                        self.sso.image = raw
+                    elif(self.sso.imageArray):
                         # Decode in memory; upstream wrote the PNG to disk and read it back each tick.
                         png = np.asarray(self.sso.imageArray, dtype=np.int8).view(np.uint8).tobytes()
                         with Image.open(io.BytesIO(png)) as im:
