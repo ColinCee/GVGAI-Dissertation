@@ -1,0 +1,10 @@
+# PPO (policy-gradient family), Aliens, 3 seeds: 2018's ticks with/without 2018's reward, and 5M
+train_ppo.py --game aliens --ticks 1014134 --seed 0 --name aliens-ppo-b18-s0
+train_ppo.py --game aliens --ticks 1014134 --seed 0 --reward2018 --name aliens-ppo-reward2018-b18-s0
+train_ppo.py --game aliens --ticks 5000000 --seed 0 --name aliens-ppo-long-s0
+train_ppo.py --game aliens --ticks 1014134 --seed 1 --name aliens-ppo-b18-s1
+train_ppo.py --game aliens --ticks 1014134 --seed 1 --reward2018 --name aliens-ppo-reward2018-b18-s1
+train_ppo.py --game aliens --ticks 5000000 --seed 1 --name aliens-ppo-long-s1
+train_ppo.py --game aliens --ticks 1014134 --seed 2 --name aliens-ppo-b18-s2
+train_ppo.py --game aliens --ticks 1014134 --seed 2 --reward2018 --name aliens-ppo-reward2018-b18-s2
+train_ppo.py --game aliens --ticks 5000000 --seed 2 --name aliens-ppo-long-s2
