@@ -67,7 +67,7 @@ def finished(info: dict, ended: np.ndarray) -> list[dict]:
     return [{k: fi[k][e] for k in ("score", "win", "level")} for e in np.flatnonzero(ended)]
 
 
-def flattened(history: list[tuple[int, float, int]], ticks: int, min_ticks: int = 1_500_000) -> bool:
+def flattened(history: list[tuple[int, float, int]], ticks: int, min_ticks: int = 3_000_000) -> bool:
     """The plan's rule for long runs: compare the last 20% of ticks with the 20% before it; stop when
     wins rose by under 2 points and mean score by under 2%. history: (cum_ticks, score, win) per game."""
     if ticks < min_ticks:
@@ -150,6 +150,7 @@ def main() -> None:
     history: list[tuple[int, float, int]] = []
     next_check = 250_000
     stopped_early = None
+    flat_streak = 0
     pending_updates = 0.0
     t0 = time.perf_counter()
     t_env = t_learn = 0.0
@@ -192,7 +193,9 @@ def main() -> None:
                               f"{eps:.3f}", f"{time.perf_counter() - t0:.1f}"])  # fmt: skip
             if a.early_stop and ticks >= next_check:
                 next_check += 250_000
-                if flattened(history, ticks):
+                # two flat checks in a row: one alone stopped Rainbow on a mid-run plateau (Aliens, 1.75M)
+                flat_streak = flat_streak + 1 if flattened(history, ticks) else 0
+                if flat_streak >= 2:
                     stopped_early = ticks
                     print(f"stopping early at {ticks} ticks: no longer improving", flush=True)
                     break
