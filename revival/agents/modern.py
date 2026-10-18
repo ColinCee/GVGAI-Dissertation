@@ -32,7 +32,7 @@ class ModernConfig:
     adam_eps: float = 1e-4
     gamma: float = 0.99
     batch_size: int = 32
-    buffer_decisions: int = 1_000_000
+    buffer_decisions: int = 500_000  # 2M ticks of history; 3 runs fit on the 4090 at once (see IMPROVEMENTS 23)
     learning_starts: int = 20_000  # decisions
     replay_ratio: float = 0.25  # gradient updates per decision (CleanRL: train every 4 steps)
     target_every: int = 250  # updates; CleanRL DQN: every 1000 steps = 250 updates
