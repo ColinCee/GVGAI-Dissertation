@@ -48,6 +48,7 @@ class ModernConfig:
     clip_reward: bool = True
     grad_clip: float = 10.0
     action_repeat: int = 4
+    amp: bool = True  # bf16 network passes on the GPU
 
 
 def rainbow() -> ModernConfig:
@@ -114,10 +115,14 @@ class Net(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Q-values [B, A], or log-probabilities [B, A, atoms] when distributional."""
-        h = self.conv(x.float() / 255.0)
-        a = self.adv(h).view(-1, self.n_actions, self.atoms)
-        if self.val is not None:
-            a = self.val(h).view(-1, 1, self.atoms) + a - a.mean(1, keepdim=True)
+        # bf16 for the layers on the GPU (fp32 accumulate); combining and softmax stay in fp32
+        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=self.cfg.amp and x.is_cuda):
+            h = self.conv(x.float() / 255.0)
+            a = self.adv(h)
+            v = self.val(h) if self.val is not None else None
+        a = a.float().view(-1, self.n_actions, self.atoms)
+        if v is not None:
+            a = v.float().view(-1, 1, self.atoms) + a - a.mean(1, keepdim=True)
         return F.log_softmax(a, 2) if self.cfg.distributional else a.squeeze(2)
 
     def q(self, x: torch.Tensor) -> torch.Tensor:
