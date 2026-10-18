@@ -117,7 +117,7 @@ class Net(nn.Module):
         """Q-values [B, A], or log-probabilities [B, A, atoms] when distributional."""
         # bf16 for the layers on the GPU (fp32 accumulate); combining and softmax stay in fp32
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=self.cfg.amp and x.is_cuda):
-            h = self.conv(x.float() / 255.0)
+            h = self.conv((x.float() / 255.0).contiguous(memory_format=torch.channels_last))
             a = self.adv(h)
             v = self.val(h) if self.val is not None else None
         a = a.float().view(-1, self.n_actions, self.atoms)
@@ -213,6 +213,8 @@ class GpuReplay:
 
     def sample(self, k: int, beta: torch.Tensor):
         cfg, cap = self.cfg, self.cap
+        if not cfg.per:
+            return self._sample_uniform(k)
         t = self.t[:, None]
         abs_all = t - 1 - ((t - 1 - self.slot_ids[None, :]) % cap)
         # history of STACK frames still in the ring, and n_step decisions (plus the next frame) after it
@@ -223,6 +225,13 @@ class GpuReplay:
         u = torch.arange(k, device=self.dev, dtype=torch.float64) + torch.rand(k, device=self.dev, dtype=torch.float64)
         flat = torch.searchsorted(cdf, u * total / k).clamp(max=self.n * cap - 1)
         e, abs_t = flat // cap, abs_all.flatten()[flat]
+        p = w_all[flat] / total
+        wts = (valid.sum() * p) ** (-beta)
+        return self._finish(k, e, abs_t, (wts / wts.max()).float(), flat)
+
+    def _finish(self, k: int, e: torch.Tensor, abs_t: torch.Tensor, wts: torch.Tensor, flat: torch.Tensor):
+        """Stacks, n-step returns and next stacks for the chosen slots."""
+        cfg, cap = self.cfg, self.cap
         s = self._stack(e, abs_t)
         ret = torch.zeros(k, device=self.dev)
         done = torch.zeros(k, dtype=torch.bool, device=self.dev)
@@ -237,15 +246,23 @@ class GpuReplay:
             done |= self.term[e, kj] & alive
             alive &= ~self.end[e, kj]
         s2 = self._stack(e, last + 1)  # after an episode end, last + 1 is its frame-only slot
-        if cfg.per:
-            p = w_all[flat] / total
-            n_valid = valid.sum()
-            wts = (n_valid * p) ** (-beta)
-            wts = (wts / wts.max()).float()
-        else:
-            wts = torch.ones(k, device=self.dev)
         a = self.action[e, abs_t % cap]
         return s, a, ret, s2, done, cfg.gamma**steps, wts, flat
+
+    def _sample_uniform(self, k: int):
+        """Plain replay without scanning every slot: draw 2k candidates uniformly inside each game's
+        valid window and keep the first k that aren't frame-only slots (~1 in an episode's length, so
+        a miss among 2k draws is ~1e-4; a miss gets weight 0)."""
+        cfg, cap, dev = self.cfg, self.cap, self.dev
+        lo = (self.t - cap + STACK).clamp(min=0)
+        hi = self.t - 1 - cfg.n_step
+        e = torch.randint(0, self.n, (2 * k,), device=dev)
+        span = (hi - lo + 1).clamp(min=1)[e]
+        abs_c = lo[e] + (torch.rand(2 * k, device=dev) * span).long()
+        ok = self.weight[e * cap + abs_c % cap] > 0
+        pick = torch.argsort((~ok).to(torch.int8), stable=True)[:k]
+        e, abs_t, ok = e[pick], abs_c[pick], ok[pick]
+        return self._finish(k, e, abs_t, ok.float(), e * cap + abs_t % cap)
 
     def update_priorities(self, flat: torch.Tensor, err: torch.Tensor) -> None:
         if not self.cfg.per:
@@ -260,8 +277,10 @@ class ModernAgent:
         self.cfg, self.device, self.n_actions = cfg, device, n_actions
         torch.manual_seed(seed)
         self.rng = np.random.default_rng(seed)
-        self.q = Net(h, w, n_actions, cfg).to(device)
-        self.target = Net(h, w, n_actions, cfg).to(device)
+        # channels-last weights and inputs, and cuDNN's algorithm search: ~10% off each update
+        torch.backends.cudnn.benchmark = True
+        self.q = Net(h, w, n_actions, cfg).to(device, memory_format=torch.channels_last)
+        self.target = Net(h, w, n_actions, cfg).to(device, memory_format=torch.channels_last)
         self.target.load_state_dict(self.q.state_dict())
         cuda = str(device).startswith("cuda")
         self.opt = torch.optim.Adam(self.q.parameters(), lr=cfg.lr, eps=cfg.adam_eps, fused=cuda, capturable=cuda)
@@ -278,7 +297,9 @@ class ModernAgent:
         # step's updates, so choosing a move never waits behind the learner's queued updates (the
         # copy used is the one refreshed two steps ago: its weights are at most ~2 steps old).
         self.act_stream = torch.cuda.Stream(priority=-1) if cuda else None
-        self.actors = [Net(h, w, n_actions, cfg).to(device) for _ in range(2)] if cuda else []
+        self.actors = (
+            [Net(h, w, n_actions, cfg).to(device, memory_format=torch.channels_last) for _ in range(2)] if cuda else []
+        )
         for net in self.actors:
             net.load_state_dict(self.q.state_dict())
             net.requires_grad_(False)

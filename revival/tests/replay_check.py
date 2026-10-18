@@ -61,6 +61,8 @@ def main() -> int:
                     lookup[(e, row[0])] = (ep, j)
         s, a, ret, s2, done, gn, w, flat = rp.sample(4096, torch.tensor(0.4, device="cuda"))
         for i in range(len(flat)):
+            if float(w[i]) == 0:  # plain replay's rare unusable draw: weighted out of the loss
+                continue
             e, fid = ident(s[i, -1])
             ep, j = lookup[(e, fid)]
             want_hist = [ep[max(0, j - k)][0] for k in range(STACK - 1, -1, -1)]
