@@ -43,7 +43,8 @@ class GvgaiEnv(gym.Env):
         # engine_seed fixes the engine's per-level random seeds, so games replay exactly.
         build.ensure_built(Path(engine_dir))
         ClientCommGYM.JAVA = build.java()
-        ClientCommGYM.JAVA_OPTS = [f"-Dgvgai.longDelay={frame_delay_ms}"]
+        # Serial GC and a small heap: 122 MB per server instead of 686 MB, same speed (RAM is shared).
+        ClientCommGYM.JAVA_OPTS = ["-XX:+UseSerialGC", "-Xmx128m", f"-Dgvgai.longDelay={frame_delay_ms}"]
         if engine_seed is not None:
             ClientCommGYM.JAVA_OPTS.append(f"-Dgvgai.seed={engine_seed}")
         if raw_frames:  # pixels inline instead of PNG + frame file; the unmodified engine ignores this
