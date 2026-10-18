@@ -1,7 +1,8 @@
-"""Compile the engine into build/classes when any Java source changed. Run directly or via ensure_built()."""
+"""Compile the engine into build/classes-<source hash>. Run directly or via ensure_built()."""
 
 import hashlib
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -18,18 +19,27 @@ def _digest(src: Path, files: list[Path]) -> str:
 
 
 def ensure_built(engine: Path = ENGINE) -> Path:
-    """engine can be another copy of the engine (the golden test builds the unmodified import)."""
-    src, out, stamp = engine / "src", engine / "build" / "classes", engine / "build" / "sources.sha256"
+    """Compile into build/classes-<source hash> unless that exists. A new build never touches the
+    folder running servers use (they load classes lazily), so it is safe while runs are going.
+    `engine` can be another copy of the engine (the golden test builds the unmodified import)."""
+    src = engine / "src"
     files = sorted(src.rglob("*.java"))
-    digest = _digest(src, files)
-    if stamp.exists() and stamp.read_text() == digest:
+    out = engine / "build" / f"classes-{_digest(src, files)[:12]}"
+    if (out / "ok").exists():
         return out
-    out.mkdir(parents=True, exist_ok=True)
-    argfile = engine / "build" / "sources.txt"
+    tmp = out.with_name(f"{out.name}.tmp{os.getpid()}")  # per process: several runs may build at once
+    if tmp.exists():
+        shutil.rmtree(tmp)
+    tmp.mkdir(parents=True)
+    argfile = tmp / "sources.txt"
     argfile.write_text("\n".join(f'"{f.as_posix()}"' for f in files))
     javac = JDK / "bin" / "javac"
-    subprocess.run([str(javac), "-nowarn", "-encoding", "UTF-8", "-d", str(out), f"@{argfile}"], check=True)
-    stamp.write_text(digest)
+    subprocess.run([str(javac), "-nowarn", "-encoding", "UTF-8", "-d", str(tmp), f"@{argfile}"], check=True)
+    (tmp / "ok").write_text("")
+    try:
+        tmp.rename(out)
+    except OSError:  # another process built the same sources first
+        shutil.rmtree(tmp, ignore_errors=True)
     return out
 
 

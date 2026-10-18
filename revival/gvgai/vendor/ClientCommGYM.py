@@ -39,6 +39,7 @@ from Types import LEARNING_SSO_TYPE
 
 JAVA: str = "java"  # set by the caller to the JDK's java
 JAVA_OPTS = []  # set by the caller, e.g. ["-Dgvgai.longDelay=0"]
+CLASSES = None  # compiled engine folder, set by the caller (engine/build.py)
 
 
 class ClientCommGYM:
@@ -63,7 +64,7 @@ class ClientCommGYM:
         self.sso.Terminal=False
 
         # pathStr is revival/engine; classes are built by revival/engine/build.py
-        buildDir = os.path.join(pathStr, 'build', 'classes')
+        buildDir = CLASSES or os.path.join(pathStr, 'build', 'classes')
         gamesDir = os.path.join(pathStr, 'games', '{}_v{}'.format(game, version))
         cmd = [JAVA] + JAVA_OPTS + ["-classpath", buildDir, "tracks.singleLearning.utils.JavaServer", "-game", game, "-gamesDir", gamesDir, "-imgDir", pathStr, "-portNum", str(self.io.port)]
         # stdin/stderr to DEVNULL too: an inherited handle keeps the caller's pipe open after we exit

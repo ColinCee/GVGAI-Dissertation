@@ -43,7 +43,7 @@ class GvgaiEnv(gym.Env):
         # The engine sleeps frame_delay_ms per tick to pace the game for viewing (25 ms in 2018).
         # It has no effect on game logic.
         # engine_seed fixes the engine's per-level random seeds, so games replay exactly.
-        build.ensure_built(Path(engine_dir))
+        ClientCommGYM.CLASSES = str(build.ensure_built(Path(engine_dir)))
         ClientCommGYM.JAVA = build.java()
         # Serial GC and a small heap: ~150 MB per server instead of 686 MB, same speed (RAM is shared);
         # 256 MB, not 128, so a long game's garbage collection can't stall a batched step.
