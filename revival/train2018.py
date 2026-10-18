@@ -23,6 +23,7 @@ import numpy as np
 import torch
 
 from agents.ddqn2018 import Agent2018, Config, play_episode
+from gvgai import heartbeat
 from gvgai.env import GvgaiEnv
 
 HERE = Path(__file__).resolve().parent
@@ -153,6 +154,7 @@ def main() -> None:
     with open(csv_path, "a", newline="") as f:
         out = csv.writer(f)
         while episode < a.episodes:
+            heartbeat.check()
             row = play_episode(env, agent)
             episode += 1
             cum_ticks += row["ticks"]

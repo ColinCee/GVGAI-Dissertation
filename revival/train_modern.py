@@ -22,6 +22,7 @@ import numpy as np
 import torch
 
 from agents.modern import STACK, ModernAgent, ModernConfig, rainbow, upload
+from gvgai import heartbeat
 from gvgai.vec import vector
 from train2018 import DEFAULT_LEVELS
 
@@ -135,6 +136,8 @@ def main() -> None:
         out.writerow(["episode", "score", "win", "level", "cum_ticks", "updates", "epsilon", "wall_s"])
         while ticks < a.ticks:
             eps = agent.epsilon(decisions, budget_decisions)
+            if decisions % (a.envs * 100) == 0:
+                heartbeat.check()
             newest = stacks.newest
             act = agent.act(stacks.array(), eps, actor=True)
             # The games play this move while the learner trains on what is already in replay.

@@ -220,6 +220,8 @@ public class SocketComm extends Comm {
                 return null;
             }
         } else {
+            // End of stream: the client is gone (killed, crashed). Without this the server spun forever.
+            System.exit(0);
             return null;
         }
     }

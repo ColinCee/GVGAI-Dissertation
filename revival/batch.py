@@ -9,6 +9,7 @@ its checkpoint).
 """
 
 import argparse
+import os
 import shlex
 import subprocess
 import sys
@@ -30,6 +31,9 @@ def main() -> None:
     jobs = [shlex.split(ln) for ln in Path(a.jobs).read_text().splitlines() if ln.strip() and not ln.startswith("#")]
     todo = [j for j in jobs if not (HERE / "results" / f"{name_of(j)}.json").exists()]
     print(f"{len(todo)} of {len(jobs)} jobs to run", flush=True)
+    beat = HERE / "runs" / f"batch-{os.getpid()}.alive"  # see gvgai/heartbeat.py
+    beat.touch()
+    env = {**os.environ, "GVGAI_HEARTBEAT": str(beat)}
     running: dict[str, subprocess.Popen] = {}
     failed = []
     while todo or running:
@@ -38,9 +42,10 @@ def main() -> None:
             n = name_of(j)
             log = open(HERE / "runs" / f"{n}.log", "a")  # noqa: SIM115 - closed with the process
             running[n] = subprocess.Popen([sys.executable, "-u", *j], cwd=HERE, stdout=log, stderr=subprocess.STDOUT,
-                                          stdin=subprocess.DEVNULL)  # fmt: skip
+                                          stdin=subprocess.DEVNULL, env=env)  # fmt: skip
             print(f"start {n}", flush=True)
         time.sleep(5)
+        beat.touch()
         for n, pr in list(running.items()):
             if pr.poll() is not None:
                 ok = pr.returncode == 0 and (HERE / "results" / f"{n}.json").exists()
