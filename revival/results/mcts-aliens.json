@@ -10,8 +10,8 @@
  ],
  "eval": {
   "games": 51,
-  "mean_score": 79.09803921568627,
+  "mean_score": 77.82352941176471,
   "win_rate": 1.0,
-  "iters_per_move": 218.92549019607844
+  "iters_per_move": 336.4490196078432
  }
 }

@@ -7,3 +7,4 @@
 - Iteration speed matters as much as results: aim for the full modern comparison in under a day of real time, and short runs to try ideas.
 - Colin (18 Oct): exhaust realistic speed gains on both game ticks and training before starting long training batches; measure on a quiet machine. Real overall training time is the goal, not effort: heavier engineering is fine if learning quality stays the same.
 - RAM is shared with Cortex (~39 GB): stop every game server when a test ends; reserve big RAM through `lease`. Colin (18 Oct): Cortex (and its Strata model) may be stopped entirely while training runs; speed and more ticks come first. Restart it afterwards.
+- Colin (18 Oct, night): keep iterating overnight until ~10am on performance, rewards and architectures for "a full extension" of the dissertation; don't stop early. Keep RESULTS.md and IMPROVEMENTS.md current; Fable reviews major steps.
