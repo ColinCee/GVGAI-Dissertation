@@ -82,14 +82,14 @@ class ClientCommGYM:
      * @throws IOException
     """
 
-    def step(self,act):
+    def step(self,act,repeat=1):
         #self.sso.phase = Phase.ACT
         if not self.sso.Terminal:
             if(act == 0):
-                self.act("")
+                self.act("", repeat)
             else:
                 action = self.sso.availableActions[act - 1]
-                self.act(action)
+                self.act(action, repeat)
             self.line = self.io.readLine()
             self.line = self.line.rstrip("\r\n")
             self.processLine(self.line)
@@ -358,7 +358,7 @@ class ClientCommGYM:
      * which is sent back to the server
     """
 
-    def act(self,action):
+    def act(self,action,repeat=1):
         ect = ElapsedCpuTimer()
         ect.setMaxTimeMillis(CompetitionParameters.ACTION_TIME)
         #action = str(self.player.act(self.sso, ect.copy()))
@@ -374,7 +374,9 @@ class ClientCommGYM:
             else:
                 self.io.writeToServer(self.lastMessageId, "ACTION_NIL" + "#" + self.lastSsoType, self.LOG)
         else:
-            self.io.writeToServer(self.lastMessageId, action + "#" + self.lastSsoType, self.LOG)
+            # optional repeat count: the server plays the action that many ticks and sends only the last frame
+            extra = "#" + str(repeat) if repeat > 1 else ""
+            self.io.writeToServer(self.lastMessageId, action + "#" + self.lastSsoType + extra, self.LOG)
 
     def addLevel(self, path):
         lvlName = os.path.join(self.tempDir.name, 'game_lvl5.txt')

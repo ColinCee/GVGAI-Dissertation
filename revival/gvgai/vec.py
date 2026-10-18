@@ -31,13 +31,9 @@ class Preprocessed(gym.Wrapper):
         return self._p(obs), info
 
     def step(self, action):
-        total, ticks = 0.0, 0
-        for _ in range(self.repeat):
-            obs, r, term, trunc, info = self.env.step(action)
-            total += r
-            ticks += 1
-            if term or trunc:
-                break
+        # the server holds the action for `repeat` ticks (tests/repeat_check.py: same as repeating here)
+        obs, total, term, trunc, info = self.env.step(action, self.repeat)
+        ticks = info["advanced"]
         if info["timeout"]:
             term, trunc = False, True
         out = {"score": info["score"], "win": info["win"], "level": info["level"], "ticks": ticks}

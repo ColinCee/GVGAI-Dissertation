@@ -80,10 +80,16 @@ class GvgaiEnv(gym.Env):
         self.level = level
         return obs, {"level": level}
 
-    def step(self, action):
+    def step(self, action, repeat=1):
+        """Play `action`; with repeat > 1 the server holds it that many ticks (stopping at the game's end
+        or the tick limit) and returns only the last frame."""
         assert not self._terminal, "call reset() after the game ends"
-        obs, reward, done, info = self.comm.step(int(action) + self._offset)
-        self._ticks += 1
+        before = self.comm.sso.gameTick
+        repeat = max(1, min(repeat, self.max_ticks - before))
+        obs, reward, done, info = self.comm.step(int(action) + self._offset, repeat)
+        # the game-over message reports the tick the game ended on, one short of ticks played
+        advanced = max(1, self.comm.sso.gameTick - before + (1 if done else 0))
+        self._ticks += advanced
         # reset() already played one tick, so count the engine's own tick
         timeout = not done and self.comm.sso.gameTick >= self.max_ticks
         winner = info["winner"]
@@ -96,6 +102,7 @@ class GvgaiEnv(gym.Env):
             "score": self.comm.sso.gameScore,
             "tick": self._ticks,
             "timeout": timeout,
+            "advanced": advanced,
             "level": self.level,
         }
         # The 2018 engine ended the game itself at 2000 ticks, so timeout is a real terminal state.

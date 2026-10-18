@@ -187,8 +187,9 @@ public class SocketComm extends Comm {
                 int receivedID = Integer.parseInt(messageParts[0]);
                 String msg = messageParts[1];
 
+                lastRepeat = messageParts.length >= 4 ? Integer.parseInt(messageParts[3].trim()) : 1;
                 if (messageParts.length >= 3) {
-                    String ssoType = messageParts[2];
+                    String ssoType = messageParts[2].trim();
                     switch (ssoType) {
                         case "JSON":
                             this.lastSsoType = LEARNING_SSO_TYPE.JSON;

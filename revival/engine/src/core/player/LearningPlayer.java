@@ -54,8 +54,17 @@ public class LearningPlayer extends Player {
      * @param elapsedTimer Timer when the action returned is due.
      * @return An action for the current state
      */
+    // An action sent with a repeat count is replayed here without messages; the game skips drawing
+    // the frames in between (see Game.playOnlineGame), as the client would only keep the last.
+    public int repeatLeft = 0;
+    private Types.ACTIONS repeatAction;
+
     @Override
     public Types.ACTIONS act(StateObservation so, ElapsedCpuTimer elapsedTimer) {
+        if (repeatLeft > 0) {
+            repeatLeft--;
+            return repeatAction;
+        }
         // Sending messages.
         try {
             SerializableStateObservation sso;
@@ -105,6 +114,10 @@ public class LearningPlayer extends Player {
             }
 
             Types.ACTIONS action = Types.ACTIONS.fromString(response);
+            if (comm.lastRepeat > 1) {
+                repeatLeft = comm.lastRepeat - 1;
+                repeatAction = action;
+            }
             return action;
 
         } catch (IOException e) {
@@ -119,6 +132,7 @@ public class LearningPlayer extends Player {
      * @return true if Init worked.
      */
     public boolean init(StateObservation so, boolean isValidation) {
+        repeatLeft = 0;
         //Sending messages.
         try {
             // Set the game state to the appropriate state and the millisecond counter, then send the serialized observation.

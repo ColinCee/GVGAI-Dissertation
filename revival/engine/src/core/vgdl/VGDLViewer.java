@@ -107,6 +107,12 @@ public class VGDLViewer extends JComponent
      */
     public void paint(SpriteGroup[] spriteGroupsGame)
     {
+        if (RAW_FRAMES && justImage) {
+            // Headless: nothing draws concurrently, so draw the game's own sprites instead of a copy.
+            this.spriteGroups = spriteGroupsGame;
+            saveImage(CompetitionParameters.SCREENSHOT_FILENAME);
+            return;
+        }
         this.spriteGroups = new SpriteGroup[spriteGroupsGame.length];
         for(int i = 0; i < this.spriteGroups.length; ++i)
         {
@@ -141,26 +147,35 @@ public class VGDLViewer extends JComponent
     public static byte[] lastRgb = null;
     public static int lastWidth, lastHeight;
 
+    private BufferedImage rawImage;  // RAW_FRAMES: one image and graphics context reused for every frame
+    private Graphics2D rawGraphics;
+
     public void saveImage(String fileName)  {
         try {
-            BufferedImage bi = new BufferedImage( (int) size.getWidth(), (int) size.getHeight(), BufferedImage.TYPE_INT_ARGB);
-            Graphics2D graphics = bi.createGraphics();
-            paintWithGraphics(graphics);
             if (RAW_FRAMES) {
-                int[] argb = ((java.awt.image.DataBufferInt) bi.getRaster().getDataBuffer()).getData();
-                byte[] rgb = new byte[argb.length * 3];
+                if (rawImage == null) {
+                    rawImage = new BufferedImage((int) size.getWidth(), (int) size.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                    rawGraphics = rawImage.createGraphics();
+                    lastRgb = new byte[rawImage.getWidth() * rawImage.getHeight() * 3];
+                }
+                int[] argb = ((java.awt.image.DataBufferInt) rawImage.getRaster().getDataBuffer()).getData();
+                java.util.Arrays.fill(argb, 0);  // as a fresh image: transparent black
+                paintWithGraphics(rawGraphics);
+                // lastRgb is reused: each frame is sent before the next one is drawn.
+                byte[] rgb = lastRgb;
                 for (int i = 0, j = 0; i < argb.length; i++) {
                     int p = argb[i];
                     rgb[j++] = (byte) (p >> 16);
                     rgb[j++] = (byte) (p >> 8);
                     rgb[j++] = (byte) p;
                 }
-                lastRgb = rgb;
-                lastWidth = bi.getWidth();
-                lastHeight = bi.getHeight();
-                graphics.dispose();
+                lastWidth = rawImage.getWidth();
+                lastHeight = rawImage.getHeight();
                 return;
             }
+            BufferedImage bi = new BufferedImage( (int) size.getWidth(), (int) size.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            Graphics2D graphics = bi.createGraphics();
+            paintWithGraphics(graphics);
             File file = new File(fileName);
             if (justImage) {
                 graphics.dispose();

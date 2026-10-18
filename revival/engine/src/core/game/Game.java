@@ -1000,7 +1000,8 @@ public abstract class Game {
 			waitStep(remaining);
 
 			// Draw all sprites in the panel.
-			view.paint(this.spriteGroups);
+			if (isEnded || !(players[0] instanceof core.player.LearningPlayer lp) || lp.repeatLeft == 0)
+				view.paint(this.spriteGroups);  // the next frame the client will see
 
 			if (firstRun && isHuman) {
 				firstRun = false;

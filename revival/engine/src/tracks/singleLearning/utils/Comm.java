@@ -18,6 +18,7 @@ public abstract class Comm extends Thread {
      * Variable to store the message type
      */
     protected Types.LEARNING_SSO_TYPE lastSsoType = Types.LEARNING_SSO_TYPE.JSON; // Type of message chosen by player (JSON/Image)
+    public int lastRepeat = 1;  // optional 4th field of an action message: play it for this many ticks
 
     /**
      * Line separator for messages.
