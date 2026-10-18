@@ -114,7 +114,8 @@ def main() -> None:
         out.append(f"| {label} | " + " | ".join(cell(runs[x], "eval_heldout") for x in GAMES) + " |")
 
     out += ["", "## 2018's ablation on Aliens: win % per 500 training games", "",
-            "| Variant | 2018 report | 2026 replay (mean of seeds) | 2026 eval score (wins) |", "|---|---|---|---|"]  # fmt: skip
+            "| Variant | 2018 report | 2026 replay (mean of seeds) | 2026 eval score (wins) |",
+            "|---|---|---|---|"]  # fmt: skip
     for name, run in ABLATION_2026.items():
         rep = CURVES_2018.get(name)
         rep_s = " / ".join(f"{b:.0f}" for b in rep) if rep else "– (figure only)"
