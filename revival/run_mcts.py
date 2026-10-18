@@ -48,8 +48,8 @@ def main() -> None:
         procs[g] = []
         for lvl in levels if a.split_levels else [",".join(map(str, levels))]:
             budget = f"-Dgvgai.actionTime={a.ms if not a.iters else 10**8}"
-            cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", budget, f"-Dgvgai.mctsIters={a.iters}", "-Dgvgai.maxTicks=2000",
-                   "-cp", str(classes), "tracks.RunMCTS", str(d / f"{g}.txt"), str(d / f"{g}_lvl"), str(lvl),
+            cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", budget, f"-Dgvgai.mctsIters={a.iters}",
+                   "-Dgvgai.maxTicks=2000", "-cp", str(classes), "tracks.RunMCTS", str(d / f"{g}.txt"), str(d / f"{g}_lvl"), str(lvl),
                    str(per_level), str(a.seed)]  # fmt: skip
             # cwd: the engine loads sprites by relative path
             procs[g].append(
