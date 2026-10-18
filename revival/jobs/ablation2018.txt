@@ -1,0 +1,10 @@
+# 2018 ablation on Aliens (the dissertation's chapter 5), 3 seeds each: plain DQN, DDQN, Dueling (final agent is in phase2.txt)
+train2018.py --game aliens --episodes 2000 --seed 0 --variant dqn --name aliens-ddqn2018-dqn-s0 --device cuda --threads 1
+train2018.py --game aliens --episodes 2000 --seed 1 --variant dqn --name aliens-ddqn2018-dqn-s1 --device cuda --threads 1
+train2018.py --game aliens --episodes 2000 --seed 2 --variant dqn --name aliens-ddqn2018-dqn-s2 --device cuda --threads 1
+train2018.py --game aliens --episodes 2000 --seed 0 --variant ddqn --name aliens-ddqn2018-ddqn-s0 --device cuda --threads 1
+train2018.py --game aliens --episodes 2000 --seed 1 --variant ddqn --name aliens-ddqn2018-ddqn-s1 --device cuda --threads 1
+train2018.py --game aliens --episodes 2000 --seed 2 --variant ddqn --name aliens-ddqn2018-ddqn-s2 --device cuda --threads 1
+train2018.py --game aliens --episodes 2000 --seed 0 --variant dueling --name aliens-ddqn2018-dueling-s0 --device cuda --threads 1
+train2018.py --game aliens --episodes 2000 --seed 1 --variant dueling --name aliens-ddqn2018-dueling-s1 --device cuda --threads 1
+train2018.py --game aliens --episodes 2000 --seed 2 --variant dueling --name aliens-ddqn2018-dueling-s2 --device cuda --threads 1

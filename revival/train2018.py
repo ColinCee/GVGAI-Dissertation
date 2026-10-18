@@ -82,7 +82,7 @@ def load_checkpoint(path: Path, agent: Agent2018) -> tuple[int, int, float]:
 def evaluate(env: GvgaiEnv, agent: Agent2018, games: int) -> dict:
     net = agent.q
     if agent.synced_state is not None:
-        net = type(agent.q)(*agent.replay.state.shape[2:], agent.n_actions).to(agent.device)
+        net = type(agent.q)(*agent.replay.state.shape[2:], agent.n_actions, agent.q.dueling).to(agent.device)
         net.load_state_dict(agent.synced_state)
     rows = [play_episode(env, agent, train=False, greedy=True, net=net) for _ in range(games)]
     return {
@@ -110,6 +110,7 @@ def main() -> None:
     p.add_argument("--target-update-stacks", type=int, default=Config.target_update_stacks)
     p.add_argument("--loss-penalty", type=float, default=Config.loss_penalty, help="0 = 2018's old reward")
     p.add_argument("--fix-bugs", action="store_true", help="fix 2018's reward timing and PER weights")
+    p.add_argument("--variant", default="ddqn_per", choices=["ddqn_per", "dqn", "ddqn", "dueling"])
     a = p.parse_args()
 
     torch.set_num_threads(a.threads)
@@ -130,7 +131,10 @@ def main() -> None:
         target_update_stacks=a.target_update_stacks,
         loss_penalty=a.loss_penalty,
         fix_bugs=a.fix_bugs,
+        variant=a.variant,
     )
+    if a.variant in ("dqn", "ddqn"):
+        cfg.loss_penalty = 0.0  # commented out on those 2018 branches
     agent = Agent2018(env.n_actions - 1, (h, w), cfg, a.device)
 
     episode, cum_ticks, wall0 = 0, 0, 0.0
@@ -170,8 +174,9 @@ def main() -> None:
     t_eval = time.perf_counter()
     ev = evaluate(env, agent, a.eval_games)
     env.close()
+    agent_name = ("ddqn2018-fixed" if a.fix_bugs else "ddqn2018") + ("" if a.variant == "ddqn_per" else f"-{a.variant}")
     result = {
-        "name": a.name, "agent": "ddqn2018-fixed" if a.fix_bugs else "ddqn2018", "game": a.game, "seed": a.seed,
+        "name": a.name, "agent": agent_name, "game": a.game, "seed": a.seed,
         "episodes": a.episodes, "levels": list(levels),
         "train_ticks": cum_ticks, "train_wall_s": train_wall, "eval_wall_s": time.perf_counter() - t_eval,
         "updates": agent.updates, "device": a.device, "per_sample": a.per_sample, "config": asdict(cfg),

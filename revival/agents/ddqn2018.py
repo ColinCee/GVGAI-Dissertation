@@ -49,6 +49,14 @@ class Config:
     # Fix 2018's two bugs and nothing else: credit each score change to the action that caused it,
     # and weight prioritised samples by importance (beta 0.4 -> 1 as epsilon decays).
     fix_bugs: bool = False
+    # 2018's other branches: "dqn" (no target network, uniform replay), "ddqn" (target network, uniform),
+    # "dueling" (the final agent with a dueling head). dqn/ddqn had the loss penalty commented out.
+    variant: str = "ddqn_per"
+
+    @property
+    def per(self) -> bool:
+        return self.variant in ("ddqn_per", "dueling")
+
     seed: int = 0
     extra: dict = field(default_factory=dict)
 
@@ -62,7 +70,7 @@ def preprocess(rgb: np.ndarray) -> np.ndarray:
 class QNet(nn.Module):
     """2018's Network.deep_q_network, with Keras's default init (Glorot uniform, zero bias)."""
 
-    def __init__(self, h: int, w: int, n_actions: int):
+    def __init__(self, h: int, w: int, n_actions: int, dueling: bool = False):
         super().__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(FRAMES_PER_STACK, 32, 8, 4), nn.ReLU(),
@@ -72,14 +80,23 @@ class QNet(nn.Module):
         )  # fmt: skip
         with torch.no_grad():
             n = self.conv(torch.zeros(1, FRAMES_PER_STACK, h, w)).shape[1]
-        self.head = nn.Sequential(nn.Linear(n, 512), nn.ReLU(), nn.Linear(512, n_actions))
+        self.dueling = dueling
+        if dueling:  # 2018's dueling_network: 256-wide streams, advantage minus its mean
+            self.adv = nn.Sequential(nn.Linear(n, 256), nn.ReLU(), nn.Linear(256, n_actions))
+            self.val = nn.Sequential(nn.Linear(n, 256), nn.ReLU(), nn.Linear(256, 1))
+        else:
+            self.head = nn.Sequential(nn.Linear(n, 512), nn.ReLU(), nn.Linear(512, n_actions))
         for m in self.modules():
             if isinstance(m, nn.Conv2d | nn.Linear):
                 nn.init.xavier_uniform_(m.weight)
                 nn.init.zeros_(m.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.head(self.conv(x.float()))  # raw 0-255, as in 2018
+        h = self.conv(x.float())  # raw 0-255, as in 2018
+        if self.dueling:
+            a = self.adv(h)
+            return self.val(h) + a - a.mean(1, keepdim=True)
+        return self.head(h)
 
 
 class SumTree:
@@ -155,6 +172,8 @@ class Replay:
             self.terminal_next[slot] = s2
 
     def sample(self, k: int) -> list[int]:
+        if not self.cfg.per:  # random.sample(memory, 1) per item: uniform, repeats allowed
+            return [self.rng.randrange(self.tree.filled) + self.tree.capacity - 1 for _ in range(k)]
         leaves: list[int] = []
         while len(leaves) < k:
             leaf = self.tree.get(self.rng.randint(0, int(self.tree.total())))
@@ -171,8 +190,9 @@ class Agent2018:
         self.np_rng = np.random.default_rng(cfg.seed)
         torch.manual_seed(cfg.seed)
         h, w = frame_shape
-        self.q = QNet(h, w, n_actions).to(device)
-        self.target = QNet(h, w, n_actions).to(device)  # own random init, as 2018
+        duel = cfg.variant == "dueling"
+        self.q = QNet(h, w, n_actions, duel).to(device)
+        self.target = QNet(h, w, n_actions, duel).to(device)  # own random init, as 2018
         self.opt = torch.optim.Adam(self.q.parameters(), lr=cfg.lr, eps=1e-7)
         self.updates = 0
         self.replay = Replay(cfg, h, w, self.rng)
@@ -196,8 +216,12 @@ class Agent2018:
 
     @torch.no_grad()
     def _targets(self, r: np.ndarray, s2: np.ndarray, d: np.ndarray) -> np.ndarray:
-        q1, q2 = self._q(self.q, s2), self._q(self.target, s2)
-        best = q2.gather(1, q1.argmax(1, keepdim=True)).squeeze(1).cpu().numpy()
+        q1 = self._q(self.q, s2)
+        if self.cfg.variant == "dqn":  # max over the online network itself
+            best = q1.max(1).values.cpu().numpy()
+        else:
+            q2 = self._q(self.target, s2)
+            best = q2.gather(1, q1.argmax(1, keepdim=True)).squeeze(1).cpu().numpy()
         return np.where(d > 0, r, r + self.cfg.gamma * best).astype(np.float32)
 
     def remember_episode(self, transitions: list, warmup: bool) -> None:
@@ -209,8 +233,8 @@ class Agent2018:
         rp = self.replay
         s, a, r, s2, d = (np.array(x) for x in zip(*transitions, strict=True))
         r, d = r.astype(np.float32), d.astype(np.float32)
-        if warmup:
-            err = r  # no network yet: 2018 used get_priority(reward, 0)
+        if warmup or not self.cfg.per:
+            err = r  # no network yet: 2018 used get_priority(reward, 0); unused without PER
         else:
             with torch.no_grad():
                 q = self._q(self.q, s).gather(1, torch.from_numpy(a)[:, None].to(self.device)).squeeze(1)
@@ -226,14 +250,15 @@ class Agent2018:
         a = torch.from_numpy(rp.action[idx]).to(self.device)
         q = self._q(self.q, rp.state[idx])
         q_taken = q.gather(1, a[:, None]).squeeze(1)
-        with torch.no_grad():
-            for leaf, e in zip(leaves, (q_taken - target).cpu().numpy(), strict=True):
-                rp.tree.update(leaf, rp.priority(float(e)))
+        if self.cfg.per:
+            with torch.no_grad():
+                for leaf, e in zip(leaves, (q_taken - target).cpu().numpy(), strict=True):
+                    rp.tree.update(leaf, rp.priority(float(e)))
         # Keras fit on (s, q with the taken action replaced by target): MSE averaged over all actions.
         y = q.detach().clone()
         y[torch.arange(len(idx)), a] = target
         per_sample = ((q - y) ** 2).mean(1)
-        if self.cfg.fix_bugs:
+        if self.cfg.fix_bugs and self.cfg.per:
             beta = 0.4 + 0.6 * min(1.0, (1 - self.epsilon) / (1 - self.cfg.eps_min))
             p = rp.tree.tree[np.array(leaves)] / rp.tree.total()
             w = (rp.tree.filled * p) ** (-beta)
@@ -258,7 +283,7 @@ class Agent2018:
             self.train_step()
         if self.epsilon > self.cfg.eps_min:
             self.epsilon -= (1 - self.cfg.eps_min) / self.cfg.eps_episodes
-        if self.stacks_since_sync >= self.cfg.target_update_stacks:
+        if self.cfg.variant != "dqn" and self.stacks_since_sync >= self.cfg.target_update_stacks:
             self.target.load_state_dict(self.q.state_dict())
             self.synced_state = {k: v.clone() for k, v in self.q.state_dict().items()}
             self.stacks_since_sync = 0
