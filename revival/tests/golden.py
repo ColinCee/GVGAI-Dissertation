@@ -4,7 +4,7 @@ Each game is played with a fixed engine seed and fixed scripted moves on levels 
 a hash of the game state the server reports and of the decoded pixels (not the PNG bytes, which can
 change between JDKs while the image stays the same). Speed changes must leave these identical.
 
-    uv run python tests/golden.py record [--engine DIR]   # write tests/golden/<game>.json
+    uv run python tests/golden.py record --engine "$(uv run python tests/pristine_engine.py)"
     uv run python tests/golden.py check  [--engine DIR]   # compare, exit 1 on any difference
 """
 
@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import random
+import subprocess
 import sys
 from pathlib import Path
 
@@ -23,8 +24,8 @@ LEVELS = [0, 1, 2]
 ENGINE_SEED = 20180417  # date of the last 2018 commit
 MAX_TICKS = 600  # per game; enough to cover deaths, wins and every sprite type in these levels
 OUT = Path(__file__).resolve().parent / "golden"
-STATE_FIELDS = ["gameScore", "gameTick", "gameWinner", "isGameOver", "avatarPosition", "avatarOrientation",
-                "avatarHealthPoints", "avatarResources", "availableActions"]  # fmt: skip
+# All the server sends in image mode; sprite positions are covered by the pixel hash.
+STATE_FIELDS = ["gameScore", "gameTick", "gameWinner", "isGameOver", "availableActions"]
 
 
 def _h(data: bytes) -> str:
@@ -57,7 +58,7 @@ def play(game: str, engine_dir: str, engine_seed: int = ENGINE_SEED) -> list[dic
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("mode", choices=["record", "check"])
-    p.add_argument("--engine", default=ENGINE_DIR)
+    p.add_argument("--engine", default=ENGINE_DIR, help="record from tests/pristine_engine.py's folder")
     p.add_argument("--games", nargs="+", default=GAMES)
     p.add_argument("--engine-seed", type=int, default=ENGINE_SEED, help="change only to test the test")
     a = p.parse_args()
@@ -67,10 +68,12 @@ def main() -> int:
         got = play(game, a.engine, a.engine_seed)
         path = OUT / f"{game}.json"
         if a.mode == "record":
-            path.write_text(json.dumps(got, indent=0))
+            commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True)
+            source = "unmodified import + seed switch" if a.engine != ENGINE_DIR else "current engine"
+            path.write_text(json.dumps({"engine": source, "commit": commit.stdout.strip(), "episodes": got}))
             print(f"{game}: recorded {sum(len(e['ticks']) for e in got)} ticks")
             continue
-        want = json.loads(path.read_text())
+        want = json.loads(path.read_text())["episodes"]
         for ep_want, ep_got in zip(want, got, strict=True):
             for t, (w, g) in enumerate(zip(ep_want["ticks"], ep_got["ticks"], strict=False)):
                 if w != g:

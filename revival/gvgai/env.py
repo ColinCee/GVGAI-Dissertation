@@ -35,6 +35,7 @@ class GvgaiEnv(gym.Env):
         frame_delay_ms=0,
         engine_seed=None,
         engine_dir=ENGINE_DIR,
+        java_opts=(),
     ):
         # The engine sleeps frame_delay_ms per tick to pace the game for viewing (25 ms in 2018).
         # It has no effect on game logic.
@@ -44,6 +45,7 @@ class GvgaiEnv(gym.Env):
         ClientCommGYM.JAVA_OPTS = [f"-Dgvgai.longDelay={frame_delay_ms}"]
         if engine_seed is not None:
             ClientCommGYM.JAVA_OPTS.append(f"-Dgvgai.seed={engine_seed}")
+        ClientCommGYM.JAVA_OPTS += list(java_opts)
         self.game = game
         self.levels = tuple(levels)
         self.max_ticks = max_ticks
