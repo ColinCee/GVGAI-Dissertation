@@ -119,27 +119,37 @@ class SumTree:
 
 
 class Replay:
-    """Stacks stored once as uint8; a transition points at its state and next-state stacks."""
+    """Each stack stored once as uint8.
+
+    Episodes are added whole and in order, so a transition's next state is the following slot's
+    state, except for an episode's last transition, whose next state is kept in `terminal_next`.
+    The ring overwrites oldest first, so a following slot is only replaced after the slot itself.
+    """
 
     def __init__(self, cfg: Config, h: int, w: int, rng: random.Random):
         n = cfg.memory_size
         self.cfg, self.rng = cfg, rng
         self.tree = SumTree(n)
-        # Each slot holds its own state and next state: 2018 stored both, and a transition's next state
-        # is not always the following slot's state (episode ends), so keep it simple and exact.
         self.state = np.zeros((n, FRAMES_PER_STACK, h, w), np.uint8)
-        self.next_state = np.zeros((n, FRAMES_PER_STACK, h, w), np.uint8)
         self.action = np.zeros(n, np.int64)
         self.reward = np.zeros(n, np.float32)
         self.done = np.zeros(n, np.float32)
+        self.terminal_next: dict[int, np.ndarray] = {}
+
+    def next_state(self, idx: np.ndarray) -> np.ndarray:
+        n = self.cfg.memory_size
+        return np.stack([self.terminal_next[i] if self.done[i] else self.state[(i + 1) % n] for i in idx])
 
     def priority(self, error: float) -> float:
         return (abs(error) + self.cfg.per_eps) ** self.cfg.per_alpha
 
     def add(self, p, s, a, r, s2, d) -> None:
         slot = self.tree.add(p)
-        self.state[slot], self.next_state[slot] = s, s2
+        self.terminal_next.pop(slot, None)
+        self.state[slot] = s
         self.action[slot], self.reward[slot], self.done[slot] = a, r, d
+        if d:
+            self.terminal_next[slot] = s2
 
     def sample(self, k: int) -> list[int]:
         leaves: list[int] = []
@@ -211,7 +221,7 @@ class Agent2018:
         rp = self.replay
         leaves = rp.sample(self.cfg.batch_size)
         idx = np.array(leaves) - rp.tree.capacity + 1
-        target = torch.from_numpy(self._targets(rp.reward[idx], rp.next_state[idx], rp.done[idx])).to(
+        target = torch.from_numpy(self._targets(rp.reward[idx], rp.next_state(idx), rp.done[idx])).to(
             self.device
         )
         a = torch.from_numpy(rp.action[idx]).to(self.device)
