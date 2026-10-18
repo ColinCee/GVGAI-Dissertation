@@ -329,6 +329,10 @@ public class LearningMachine {
      * @return Next level to be played as chosen by the player, or a random substituent.
      * @throws IOException
      */
+    // -Dgvgai.seed=N makes the sequence of per-level seeds repeatable; without it, as upstream, each is random.
+    private static final Random LEVEL_SEEDS = Long.getLong("gvgai.seed") == null
+            ? new Random() : new Random(Long.getLong("gvgai.seed"));
+
     public static int playOneLevel(String game_file, String level_file, int level_time, boolean isValidation, boolean isVisual, boolean recordActions,
                                    int levelIdx, LearningPlayer[] players, String[] actionFiles, Game toPlay, StatSummary[] scores,
                                    StatSummary[] victories) throws IOException{
@@ -336,7 +340,7 @@ public class LearningMachine {
             System.out.println(" ** Playing game " + game_file + ", level " + level_file + " (" + level_time + ") **");
 
         // Create a new random seed for the next level.
-        int randomSeed = new Random().nextInt();
+        int randomSeed = LEVEL_SEEDS.nextInt();
 
         //build the level in the game.
         toPlay.buildLevel(level_file, randomSeed);

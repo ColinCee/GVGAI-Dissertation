@@ -6,36 +6,31 @@ import subprocess
 from pathlib import Path
 
 ENGINE = Path(__file__).resolve().parent
-SRC = ENGINE / "src"
-OUT = ENGINE / "build" / "classes"
-STAMP = ENGINE / "build" / "sources.sha256"
 JDK = Path(os.environ.get("GVGAI_JDK", r"D:\Java\jdk-25.0.4.1+1"))
 
 
-def _sources() -> list[Path]:
-    return sorted(SRC.rglob("*.java"))
-
-
-def _digest(files: list[Path]) -> str:
+def _digest(src: Path, files: list[Path]) -> str:
     h = hashlib.sha256()
     for f in files:
-        h.update(str(f.relative_to(SRC)).encode())
+        h.update(str(f.relative_to(src)).encode())
         h.update(f.read_bytes())
     return h.hexdigest()
 
 
-def ensure_built() -> Path:
-    files = _sources()
-    digest = _digest(files)
-    if STAMP.exists() and STAMP.read_text() == digest:
-        return OUT
-    OUT.mkdir(parents=True, exist_ok=True)
-    argfile = ENGINE / "build" / "sources.txt"
+def ensure_built(engine: Path = ENGINE) -> Path:
+    """engine can be another copy of the engine (the golden test builds the unmodified import)."""
+    src, out, stamp = engine / "src", engine / "build" / "classes", engine / "build" / "sources.sha256"
+    files = sorted(src.rglob("*.java"))
+    digest = _digest(src, files)
+    if stamp.exists() and stamp.read_text() == digest:
+        return out
+    out.mkdir(parents=True, exist_ok=True)
+    argfile = engine / "build" / "sources.txt"
     argfile.write_text("\n".join(f'"{f.as_posix()}"' for f in files))
     javac = JDK / "bin" / "javac"
-    subprocess.run([str(javac), "-nowarn", "-encoding", "UTF-8", "-d", str(OUT), f"@{argfile}"], check=True)
-    STAMP.write_text(digest)
-    return OUT
+    subprocess.run([str(javac), "-nowarn", "-encoding", "UTF-8", "-d", str(out), f"@{argfile}"], check=True)
+    stamp.write_text(digest)
+    return out
 
 
 def java() -> str:

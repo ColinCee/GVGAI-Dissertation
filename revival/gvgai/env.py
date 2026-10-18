@@ -9,6 +9,7 @@ Behaviour matches the 2018 learning-track setup the dissertation used:
 import os
 import random
 import sys
+from pathlib import Path
 
 import gymnasium as gym
 import numpy as np
@@ -25,19 +26,30 @@ class GvgaiEnv(gym.Env):
     metadata = {"render_modes": ["rgb_array"]}
 
     def __init__(
-        self, game="aliens", levels=(0, 1, 2), max_ticks=2000, include_nil=False, version=0, frame_delay_ms=0
+        self,
+        game="aliens",
+        levels=(0, 1, 2),
+        max_ticks=2000,
+        include_nil=False,
+        version=0,
+        frame_delay_ms=0,
+        engine_seed=None,
+        engine_dir=ENGINE_DIR,
     ):
         # The engine sleeps frame_delay_ms per tick to pace the game for viewing (25 ms in 2018).
         # It has no effect on game logic.
-        build.ensure_built()
+        # engine_seed fixes the engine's per-level random seeds, so games replay exactly.
+        build.ensure_built(Path(engine_dir))
         ClientCommGYM.JAVA = build.java()
         ClientCommGYM.JAVA_OPTS = [f"-Dgvgai.longDelay={frame_delay_ms}"]
+        if engine_seed is not None:
+            ClientCommGYM.JAVA_OPTS.append(f"-Dgvgai.seed={engine_seed}")
         self.game = game
         self.levels = tuple(levels)
         self.max_ticks = max_ticks
         self.include_nil = include_nil
         self._rng = random.Random()
-        self.comm = ClientCommGYM.ClientCommGYM(game, version, self.levels[0], ENGINE_DIR)
+        self.comm = ClientCommGYM.ClientCommGYM(game, version, self.levels[0], str(engine_dir))
         # The client prefixes ACTION_NIL; index i of our action space maps to client index i + offset.
         self.action_names = self.comm.actions() if include_nil else self.comm.actions()[1:]
         self._offset = 0 if include_nil else 1
