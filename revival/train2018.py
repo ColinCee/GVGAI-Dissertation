@@ -26,6 +26,9 @@ from agents.ddqn2018 import Agent2018, Config, play_episode
 from gvgai.env import GvgaiEnv
 
 HERE = Path(__file__).resolve().parent
+# Deceptizelda's level 1 is a different size (13x14 tiles); 2018's fixed-size network could not have
+# played it, so 2018's copy must have differed. Every agent here plays levels 0 and 2 on that game.
+DEFAULT_LEVELS = {"deceptizelda": (0, 2)}
 COLUMNS = ["episode", "score", "total_reward", "steps", "win", "epsilon", "ticks", "trained", "warmup",
            "level", "cum_ticks", "wall_s"]  # fmt: skip
 
@@ -114,7 +117,8 @@ def main() -> None:
     run.mkdir(parents=True, exist_ok=True)
     ckpt = run / "checkpoint"
     random.seed(a.seed)
-    env = GvgaiEnv(a.game, include_nil=True, engine_seed=a.seed + 1)
+    levels = DEFAULT_LEVELS.get(a.game, (0, 1, 2))
+    env = GvgaiEnv(a.game, levels=levels, include_nil=True, engine_seed=a.seed + 1)
     obs, _ = env.reset()
     from agents.ddqn2018 import preprocess
 
@@ -168,7 +172,7 @@ def main() -> None:
     env.close()
     result = {
         "name": a.name, "agent": "ddqn2018-fixed" if a.fix_bugs else "ddqn2018", "game": a.game, "seed": a.seed,
-        "episodes": a.episodes,
+        "episodes": a.episodes, "levels": list(levels),
         "train_ticks": cum_ticks, "train_wall_s": train_wall, "eval_wall_s": time.perf_counter() - t_eval,
         "updates": agent.updates, "device": a.device, "per_sample": a.per_sample, "config": asdict(cfg),
         "eval": ev, "commit": subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True,

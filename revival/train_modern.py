@@ -22,6 +22,7 @@ import torch
 
 from agents.modern import STACK, ModernAgent, ModernConfig, rainbow
 from gvgai.vec import vector
+from train2018 import DEFAULT_LEVELS
 
 HERE = Path(__file__).resolve().parent
 PRESETS = {
@@ -108,7 +109,8 @@ def main() -> None:
         cfg.learning_starts = a.learning_starts
     run = HERE / "runs" / a.name
     run.mkdir(parents=True, exist_ok=True)
-    env = vector(a.game, a.envs, a.seed, (0, 1, 2), cfg.action_repeat)
+    levels = DEFAULT_LEVELS.get(a.game, (0, 1, 2))
+    env = vector(a.game, a.envs, a.seed, levels, cfg.action_repeat)
     obs, _ = env.reset(seed=a.seed)
     n_actions = int(env.single_action_space.n)
     h, w = obs.shape[1:]
@@ -158,7 +160,7 @@ def main() -> None:
     env.close()
     train_wall = time.perf_counter() - t0
     torch.save(agent.q.state_dict(), run / "q.pt")
-    ev = evaluate(agent, a.game, a.envs, a.eval_games, (0, 1, 2), a.seed + 7, cfg.action_repeat)
+    ev = evaluate(agent, a.game, a.envs, a.eval_games, levels, a.seed + 7, cfg.action_repeat)
     ev_held = evaluate(agent, a.game, a.envs, a.eval_games, (3, 4), a.seed + 8, cfg.action_repeat)
     result = {
         "name": a.name, "agent": a.preset, "game": a.game, "seed": a.seed, "train_ticks": ticks,

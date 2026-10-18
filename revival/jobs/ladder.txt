@@ -1,0 +1,8 @@
+# Phase 3 ladder on Aliens, seed 0, 2018's budget (1,014,134 ticks = 2018's first 2000 games).
+# Each line adds one improvement to the line before.
+train2018.py --game aliens --episodes 2000 --seed 0 --fix-bugs --name aliens-ddqn2018fixed-s0 --device cuda --threads 1
+train_modern.py --game aliens --preset dqn --ticks 1014134 --envs 8 --seed 0 --name aliens-dqn-s0
+train_modern.py --game aliens --preset dqn-per --ticks 1014134 --envs 8 --seed 0 --name aliens-dqn-per-s0
+train_modern.py --game aliens --preset dqn-per-dueling --ticks 1014134 --envs 8 --seed 0 --name aliens-dqn-per-dueling-s0
+train_modern.py --game aliens --preset dqn-per-dueling-nstep --ticks 1014134 --envs 8 --seed 0 --name aliens-dqn-per-dueling-nstep-s0
+train_modern.py --game aliens --preset rainbow --ticks 1014134 --envs 8 --seed 0 --name aliens-rainbow-s0
