@@ -122,6 +122,14 @@ public class ForwardModel extends Game
      * @param a_gameState game to take the state from.
      */
     @SuppressWarnings("unchecked")
+    /** Game.LIGHT_OBS: just what StateObservation's score/tick/winner/actions getters read. */
+    final void updateLight(Game g)
+    {
+        this.gameTick = g.gameTick;
+        this.isEnded = g.isEnded;
+        this.avatars = java.util.Arrays.copyOf(g.avatars, g.avatars.length);  // own array: update() writes into it
+    }
+
     final public void update(Game a_gameState)
     {
         int numSpriteTypes = a_gameState.spriteGroups.length;

@@ -1080,12 +1080,18 @@ public abstract class Game {
 	 * updates the forward model and rolls an action in all entities, handling
 	 * collisions and end game situations.
 	 */
+	// -Dgvgai.lightObs=true: learning agents only read score, tick, winner and actions, so skip copying
+	// every sprite into the forward model each tick and hand them a view of the live game instead.
+	// Copying was ~50% of a tick. Planning agents (MCTS) need the full copy: leave this off for them.
+	public static final boolean LIGHT_OBS = Boolean.getBoolean("gvgai.lightObs");
+
 	private void gameCycle() {
 		gameTick++; // next game tick.
 
 		// Update our state observation (forward model) with the information of
 		// the current game state.
-		fwdModel.update(this);
+		if (!LIGHT_OBS)
+			fwdModel.update(this);
 		// System.out.println(avatars[0].rect);
 
 		// Execute a game cycle:
@@ -2129,6 +2135,10 @@ public abstract class Game {
 	 * @return the observation.
 	 */
 	public StateObservation getObservation() {
+		if (LIGHT_OBS) {
+			fwdModel.updateLight(this);
+			return new StateObservation(fwdModel, 0);
+		}
 		return new StateObservation(fwdModel.copy(), 0);
 	}
 

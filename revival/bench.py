@@ -10,9 +10,10 @@ p = argparse.ArgumentParser()
 p.add_argument("--game", default="aliens")
 p.add_argument("--seconds", type=float, default=30)
 p.add_argument("--png", action="store_true", help="old PNG frame path")
+p.add_argument("--full-obs", action="store_true", help="per-tick sprite copies (light observation off)")
 a = p.parse_args()
 
-env = GvgaiEnv(a.game, engine_seed=1, raw_frames=not a.png)
+env = GvgaiEnv(a.game, engine_seed=1, raw_frames=not a.png, light_obs=not a.full_obs)
 rng = random.Random(1)
 
 

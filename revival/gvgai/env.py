@@ -37,6 +37,7 @@ class GvgaiEnv(gym.Env):
         engine_dir=ENGINE_DIR,
         java_opts=(),
         raw_frames=True,
+        light_obs=True,
     ):
         # The engine sleeps frame_delay_ms per tick to pace the game for viewing (25 ms in 2018).
         # It has no effect on game logic.
@@ -49,6 +50,8 @@ class GvgaiEnv(gym.Env):
             ClientCommGYM.JAVA_OPTS.append(f"-Dgvgai.seed={engine_seed}")
         if raw_frames:  # pixels inline instead of PNG + frame file; the unmodified engine ignores this
             ClientCommGYM.JAVA_OPTS.append("-Dgvgai.rawFrames=true")
+        if light_obs:  # skip the per-tick sprite copies only planning agents need
+            ClientCommGYM.JAVA_OPTS.append("-Dgvgai.lightObs=true")
         ClientCommGYM.JAVA_OPTS += list(java_opts)
         self.game = game
         self.levels = tuple(levels)
