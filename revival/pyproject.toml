@@ -1,0 +1,10 @@
+[project]
+name = "gvgai-revival"
+version = "0.1.0"
+description = "2026 rerun of the 2018 GVGAI DQN dissertation"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "gymnasium>=1.0",
+    "numpy>=2",
+    "pillow>=10",
+]
