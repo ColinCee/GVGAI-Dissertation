@@ -130,6 +130,19 @@ class Net(nn.Module):
                 m.reset_noise()
 
 
+def upload(arr: np.ndarray, device: str) -> torch.Tensor:
+    """Copy to the GPU through pinned memory, so the CPU doesn't wait for queued GPU work.
+
+    From ordinary memory a copy blocks until everything queued before it (the learner's updates)
+    has run. torch's pinned-memory cache makes the staging buffer cheap to get and safe to reuse.
+    """
+    if not str(device).startswith("cuda"):
+        return torch.from_numpy(arr)
+    staging = torch.empty(arr.shape, dtype=torch.from_numpy(arr[:0]).dtype, pin_memory=True)
+    staging.numpy()[...] = arr
+    return staging.to(device, non_blocking=True)
+
+
 class GpuReplay:
     """Replay held on the GPU: per game, a ring of single frames, one slot per decision.
 
@@ -175,18 +188,18 @@ class GpuReplay:
                 self.ep_start[e] = self.t_host[e]
         # one upload for all the small fields (separate torch.tensor calls cost ~0.2 ms each)
         dev = self.dev
-        meta = torch.from_numpy(np.array([es, ts, acts, starts, terms, ends, fo], np.int64)).to(dev, non_blocking=True)
+        meta = upload(np.array([es, ts, acts, starts, terms, ends, fo], np.int64), dev)
         e_t, k_t = meta[0], meta[1] % self.cap
         fo_t = meta[6].bool()
-        self.frames[e_t, k_t] = torch.from_numpy(np.stack(frames)).to(dev, non_blocking=True)
+        self.frames[e_t, k_t] = upload(np.stack(frames), dev)
         self.action[e_t, k_t] = meta[2]
-        self.reward[e_t, k_t] = torch.from_numpy(np.array(rews, np.float32)).to(dev, non_blocking=True)
+        self.reward[e_t, k_t] = upload(np.array(rews, np.float32), dev)
         self.term[e_t, k_t] = meta[4].bool()
         self.end[e_t, k_t] = meta[5].bool()
         self.start[e_t, k_t] = meta[3]
         p_new = self.max_p**self.cfg.per_alpha if self.cfg.per else torch.ones((), device=dev)
         self.weight[e_t * self.cap + k_t] = torch.where(fo_t, torch.zeros((), device=dev), p_new)
-        self.t.copy_(torch.from_numpy(self.t_host), non_blocking=True)
+        self.t.copy_(upload(self.t_host, dev), non_blocking=True)
 
     def _stack(self, e: torch.Tensor, abs_t: torch.Tensor) -> torch.Tensor:
         ts = abs_t[:, None] + self.offs[None, :]
@@ -256,6 +269,30 @@ class ModernAgent:
         self.use_graph = cuda
         self.graph: torch.cuda.CUDAGraph | None = None
         self.loss = torch.zeros((), device=device)
+        # Acting runs on its own stream with one of two copies of the network, refreshed after each
+        # step's updates, so choosing a move never waits behind the learner's queued updates (the
+        # copy used is the one refreshed two steps ago: its weights are at most ~2 steps old).
+        self.act_stream = torch.cuda.Stream(priority=-1) if cuda else None
+        self.actors = [Net(h, w, n_actions, cfg).to(device) for _ in range(2)] if cuda else []
+        for net in self.actors:
+            net.load_state_dict(self.q.state_dict())
+            net.requires_grad_(False)
+        self.actor_ready: list[torch.cuda.Event | None] = [None, None]
+        self.steps = 0
+
+    def refresh_actor(self) -> None:
+        """After this step's updates are queued: copy the online net into this step's actor slot."""
+        if not self.actors:
+            return
+        i = self.steps % 2
+        src = list(self.q.parameters()) + list(self.q.buffers())
+        dst = list(self.actors[i].parameters()) + list(self.actors[i].buffers())
+        with torch.no_grad():
+            torch._foreach_copy_(dst, src)
+        ev = torch.cuda.Event()
+        ev.record()
+        self.actor_ready[i] = ev
+        self.steps += 1
 
     def epsilon(self, decisions: int, budget: int) -> float:
         c = self.cfg
@@ -263,10 +300,23 @@ class ModernAgent:
         return c.eps_start + frac * (c.eps_end - c.eps_start)
 
     @torch.no_grad()
-    def act(self, stacks: np.ndarray, eps: float) -> np.ndarray:
-        if self.cfg.noisy and self.q.training:
-            self.q.reset_noise()  # otherwise one frozen draw acts until learning starts
-        q = self.q.q(torch.from_numpy(stacks).to(self.device)).argmax(1).cpu().numpy()
+    def act(self, stacks: np.ndarray | torch.Tensor, eps: float, actor: bool = False) -> np.ndarray:
+        """`actor=True` (training loop on the GPU): use the actor copy on the acting stream."""
+        if actor and self.actors:
+            i = self.steps % 2
+            with torch.cuda.stream(self.act_stream):
+                if self.actor_ready[i] is not None:
+                    self.act_stream.wait_event(self.actor_ready[i])
+                net = self.actors[i]
+                if self.cfg.noisy:
+                    net.reset_noise()
+                x = stacks if isinstance(stacks, torch.Tensor) else upload(stacks, self.device)
+                q = net.q(x).argmax(1).cpu().numpy()
+        else:
+            if self.cfg.noisy and self.q.training:
+                self.q.reset_noise()  # otherwise one frozen draw acts until learning starts
+            x = stacks if isinstance(stacks, torch.Tensor) else upload(stacks, self.device)
+            q = self.q.q(x).argmax(1).cpu().numpy()
         rand = self.rng.random(len(q)) < eps
         return np.where(rand, self.rng.integers(0, self.n_actions, len(q)), q)
 

@@ -1,6 +1,6 @@
 """Ticks per second for one game: random play, 4-tick action repeat, fixed seeds, after a warm-up.
 
-    uv run python bench/game_speed.py [--full-obs] [--png]
+uv run python bench/game_speed.py [--full-obs] [--png]
 """
 
 import argparse
