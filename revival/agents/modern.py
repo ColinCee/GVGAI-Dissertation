@@ -192,7 +192,7 @@ class GpuReplay:
         ts = torch.maximum(ts, self.start[e, abs_t % self.cap][:, None])
         return self.frames[e[:, None], ts % self.cap]
 
-    def sample(self, k: int, beta: float):
+    def sample(self, k: int, beta: torch.Tensor):
         cfg, cap = self.cfg, self.cap
         t = self.t[:, None]
         abs_all = t - 1 - ((t - 1 - self.slot_ids[None, :]) % cap)
@@ -232,7 +232,7 @@ class GpuReplay:
         if not self.cfg.per:
             return
         p = err.abs() + self.cfg.per_eps
-        self.max_p = torch.maximum(self.max_p, p.max())
+        self.max_p.copy_(torch.maximum(self.max_p, p.max()))  # in place: also runs inside the CUDA graph
         self.weight[flat] = p**self.cfg.per_alpha
 
 
@@ -244,10 +244,17 @@ class ModernAgent:
         self.q = Net(h, w, n_actions, cfg).to(device)
         self.target = Net(h, w, n_actions, cfg).to(device)
         self.target.load_state_dict(self.q.state_dict())
-        self.opt = torch.optim.Adam(self.q.parameters(), lr=cfg.lr, eps=cfg.adam_eps)
+        cuda = str(device).startswith("cuda")
+        self.opt = torch.optim.Adam(self.q.parameters(), lr=cfg.lr, eps=cfg.adam_eps, fused=cuda, capturable=cuda)
         self.replay = GpuReplay(n_envs, cfg.buffer_decisions, h, w, cfg, device)
         self.updates = 0
-        self.beta0 = self.beta = cfg.per_beta
+        self.beta0 = cfg.per_beta
+        self.beta = torch.full((), cfg.per_beta, device=device)
+        # On the GPU the whole update (sampling included) is recorded once as a CUDA graph and replayed:
+        # launching its ~100 small kernels one by one from Python cost ~4x the GPU time itself.
+        self.use_graph = cuda
+        self.graph: torch.cuda.CUDAGraph | None = None
+        self.loss = torch.zeros((), device=device)
 
     def epsilon(self, decisions: int, budget: int) -> float:
         c = self.cfg
@@ -265,7 +272,32 @@ class ModernAgent:
     def update(self, progress: float) -> torch.Tensor:
         c = self.cfg
         if c.per:
-            self.beta = self.beta0 + progress * (1 - self.beta0)
+            self.beta.fill_(self.beta0 + progress * (1 - self.beta0))
+        if not self.use_graph:
+            self._update_body()
+        elif self.graph is not None:
+            self.graph.replay()
+        else:
+            # warm up on a side stream (cuDNN/cuBLAS set-up must not be captured), then record
+            side = torch.cuda.Stream()
+            side.wait_stream(torch.cuda.current_stream())
+            with torch.cuda.stream(side):
+                for _ in range(3):
+                    self._update_body()
+            torch.cuda.current_stream().wait_stream(side)
+            self.graph = torch.cuda.CUDAGraph()
+            self.opt.zero_grad(set_to_none=True)
+            with torch.cuda.graph(self.graph):
+                self._update_body(zero_grad=False)
+            self.graph.replay()
+        self.updates += 1
+        if self.updates % c.target_every == 0:
+            self.target.load_state_dict(self.q.state_dict())  # copies in place: the graph sees it
+        return self.loss
+
+    def _update_body(self, zero_grad: bool = True) -> None:
+        """One gradient update; only tensor ops on fixed shapes so it can be captured."""
+        c = self.cfg
         s, a, ret, s2, done, gn, w, flat = self.replay.sample(c.batch_size, self.beta)
         dev = self.device
         if c.noisy:
@@ -297,12 +329,10 @@ class ModernAgent:
             per_sample = F.smooth_l1_loss(pred, target, reduction="none") if c.huber else (pred - target) ** 2
             err = (pred - target).detach()
         loss = (per_sample * w).mean()
-        self.opt.zero_grad()
+        if zero_grad:
+            self.opt.zero_grad(set_to_none=True)
         loss.backward()
-        nn.utils.clip_grad_norm_(self.q.parameters(), c.grad_clip)
+        nn.utils.clip_grad_norm_(self.q.parameters(), c.grad_clip, foreach=True)
         self.opt.step()
         self.replay.update_priorities(flat, err)
-        self.updates += 1
-        if self.updates % c.target_every == 0:
-            self.target.load_state_dict(self.q.state_dict())
-        return loss.detach()  # a tensor: no GPU sync per update
+        self.loss.copy_(loss.detach())
