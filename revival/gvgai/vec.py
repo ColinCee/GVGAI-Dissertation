@@ -13,8 +13,11 @@ from gvgai.env import GvgaiEnv
 
 
 class Preprocessed(gym.Wrapper):
-    def __init__(self, env: GvgaiEnv):
+    """Greyscale, halved; each action held for `repeat` ticks, only the last frame kept."""
+
+    def __init__(self, env: GvgaiEnv, repeat: int = 4):
         super().__init__(env)
+        self.repeat = repeat
         h, w, _ = env.observation_space.shape
         self.observation_space = gym.spaces.Box(0, 255, (h // 2, w // 2), np.uint8)
 
@@ -28,22 +31,29 @@ class Preprocessed(gym.Wrapper):
         return self._p(obs), info
 
     def step(self, action):
-        obs, r, term, trunc, info = self.env.step(action)
+        total, ticks = 0.0, 0
+        for _ in range(self.repeat):
+            obs, r, term, trunc, info = self.env.step(action)
+            total += r
+            ticks += 1
+            if term or trunc:
+                break
         if info["timeout"]:
             term, trunc = False, True
-        return self._p(obs), r, term, trunc, info
+        out = {"score": info["score"], "win": info["win"], "level": info["level"], "ticks": ticks}
+        return self._p(obs), total, term, trunc, out
 
 
-def make(game: str, seed: int, levels=(0, 1, 2)):
+def make(game: str, seed: int, levels=(0, 1, 2), repeat: int = 4):
     def thunk():
-        return Preprocessed(GvgaiEnv(game, levels=levels, engine_seed=seed))
+        return Preprocessed(GvgaiEnv(game, levels=levels, engine_seed=seed), repeat)
 
     return thunk
 
 
-def vector(game: str, n: int, seed: int, levels=(0, 1, 2)) -> gym.vector.AsyncVectorEnv:
+def vector(game: str, n: int, seed: int, levels=(0, 1, 2), repeat: int = 4) -> gym.vector.AsyncVectorEnv:
     return gym.vector.AsyncVectorEnv(
-        [make(game, seed * 1000 + i, levels) for i in range(n)],
+        [make(game, seed * 1000 + i, levels, repeat) for i in range(n)],
         autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
         context="spawn",
     )

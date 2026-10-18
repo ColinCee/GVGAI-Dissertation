@@ -22,7 +22,7 @@ url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
 [tool.ruff]
-line-length = 110
+line-length = 120
 target-version = "py315"
 extend-exclude = ["gvgai/vendor", "runs"]
 

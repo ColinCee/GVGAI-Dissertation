@@ -170,9 +170,7 @@ class FrameReplay:
     `start[k]` is the slot where k's episode began, for padding stacks at an episode start.
     """
 
-    def __init__(
-        self, n_envs: int, capacity: int, h: int, w: int, cfg: ModernConfig, rng: np.random.Generator
-    ):
+    def __init__(self, n_envs: int, capacity: int, h: int, w: int, cfg: ModernConfig, rng: np.random.Generator):
         self.n, self.cap, self.cfg, self.rng = n_envs, capacity // n_envs, cfg, rng
         self.frames = np.zeros((n_envs, self.cap, h, w), np.uint8)
         self.action = np.zeros((n_envs, self.cap), np.int64)
@@ -279,9 +277,7 @@ class FrameReplay:
 
 
 class ModernAgent:
-    def __init__(
-        self, n_envs: int, h: int, w: int, n_actions: int, cfg: ModernConfig, device: str, seed: int
-    ):
+    def __init__(self, n_envs: int, h: int, w: int, n_actions: int, cfg: ModernConfig, device: str, seed: int):
         self.cfg, self.device, self.n_actions = cfg, device, n_actions
         torch.manual_seed(seed)
         self.rng = np.random.default_rng(seed)
@@ -327,9 +323,7 @@ class ModernAgent:
             best = (self.q.q(s2) if c.double else self.target.q(s2)).argmax(1)
             if c.distributional:
                 next_p = self.target(s2).exp()[b, best]  # [B, atoms]
-                tz = (ret[:, None] + gn[:, None] * self.q.support[None] * (~done)[:, None]).clamp(
-                    c.v_min, c.v_max
-                )
+                tz = (ret[:, None] + gn[:, None] * self.q.support[None] * (~done)[:, None]).clamp(c.v_min, c.v_max)
                 dz = (c.v_max - c.v_min) / (c.n_atoms - 1)
                 pos = (tz - c.v_min) / dz
                 lo, hi = pos.floor().long(), pos.ceil().long()

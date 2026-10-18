@@ -202,9 +202,7 @@ class Agent2018:
         if not transitions:
             return
         if transitions[-1][2] == -1:  # terminal reward -1 means the game was lost
-            transitions = [
-                (s, a, max(r - self.cfg.loss_penalty, -1.0), s2, d) for s, a, r, s2, d in transitions
-            ]
+            transitions = [(s, a, max(r - self.cfg.loss_penalty, -1.0), s2, d) for s, a, r, s2, d in transitions]
         rp = self.replay
         s, a, r, s2, d = (np.array(x) for x in zip(*transitions, strict=True))
         r, d = r.astype(np.float32), d.astype(np.float32)
@@ -221,9 +219,7 @@ class Agent2018:
         rp = self.replay
         leaves = rp.sample(self.cfg.batch_size)
         idx = np.array(leaves) - rp.tree.capacity + 1
-        target = torch.from_numpy(self._targets(rp.reward[idx], rp.next_state(idx), rp.done[idx])).to(
-            self.device
-        )
+        target = torch.from_numpy(self._targets(rp.reward[idx], rp.next_state(idx), rp.done[idx])).to(self.device)
         a = torch.from_numpy(rp.action[idx]).to(self.device)
         q = self._q(self.q, rp.state[idx])
         q_taken = q.gather(1, a[:, None]).squeeze(1)
@@ -260,9 +256,7 @@ class Agent2018:
         return n
 
 
-def play_episode(
-    env, agent: Agent2018, train: bool = True, greedy: bool = False, net=None, level=None
-) -> dict:
+def play_episode(env, agent: Agent2018, train: bool = True, greedy: bool = False, net=None, level=None) -> dict:
     """One game, following 2018's Agent.act/result tick by tick.
 
     `env` must be built with include_nil=True; agent action i is env action i + 1 (index 0 is NIL).

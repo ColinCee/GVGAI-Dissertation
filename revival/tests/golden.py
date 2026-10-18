@@ -47,9 +47,7 @@ def play(game: str, engine_dir: str, engine_seed: int = ENGINE_SEED) -> list[dic
                 ticks.append(f"{_h(state.encode())}{_h(obs.tobytes())}")
                 if term or trunc:
                     break
-            episodes.append(
-                {"level": level, "score": info["score"], "winner": info["winner"], "ticks": ticks}
-            )
+            episodes.append({"level": level, "score": info["score"], "winner": info["winner"], "ticks": ticks})
     finally:
         env.close()
     return episodes
@@ -83,10 +81,7 @@ def main() -> int:
                     break
             else:
                 if len(ep_want["ticks"]) != len(ep_got["ticks"]):
-                    print(
-                        f"{game} level {ep_want['level']}: "
-                        f"length {len(ep_got['ticks'])} != {len(ep_want['ticks'])}"
-                    )
+                    print(f"{game} level {ep_want['level']}: length {len(ep_got['ticks'])} != {len(ep_want['ticks'])}")
                     failed = True
         if not failed:
             print(f"{game}: identical")
