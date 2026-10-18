@@ -1,10 +1,16 @@
-"""Ticks per second for one game: random play with 4-tick action repeat, fixed seeds, after a warm-up."""
+"""Ticks per second for one game: random play, 4-tick action repeat, fixed seeds, after a warm-up.
+
+    uv run python bench/game_speed.py [--full-obs] [--png]
+"""
 
 import argparse
 import random
+import sys
 import time
+from pathlib import Path
 
-from gvgai.env import GvgaiEnv
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from gvgai.env import GvgaiEnv  # noqa: E402
 
 p = argparse.ArgumentParser()
 p.add_argument("--game", default="aliens")

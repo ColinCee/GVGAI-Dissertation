@@ -1,6 +1,6 @@
 # Improvements, in order
 
-One row per change that landed. Speeds are game ticks per second for one Aliens game with random play, unless the row says otherwise.
+One row per change that landed. Each row's commit is tagged `imp-NN` (row number), so `git checkout imp-NN` gives the code as it was, and the "How measured" command reproduces the number (scripts in `bench/`, `tests/`). Speeds are game ticks per second for one Aliens game with random play unless the row says otherwise; rows from 13 on were measured on a quiet machine.
 
 | # | Area | Change | Before → after | How measured | Commit |
 |---|---|---|---|---|---|
@@ -10,13 +10,13 @@ One row per change that landed. Speeds are game ticks per second for one Aliens 
 | 4 | Engine speed | Java sends the PNG it already encoded instead of saving, re-reading and re-encoding it | 136 → ~200 ticks/s | `smoke.py`, 40 games | `632bc10` |
 | 5 | Fidelity | Rebuilt the 2018 Wafer Thin Mints rules (today's version adds a −20 death penalty) from GVGAI_GYM's June 2018 file, with a scoring typo fixed and its win-at-1500-ticks rule re-indented (tabs made the engine skip it silently) | random deaths score −10 → 11 and survivors win at tick 1500, both as in 2018's data | `smoke.py` vs 2018 `reward_history.csv` | `632bc10` |
 | 6 | Fidelity | Golden test: four games replayed with fixed seeds; every later change must give the same state and pixels on every tick as the unmodified engine | — | `tests/golden.py` | `7d60156` |
-| 7 | Engine speed | Sprites scaled once and cached instead of on every draw | 214 → 233 ticks/s | `bench.py` (30 s, after warm-up; used from here on) | `a24a0f3` |
-| 8 | Engine speed | Server's output buffered and sent in one write, Nagle off | 233 → 274 ticks/s | `bench.py` | `a24a0f3` |
-| 9 | Engine speed | Frames sent as raw RGB inside the message: no PNG encode, no frame file written each tick (reusing one JSON encoder alone changed nothing) | 274 → 1,017 ticks/s | `bench.py` | `a24a0f3` |
-| 10 | Engine speed | Serial GC and a 128 MB heap per game server | 686 → 122 MB RAM per server, same speed; 16 servers: 854 → 6,660 ticks/s total (Phase 0 → now) | `runs/mem.py`, `bench_parallel.py` | `1e8a08c` |
+| 7 | Engine speed | Sprites scaled once and cached instead of on every draw | 214 → 233 ticks/s | `bench/game_speed.py` (30 s, after warm-up; used from here on) | `a24a0f3` |
+| 8 | Engine speed | Server's output buffered and sent in one write, Nagle off | 233 → 274 ticks/s | `bench/game_speed.py` | `a24a0f3` |
+| 9 | Engine speed | Frames sent as raw RGB inside the message: no PNG encode, no frame file written each tick (reusing one JSON encoder alone changed nothing) | 274 → 1,017 ticks/s | `bench/game_speed.py` | `a24a0f3` |
+| 10 | Engine speed | Serial GC and a 128 MB heap per game server | 686 → 122 MB RAM per server, same speed; 16 servers: 854 → 6,660 ticks/s total (Phase 0 → now) | `runs/mem.py`, `bench/parallel_speed.py` | `1e8a08c` |
 | 11 | Fidelity | 2018 final agent ported to PyTorch with every setting and quirk kept (raw 0–255 input, reward credited one action late, training only at game end); a bug in the port (4× too many updates) caught by review | Aliens win % per 500 games: 2018 9/34/61/72 → 2026 8/29/61/75 | `train2018.py`, seed 0, vs 2018's `reward.xlsx` | `e98135f` |
 | 12 | Training speed | Same 2018 agent, same 1M game ticks on Aliens, today's PC (CPU only) | ~12 h → 34 min (21× faster) | `results/aliens-ddqn2018-s0.json` | `e98135f` |
-| 13 | Engine speed | Frame sent as raw bytes after the message instead of base64 text inside the JSON (encoding it as JSON was 44% of the server's time) | 1,017 → 1,738 ticks/s | `bench.py`, quiet-ish machine | `11dfa13` |
-| 14 | Engine speed | Learning agents get a live view of score/tick/winner instead of two copies of every sprite per tick | 2,100 → 2,400 ticks/s | `bench.py --full-obs` vs default, quiet machine | `5396cae` |
-| 15 | Engine speed | Frames drawn straight from the game's sprites into one reused image | 2,400 → 2,590 ticks/s; 16 independent games 15,300 ticks/s | `bench.py`, `bench_parallel.py` | `5396cae` |
-| 16 | Engine speed | The server holds each move for 4 ticks itself and draws only the frame it sends (was 4 round trips and 4 drawings per move) | 8 parallel games through the agents' env layer: ~9,300 → 17,000 ticks/s | `runs/vecbench.py`; `tests/repeat_check.py` shows identical frames and scores | `5396cae` |
+| 13 | Engine speed | Frame sent as raw bytes after the message instead of base64 text inside the JSON (encoding it as JSON was 44% of the server's time) | 1,017 → 1,738 ticks/s | `bench/game_speed.py`, quiet-ish machine | `11dfa13` |
+| 14 | Engine speed | Learning agents get a live view of score/tick/winner instead of two copies of every sprite per tick | 2,100 → 2,400 ticks/s | `bench/game_speed.py --full-obs` vs default, quiet machine | `3432851` |
+| 15 | Engine speed | Frames drawn straight from the game's sprites into one reused image | 2,400 → 2,590 ticks/s; 16 independent games 15,300 ticks/s | `bench/game_speed.py`, `bench/parallel_speed.py` | `5396cae` |
+| 16 | Engine speed | The server holds each move for 4 ticks itself and draws only the frame it sends (was 4 round trips and 4 drawings per move) | 8 parallel games through the agents' env layer: ~9,300 → 17,000 ticks/s | `bench/env_layer_speed.py`; `tests/repeat_check.py` shows identical frames and scores | `5396cae` |

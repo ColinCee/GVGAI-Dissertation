@@ -3,10 +3,13 @@
 import argparse
 import multiprocessing as mp
 import random
+import sys
 import time
+from pathlib import Path
 
 
 def worker(game, seconds, q):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from gvgai.env import GvgaiEnv
 
     env = GvgaiEnv(game)
