@@ -1,0 +1,2 @@
+# Chase is 0% for every agent: one long Rainbow run (20M ticks, one seed) to see if score ever rises
+train_modern.py --game chase --preset rainbow --ticks 20000000 --seed 0 --name chase-rainbow-20m-s0

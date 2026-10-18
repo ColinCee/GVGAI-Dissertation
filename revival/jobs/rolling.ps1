@@ -6,7 +6,7 @@ while (Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'ove
 while (-not (Test-Path jobs\queue\STOP)) {
     $ran = $false
     foreach ($f in Get-ChildItem jobs\queue\*.txt | Sort-Object Name) {
-        $out = & $py -u batch.py $f.FullName --parallel 3
+        $out = & $py -u batch.py $f.FullName --parallel 3 --max-minutes 150
         $out | Write-Output
         if ($out -notmatch '^0 of ') { $ran = $true }
         & $py report.py | Out-Null
