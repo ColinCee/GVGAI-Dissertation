@@ -130,155 +130,110 @@ class Net(nn.Module):
                 m.reset_noise()
 
 
-class SumTree:
-    """Array sum tree with batched sampling and updates."""
+class GpuReplay:
+    """Replay held on the GPU: per game, a ring of single frames, one slot per decision.
 
-    def __init__(self, capacity: int):
-        self.size = 1
-        while self.size < capacity:
-            self.size *= 2
-        self.tree = np.zeros(2 * self.size)
-        self.max_p = 1.0
-
-    def update(self, idx: np.ndarray, p: np.ndarray) -> None:
-        i = np.asarray(idx) + self.size
-        self.tree[i] = p
-        i = np.unique(i // 2)
-        while i[0] >= 1:
-            self.tree[i] = self.tree[2 * i] + self.tree[2 * i + 1]
-            i = np.unique(i // 2)
-            if i[0] == 0:
-                break
-
-    def total(self) -> float:
-        return float(self.tree[1])
-
-    def find(self, v: np.ndarray) -> np.ndarray:
-        i = np.ones(len(v), np.int64)
-        v = v.copy()
-        while i[0] < self.size:
-            left = self.tree[2 * i]
-            go_right = v > left
-            v = np.where(go_right, v - left, v)
-            i = 2 * i + go_right
-        return i - self.size
-
-
-class FrameReplay:
-    """One ring per game of single frames; a slot holds the frame a decision was made on.
-
-    Slot k's next frame is slot k+1's, unless the episode ended at k (then `final` holds it).
-    `start[k]` is the slot where k's episode began, for padding stacks at an episode start.
+    A slot holds the frame a decision was made on, its action, reward and flags. When a game ends,
+    its final frame goes into the next slot as a frame-only entry, so a transition's next frame is
+    always the next slot's. Stacks of 4 are rebuilt at sampling time, padded at an episode start
+    with its first frame (as `Stacks` does when acting). Plain and prioritised sampling share one
+    path: per-slot weights (1, or priority**alpha) masked to valid slots, cumulative sum, search.
     """
 
-    def __init__(self, n_envs: int, capacity: int, h: int, w: int, cfg: ModernConfig, rng: np.random.Generator):
-        self.n, self.cap, self.cfg, self.rng = n_envs, capacity // n_envs, cfg, rng
-        self.frames = np.zeros((n_envs, self.cap, h, w), np.uint8)
-        self.action = np.zeros((n_envs, self.cap), np.int64)
-        self.reward = np.zeros((n_envs, self.cap), np.float32)
-        self.term = np.zeros((n_envs, self.cap), np.bool_)  # game over (no bootstrap)
-        self.end = np.zeros((n_envs, self.cap), np.bool_)  # episode ended here (term or timeout)
-        self.start = np.zeros((n_envs, self.cap), np.int64)  # absolute decision count of episode start
-        self.final: dict[tuple[int, int], np.ndarray] = {}
-        self.t = np.zeros(n_envs, np.int64)  # decisions written per env (absolute)
-        self.ep_start = np.zeros(n_envs, np.int64)
-        self.tree = SumTree(n_envs * self.cap) if cfg.per else None
+    def __init__(self, n_envs: int, capacity: int, h: int, w: int, cfg: ModernConfig, device: str):
+        n, cap = n_envs, capacity // n_envs
+        self.n, self.cap, self.cfg, self.dev = n, cap, cfg, device
+        z = dict(device=device)
+        self.frames = torch.zeros((n, cap, h, w), dtype=torch.uint8, **z)
+        self.action = torch.zeros((n, cap), dtype=torch.long, **z)
+        self.reward = torch.zeros((n, cap), **z)
+        self.term = torch.zeros((n, cap), dtype=torch.bool, **z)  # game over: no bootstrap
+        self.end = torch.zeros((n, cap), dtype=torch.bool, **z)  # episode ended (game over or timeout)
+        self.start = torch.zeros((n, cap), dtype=torch.long, **z)  # absolute index of the episode's first slot
+        self.weight = torch.zeros(n * cap, **z)  # 0 for frame-only slots
+        self.max_p = torch.ones((), **z)
+        self.t = torch.zeros(n, dtype=torch.long, **z)  # slots written per game (absolute)
+        self.t_host = np.zeros(n, np.int64)
+        self.ep_start = np.zeros(n, np.int64)
+        self.slot_ids = torch.arange(cap, **z)
+        self.offs = torch.arange(-STACK + 1, 1, **z)
 
     def add(self, obs: np.ndarray, action, reward, term, trunc, final_obs: np.ndarray) -> None:
-        """obs[e]: newest frame the action was chosen on; final_obs[e] used when the episode ended."""
+        """obs[e]: the frame action[e] was chosen on; final_obs[e]: the frame after an episode ended."""
+        es, ts, frames, acts, rews, terms, ends, starts, fo = [], [], [], [], [], [], [], [], []
         for e in range(self.n):
-            k = self.t[e] % self.cap
-            self.final.pop((e, k), None)
-            self.frames[e, k] = obs[e]
-            # reward clipped per decision (Atari convention), so every preset sees the same scale
-            r = np.sign(reward[e]) if self.cfg.clip_reward else reward[e]
-            self.action[e, k], self.reward[e, k] = action[e], r
-            self.term[e, k], self.end[e, k] = term[e], term[e] or trunc[e]
-            self.start[e, k] = self.ep_start[e]
-            if self.end[e, k]:
-                self.final[(e, k)] = final_obs[e]
-                self.ep_start[e] = self.t[e] + 1
-            self.t[e] += 1
-        if self.tree is not None:
-            idx = np.arange(self.n) * self.cap + (self.t - 1) % self.cap
-            self.tree.update(idx, np.full(self.n, self.tree.max_p**self.cfg.per_alpha))
+            ended = bool(term[e] or trunc[e])
+            es.append(e), ts.append(self.t_host[e]), frames.append(obs[e]), acts.append(int(action[e]))
+            r = float(np.sign(reward[e])) if self.cfg.clip_reward else float(reward[e])
+            rews.append(r), terms.append(bool(term[e])), ends.append(ended), starts.append(self.ep_start[e])
+            fo.append(False)
+            self.t_host[e] += 1
+            if ended:
+                es.append(e), ts.append(self.t_host[e]), frames.append(final_obs[e]), acts.append(0), rews.append(0.0)
+                terms.append(False), ends.append(False), starts.append(self.ep_start[e]), fo.append(True)
+                self.t_host[e] += 1
+                self.ep_start[e] = self.t_host[e]
+        dev = self.dev
+        e_t = torch.tensor(es, device=dev)
+        k_t = torch.tensor(ts, device=dev) % self.cap
+        self.frames[e_t, k_t] = torch.from_numpy(np.stack(frames)).to(dev, non_blocking=True)
+        self.action[e_t, k_t] = torch.tensor(acts, device=dev)
+        self.reward[e_t, k_t] = torch.tensor(rews, device=dev)
+        self.term[e_t, k_t] = torch.tensor(terms, device=dev)
+        self.end[e_t, k_t] = torch.tensor(ends, device=dev)
+        self.start[e_t, k_t] = torch.tensor(starts, device=dev)
+        fo_t = torch.tensor(fo, device=dev)
+        p_new = self.max_p**self.cfg.per_alpha if self.cfg.per else torch.ones((), device=dev)
+        self.weight[e_t * self.cap + k_t] = torch.where(fo_t, torch.zeros((), device=dev), p_new)
+        self.t.copy_(torch.from_numpy(self.t_host), non_blocking=True)
 
-    def _valid(self, e: np.ndarray, abs_t: np.ndarray) -> np.ndarray:
-        # needs n_step following decisions written (or an episode end before them) and STACK-1 history
-        newest = self.t[e] - 1
-        # strictly before the newest decision: its next frame isn't written until the next step
-        ok = (abs_t >= self.t[e] - self.cap + STACK) & (abs_t <= newest - self.cfg.n_step)
-        return ok
-
-    def _stack(self, e: np.ndarray, abs_t: np.ndarray) -> np.ndarray:
-        offs = np.arange(-STACK + 1, 1)
-        ts = abs_t[:, None] + offs[None, :]
-        ts = np.maximum(ts, self.start[e, abs_t % self.cap][:, None])
+    def _stack(self, e: torch.Tensor, abs_t: torch.Tensor) -> torch.Tensor:
+        ts = abs_t[:, None] + self.offs[None, :]
+        ts = torch.maximum(ts, self.start[e, abs_t % self.cap][:, None])
         return self.frames[e[:, None], ts % self.cap]
 
-    def sample(self, k: int, beta: float = 0.4):
-        cfg = self.cfg
-        while True:
-            if self.tree is not None:
-                total = self.tree.total()
-                v = (np.arange(k) + self.rng.random(k)) * total / k
-                flat = self.tree.find(v)
-                e, slot = flat // self.cap, flat % self.cap
-                # absolute decision index for that slot
-                abs_t = self.t[e] - 1 - ((self.t[e] - 1 - slot) % self.cap)
-            else:
-                e = self.rng.integers(0, self.n, k)
-                abs_t = self.t[e] - 1 - self.rng.integers(0, np.minimum(self.t[e], self.cap))
-            ok = self._valid(e, abs_t)
-            if ok.all():
-                break
-            if self.tree is None or ok.mean() > 0.5:
-                e, abs_t = e[ok], abs_t[ok]
-                if self.tree is None and len(e) < k:
-                    continue
-                break
+    def sample(self, k: int, beta: float):
+        cfg, cap = self.cfg, self.cap
+        t = self.t[:, None]
+        abs_all = t - 1 - ((t - 1 - self.slot_ids[None, :]) % cap)
+        # history of STACK frames still in the ring, and n_step decisions (plus the next frame) after it
+        valid = (abs_all >= t - cap + STACK) & (abs_all <= t - 1 - cfg.n_step) & (abs_all >= 0)
+        w_all = (self.weight * valid.flatten()).double()
+        cdf = w_all.cumsum(0)  # float64: float32 partial sums over 1M slots break the search
+        total = cdf[-1]
+        u = torch.arange(k, device=self.dev, dtype=torch.float64) + torch.rand(k, device=self.dev, dtype=torch.float64)
+        flat = torch.searchsorted(cdf, u * total / k).clamp(max=self.n * cap - 1)
+        e, abs_t = flat // cap, abs_all.flatten()[flat]
         s = self._stack(e, abs_t)
-        # n-step return, stopping at an episode end
-        ret = np.zeros(len(e), np.float32)
-        done = np.zeros(len(e), np.bool_)
-        alive = np.ones(len(e), np.bool_)
-        steps = np.zeros(len(e), np.int64)
-        last = abs_t.copy()
+        ret = torch.zeros(k, device=self.dev)
+        done = torch.zeros(k, dtype=torch.bool, device=self.dev)
+        alive = torch.ones(k, dtype=torch.bool, device=self.dev)
+        steps = torch.zeros(k, device=self.dev)
+        last = abs_t.clone()
         for j in range(cfg.n_step):
-            tj = abs_t + j
-            kj = tj % self.cap
-            r = self.reward[e, kj]
-            ret += np.where(alive, (cfg.gamma**j) * r, 0)
+            kj = (abs_t + j) % cap
+            ret += torch.where(alive, (cfg.gamma**j) * self.reward[e, kj], 0.0)
             steps += alive
-            last = np.where(alive, tj, last)
-            ended = self.end[e, kj] & alive
+            last = torch.where(alive, abs_t + j, last)
             done |= self.term[e, kj] & alive
-            alive &= ~ended
-        # next stack: after `last`; at an episode end it is the final frame's stack
-        nxt_t = last + 1
-        assert (nxt_t <= self.t[e] - 1).all()  # guaranteed by _valid
-        s2 = self._stack(e, nxt_t)
-        for i in range(len(e)):
-            lk = last[i] % self.cap
-            if self.end[e[i], lk]:
-                hist = self._stack(e[i : i + 1], last[i : i + 1])[0]
-                s2[i] = np.concatenate([hist[1:], self.final[(int(e[i]), int(lk))][None]])
-        weights = np.ones(len(e), np.float32)
-        flat = e * self.cap + abs_t % self.cap
-        if self.tree is not None:
-            p = self.tree.tree[flat + self.tree.size] / self.tree.total()
-            filled = int(np.minimum(self.t, self.cap).sum())
-            weights = (filled * p) ** (-beta)
-            weights = (weights / weights.max()).astype(np.float32)
-        a = self.action[e, abs_t % self.cap]
-        return s, a, ret, s2, done, (cfg.gamma**steps).astype(np.float32), weights, flat
+            alive &= ~self.end[e, kj]
+        s2 = self._stack(e, last + 1)  # after an episode end, last + 1 is its frame-only slot
+        if cfg.per:
+            p = w_all[flat] / total
+            n_valid = valid.sum()
+            wts = (n_valid * p) ** (-beta)
+            wts = (wts / wts.max()).float()
+        else:
+            wts = torch.ones(k, device=self.dev)
+        a = self.action[e, abs_t % cap]
+        return s, a, ret, s2, done, cfg.gamma**steps, wts, flat
 
-    def update_priorities(self, flat: np.ndarray, err: np.ndarray) -> None:
-        if self.tree is None:
+    def update_priorities(self, flat: torch.Tensor, err: torch.Tensor) -> None:
+        if not self.cfg.per:
             return
-        p = np.abs(err) + self.cfg.per_eps
-        self.tree.max_p = max(self.tree.max_p, float(p.max()))
-        self.tree.update(flat, p**self.cfg.per_alpha)
+        p = err.abs() + self.cfg.per_eps
+        self.max_p = torch.maximum(self.max_p, p.max())
+        self.weight[flat] = p**self.cfg.per_alpha
 
 
 class ModernAgent:
@@ -290,7 +245,7 @@ class ModernAgent:
         self.target = Net(h, w, n_actions, cfg).to(device)
         self.target.load_state_dict(self.q.state_dict())
         self.opt = torch.optim.Adam(self.q.parameters(), lr=cfg.lr, eps=cfg.adam_eps)
-        self.replay = FrameReplay(n_envs, cfg.buffer_decisions, h, w, cfg, self.rng)
+        self.replay = GpuReplay(n_envs, cfg.buffer_decisions, h, w, cfg, device)
         self.updates = 0
         self.beta0 = self.beta = cfg.per_beta
 
@@ -313,13 +268,6 @@ class ModernAgent:
             self.beta = self.beta0 + progress * (1 - self.beta0)
         s, a, ret, s2, done, gn, w, flat = self.replay.sample(c.batch_size, self.beta)
         dev = self.device
-        s, s2 = torch.from_numpy(s).to(dev), torch.from_numpy(s2).to(dev)
-        a, ret = torch.from_numpy(a).to(dev), torch.from_numpy(ret).to(dev)
-        done, gn, w = (
-            torch.from_numpy(done).to(dev),
-            torch.from_numpy(gn).to(dev),
-            torch.from_numpy(w).to(dev),
-        )
         if c.noisy:
             self.q.reset_noise()
             self.target.reset_noise()
@@ -353,7 +301,7 @@ class ModernAgent:
         loss.backward()
         nn.utils.clip_grad_norm_(self.q.parameters(), c.grad_clip)
         self.opt.step()
-        self.replay.update_priorities(flat, err.cpu().numpy())
+        self.replay.update_priorities(flat, err)
         self.updates += 1
         if self.updates % c.target_every == 0:
             self.target.load_state_dict(self.q.state_dict())
