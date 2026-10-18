@@ -67,6 +67,22 @@ def finished(info: dict, ended: np.ndarray) -> list[dict]:
     return [{k: fi[k][e] for k in ("score", "win", "level")} for e in np.flatnonzero(ended)]
 
 
+def flattened(history: list[tuple[int, float, int]], ticks: int, min_ticks: int = 1_500_000) -> bool:
+    """The plan's rule for long runs: compare the last 20% of ticks with the 20% before it; stop when
+    wins rose by under 2 points and mean score by under 2%. history: (cum_ticks, score, win) per game."""
+    if ticks < min_ticks:
+        return False
+    w = 0.2 * ticks
+    recent = [(sc, wn) for t, sc, wn in history if t > ticks - w]
+    prior = [(sc, wn) for t, sc, wn in history if ticks - 2 * w < t <= ticks - w]
+    if len(recent) < 20 or len(prior) < 20:
+        return False
+    win_gain = 100 * (np.mean([x[1] for x in recent]) - np.mean([x[1] for x in prior]))
+    s_prior = np.mean([x[0] for x in prior])
+    score_gain = (np.mean([x[0] for x in recent]) - s_prior) / max(abs(s_prior), 0.5)
+    return win_gain < 2 and score_gain < 0.02
+
+
 def evaluate(agent: ModernAgent, game: str, n_envs: int, games: int, levels, seed: int, repeat: int) -> dict:
     env = vector(game, n_envs, seed, levels, repeat)
     obs, _ = env.reset(seed=seed)
@@ -107,6 +123,7 @@ def main() -> None:
     p.add_argument("--buffer", type=int, default=None, help="replay size in decisions")
     p.add_argument("--learning-starts", type=int, default=None)
     p.add_argument("--eval-games", type=int, default=50)
+    p.add_argument("--early-stop", action="store_true", help="long budget: stop once training stops improving")
     a = p.parse_args()
 
     cfg = PRESETS[a.preset]()
@@ -128,6 +145,9 @@ def main() -> None:
     budget_decisions = a.ticks // cfg.action_repeat
 
     ticks = decisions = episodes = 0
+    history: list[tuple[int, float, int]] = []
+    next_check = 250_000
+    stopped_early = None
     pending_updates = 0.0
     t0 = time.perf_counter()
     t_env = t_learn = 0.0
@@ -165,8 +185,15 @@ def main() -> None:
             decisions += a.envs
             for row in finished(info, ended):
                 episodes += 1
+                history.append((ticks, float(row["score"]), int(row["win"])))
                 out.writerow([episodes, row["score"], int(row["win"]), row["level"], ticks, agent.updates,
                               f"{eps:.3f}", f"{time.perf_counter() - t0:.1f}"])  # fmt: skip
+            if a.early_stop and ticks >= next_check:
+                next_check += 250_000
+                if flattened(history, ticks):
+                    stopped_early = ticks
+                    print(f"stopping early at {ticks} ticks: no longer improving", flush=True)
+                    break
             if decisions % (a.envs * 500) == 0:
                 f.flush()
                 el = time.perf_counter() - t0
@@ -181,7 +208,7 @@ def main() -> None:
         "name": a.name, "agent": a.preset, "game": a.game, "seed": a.seed, "train_ticks": ticks,
         "decisions": decisions, "train_wall_s": train_wall, "env_s": t_env, "learn_s": t_learn,
         "updates": agent.updates, "envs": a.envs, "device": a.device, "config": asdict(cfg),
-        "eval": ev, "eval_heldout": ev_held,
+        "eval": ev, "eval_heldout": ev_held, "budget_ticks": a.ticks, "stopped_early_at": stopped_early,
         "commit": git_commit(),
     }  # fmt: skip
     (HERE / "results").mkdir(exist_ok=True)
