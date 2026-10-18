@@ -143,6 +143,20 @@ def main() -> None:
             s = np.mean([r["train_wall_s"] for r in runs])
             out.append(f"| {label} (mean of {len(runs)}) | {t / 1e6:.2f}M | {s / 60:.0f} min | {t / s:,.0f} |")
 
+    out += [
+        "",
+        "## Every run group",
+        "",
+        "| Runs | Seeds | Eval score (wins) | Held-out levels | Ticks | Wall clock |",
+        "|---|---|---|---|---|---|",
+    ]
+    for k in sorted(g):
+        runs = [r for r in g[k] if "train_ticks" in r]
+        if runs:
+            held = cell([r for r in runs if "eval_heldout" in r], "eval_heldout")
+            t, s = np.mean([r["train_ticks"] for r in runs]), np.mean([r["train_wall_s"] for r in runs])
+            out.append(f"| {k} | {len(runs)} | {cell(runs)} | {held} | {t / 1e6:.2f}M | {s / 60:.0f} min |")
+
     stopped = [(k, r) for k, runs in g.items() for r in runs if r.get("stopped_early_at")]
     if stopped:
         out += ["", "Long runs stopped early (no longer improving after 3M ticks): "
