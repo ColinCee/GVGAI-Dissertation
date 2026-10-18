@@ -58,6 +58,7 @@ class ModernConfig:
     action_repeat: int = 4
     amp: bool = True  # bf16 network passes on the GPU
     scale_input: bool = True  # pixels / 255 (2018 fed raw 0-255 values)
+    encoder: str = "nature"  # or "impala"
 
 
 def rainbow() -> ModernConfig:
@@ -101,17 +102,39 @@ class NoisyLinear(nn.Module):
         return F.linear(x, self.weight_mu, self.bias_mu)
 
 
+class ResBlock(nn.Module):
+    def __init__(self, c: int):
+        super().__init__()
+        self.c1, self.c2 = nn.Conv2d(c, c, 3, padding=1), nn.Conv2d(c, c, 3, padding=1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x + self.c2(F.relu(self.c1(F.relu(x))))
+
+
+def impala_encoder(channels=(16, 32, 32)) -> nn.Sequential:
+    """IMPALA's 15-layer residual encoder (Espeholt et al. 2018), standard on Procgen."""
+    layers: list[nn.Module] = []
+    c_in = STACK
+    for c in channels:
+        layers += [nn.Conv2d(c_in, c, 3, padding=1), nn.MaxPool2d(3, 2, padding=1), ResBlock(c), ResBlock(c)]
+        c_in = c
+    return nn.Sequential(*layers, nn.ReLU(), nn.Flatten())
+
+
 class Net(nn.Module):
     def __init__(self, h: int, w: int, n_actions: int, cfg: ModernConfig):
         super().__init__()
         self.cfg, self.n_actions = cfg, n_actions
         self.atoms = cfg.n_atoms if cfg.distributional else 1
-        self.conv = nn.Sequential(
-            nn.Conv2d(STACK, 32, 8, 4), nn.ReLU(),
-            nn.Conv2d(32, 64, 4, 2), nn.ReLU(),
-            nn.Conv2d(64, 64, 3, 1), nn.ReLU(),
-            nn.Flatten(),
-        )  # fmt: skip
+        if cfg.encoder == "impala":
+            self.conv = impala_encoder()
+        else:  # the Nature DQN encoder 2018 used
+            self.conv = nn.Sequential(
+                nn.Conv2d(STACK, 32, 8, 4), nn.ReLU(),
+                nn.Conv2d(32, 64, 4, 2), nn.ReLU(),
+                nn.Conv2d(64, 64, 3, 1), nn.ReLU(),
+                nn.Flatten(),
+            )  # fmt: skip
         with torch.no_grad():
             n = self.conv(torch.zeros(1, STACK, h, w)).shape[1]
 
