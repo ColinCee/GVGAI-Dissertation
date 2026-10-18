@@ -1,0 +1,32 @@
+# Batch 5: more reward styles, modern DQN, Aliens + Wafer Thin Mints, 3 seeds.
+train_modern.py --game aliens --preset dqn-outcome5 --ticks 1014134 --seed 0 --name aliens-dqn-outcome5-b18-s0
+train_modern.py --game aliens --preset dqn-outcome5 --ticks 1014134 --seed 1 --name aliens-dqn-outcome5-b18-s1
+train_modern.py --game aliens --preset dqn-outcome5 --ticks 1014134 --seed 2 --name aliens-dqn-outcome5-b18-s2
+train_modern.py --game waferthinmints2018 --preset dqn-outcome5 --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-outcome5-b18-s0
+train_modern.py --game waferthinmints2018 --preset dqn-outcome5 --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-outcome5-b18-s1
+train_modern.py --game waferthinmints2018 --preset dqn-outcome5 --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-outcome5-b18-s2
+train_modern.py --game aliens --preset dqn-outcome10 --ticks 1014134 --seed 0 --name aliens-dqn-outcome10-b18-s0
+train_modern.py --game aliens --preset dqn-outcome10 --ticks 1014134 --seed 1 --name aliens-dqn-outcome10-b18-s1
+train_modern.py --game aliens --preset dqn-outcome10 --ticks 1014134 --seed 2 --name aliens-dqn-outcome10-b18-s2
+train_modern.py --game waferthinmints2018 --preset dqn-outcome10 --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-outcome10-b18-s0
+train_modern.py --game waferthinmints2018 --preset dqn-outcome10 --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-outcome10-b18-s1
+train_modern.py --game waferthinmints2018 --preset dqn-outcome10 --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-outcome10-b18-s2
+train_modern.py --game aliens --preset dqn-loss-only --ticks 1014134 --seed 0 --name aliens-dqn-loss-only-b18-s0
+train_modern.py --game aliens --preset dqn-loss-only --ticks 1014134 --seed 1 --name aliens-dqn-loss-only-b18-s1
+train_modern.py --game aliens --preset dqn-loss-only --ticks 1014134 --seed 2 --name aliens-dqn-loss-only-b18-s2
+train_modern.py --game waferthinmints2018 --preset dqn-loss-only --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-loss-only-b18-s0
+train_modern.py --game waferthinmints2018 --preset dqn-loss-only --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-loss-only-b18-s1
+train_modern.py --game waferthinmints2018 --preset dqn-loss-only --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-loss-only-b18-s2
+train_modern.py --game aliens --preset dqn-penalty-decay --ticks 1014134 --seed 0 --name aliens-dqn-penalty-decay-b18-s0
+train_modern.py --game aliens --preset dqn-penalty-decay --ticks 1014134 --seed 1 --name aliens-dqn-penalty-decay-b18-s1
+train_modern.py --game aliens --preset dqn-penalty-decay --ticks 1014134 --seed 2 --name aliens-dqn-penalty-decay-b18-s2
+train_modern.py --game waferthinmints2018 --preset dqn-penalty-decay --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-penalty-decay-b18-s0
+train_modern.py --game waferthinmints2018 --preset dqn-penalty-decay --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-penalty-decay-b18-s1
+train_modern.py --game waferthinmints2018 --preset dqn-penalty-decay --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-penalty-decay-b18-s2
+# Is the plain outcome signal just slow? Outcome only, up to 5M ticks
+train_modern.py --game aliens --preset dqn-outcome --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-outcome-long-s0
+train_modern.py --game aliens --preset dqn-outcome --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-outcome-long-s1
+train_modern.py --game aliens --preset dqn-outcome --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-outcome-long-s2
+train_modern.py --game waferthinmints2018 --preset dqn-outcome --ticks 5000000 --early-stop --seed 0 --name waferthinmints2018-dqn-outcome-long-s0
+train_modern.py --game waferthinmints2018 --preset dqn-outcome --ticks 5000000 --early-stop --seed 1 --name waferthinmints2018-dqn-outcome-long-s1
+train_modern.py --game waferthinmints2018 --preset dqn-outcome --ticks 5000000 --early-stop --seed 2 --name waferthinmints2018-dqn-outcome-long-s2

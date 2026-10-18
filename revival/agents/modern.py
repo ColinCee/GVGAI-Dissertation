@@ -50,7 +50,10 @@ class ModernConfig:
     # in 2018), replacing its score change. loss_penalty: also subtract this from every move of a lost
     # game, clipped at -1 (2018 used 0.5). Off by default: modern agents normally see only the score.
     outcome_reward: bool = False
+    win_reward: float = 1.0  # outcome values when outcome_reward is on
+    loss_reward: float = -1.0
     loss_penalty: float = 0.0
+    penalty_decay: float = 1.0  # <1: a move k moves before the loss gets loss_penalty * decay**k
     grad_clip: float = 10.0
     action_repeat: int = 4
     amp: bool = True  # bf16 network passes on the GPU
@@ -193,7 +196,8 @@ class GpuReplay:
             es.append(e), ts.append(self.t_host[e]), frames.append(obs[e]), acts.append(int(action[e]))
             r = float(np.sign(reward[e])) if self.cfg.clip_reward else float(reward[e])
             if self.cfg.outcome_reward and ended:
-                r = 1.0 if won[e] else -1.0  # 2018 replaced the last move's score change with the outcome
+                # 2018 replaced the last move's score change with the outcome (+1 / -1)
+                r = self.cfg.win_reward if won[e] else self.cfg.loss_reward
             if self.cfg.loss_penalty and ended and not won[e]:  # a loss is the game's own: death or timeout
                 lost.append((e, int(self.ep_start[e]), int(self.t_host[e])))
             rews.append(r), terms.append(bool(term[e])), ends.append(ended), starts.append(self.ep_start[e])
@@ -220,8 +224,11 @@ class GpuReplay:
         self.t.copy_(upload(self.t_host, dev), non_blocking=True)
         for e, first, last in lost:  # 2018's penalty on every move of a lost game (this one included)
             first = max(first, last - self.cap + 1)
-            k = torch.arange(first, last + 1, device=dev) % self.cap
-            self.reward[e, k] = (self.reward[e, k] - self.cfg.loss_penalty).clamp(min=-1.0)
+            ks = torch.arange(first, last + 1, device=dev)
+            amount = self.cfg.loss_penalty * self.cfg.penalty_decay ** (last - ks).float()
+            k = ks % self.cap
+            low = min(-1.0, self.cfg.loss_reward)  # 2018 clipped at -1; a louder loss keeps its value
+            self.reward[e, k] = torch.maximum(self.reward[e, k] - amount, torch.full_like(amount, low))
 
     def _stack(self, e: torch.Tensor, abs_t: torch.Tensor) -> torch.Tensor:
         ts = abs_t[:, None] + self.offs[None, :]

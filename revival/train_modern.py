@@ -51,6 +51,10 @@ PRESETS = {
         outcome_reward=True, loss_penalty=0.5, scale_input=False, huber=False
     ),
     "rainbow-reward2018": lambda: _with(rainbow(), outcome_reward=True, loss_penalty=0.5),
+    "dqn-outcome5": lambda: ModernConfig(outcome_reward=True, win_reward=5.0, loss_reward=-5.0),
+    "dqn-outcome10": lambda: ModernConfig(outcome_reward=True, win_reward=10.0, loss_reward=-10.0),
+    "dqn-loss-only": lambda: ModernConfig(outcome_reward=True, win_reward=0.0, loss_reward=-1.0),
+    "dqn-penalty-decay": lambda: ModernConfig(outcome_reward=True, loss_penalty=0.5, penalty_decay=0.97),
 }
 
 
