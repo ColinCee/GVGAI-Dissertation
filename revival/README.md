@@ -4,24 +4,16 @@ Plan: [../PLAN.md](../PLAN.md). The 2018 code is frozen under tags `2018-dqn`, `
 
 ## Setup (Windows)
 
-1. JDK 21 and [uv](https://docs.astral.sh/uv/).
-2. Game engine, pinned and patched:
-   ```bash
-   git clone https://github.com/rubenrtorrado/GVGAI_GYM.git D:/Repos/GVGAI_GYM
-   cd D:/Repos/GVGAI_GYM
-   git checkout 15e0a86dcaa138721409b07ed970255485e150d6
-   git apply "D:/Claude Projects/GVGAI-Dissertation/revival/gvgai/gvgai_gym.patch"
-   python build.py
-   ```
-   Set `GVGAI_GYM_DIR` if it lives elsewhere.
-3. `uv sync` in this folder.
-4. `uv run python smoke.py --game aliens --episodes 5 --repeat 4`
+1. [uv](https://docs.astral.sh/uv/) and JDK 25 (Temurin zip unpacked to `D:\Java\jdk-25.0.4.1+1`; set `GVGAI_JDK` if elsewhere).
+2. `uv sync` in this folder (Python 3.15, PyTorch from PyTorch's CUDA 13 index).
+3. `uv run python smoke.py --game aliens --episodes 5 --repeat 4`. The engine compiles itself on first use ([engine/build.py](engine/build.py)).
+4. Before committing: `uv run ruff format . && uv run ruff check .`; `uv run ty check` is advisory.
 
-The patch ([gvgai/gvgai_gym.patch](gvgai/gvgai_gym.patch)):
-- makes the engine's per-tick sleep configurable (`-Dgvgai.longDelay`, default still 25 ms; our env passes 0);
-- sends the frame PNG it already encoded instead of writing, re-reading and re-encoding it each tick;
-- adds Wafer Thin Mints levels 1–4 (GVGAI_GYM ships only level 0), taken from [GAIGResearch/GVGAI](https://github.com/GAIGResearch/GVGAI), whose level 0 is identical;
-- adds `waferthinmints2018`, the rules as the dissertation ran them (see below).
+[engine/](engine/) is GVGAI_GYM's Java engine and games, imported unmodified at commit `15e0a86` (first commit touching it), then changed:
+- the engine's per-tick sleep is configurable (`-Dgvgai.longDelay`, default still 25 ms; our env passes 0);
+- it sends the frame PNG it already encoded instead of writing, re-reading and re-encoding it each tick;
+- Wafer Thin Mints levels 1–4 added (GVGAI_GYM ships only level 0), from [GAIGResearch/GVGAI](https://github.com/GAIGResearch/GVGAI), whose level 0 is identical;
+- `waferthinmints2018` added: the rules as the dissertation ran them (see below).
 
 Python client changes are listed in [gvgai/vendor/README.md](gvgai/vendor/README.md). The env is [gvgai/env.py](gvgai/env.py): the game's own actions (no extra no-op), random level 0–2 per game, 2000-tick limit counted as a loss.
 

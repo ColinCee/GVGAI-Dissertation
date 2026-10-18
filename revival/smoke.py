@@ -1,4 +1,5 @@
 """Phase 0 check: play random games, print frame/action facts and env speed."""
+
 import argparse
 import random
 import time
@@ -28,15 +29,17 @@ for ep in range(a.episodes):
     t = 0
     while True:
         if t % a.repeat == 0:
-            act = random.randrange(env.action_space.n)
+            act = random.randrange(env.n_actions)
         t += 1
         obs, r, term, trunc, info = env.step(act)
         total += r
         ticks += 1
         if term or trunc:
             break
-    print(f"ep {ep} level {info['level']} ticks {info['tick']} score {info['score']} "
-          f"reward {total} winner {info['winner']} timeout {info['timeout']}")
+    print(
+        f"ep {ep} level {info['level']} ticks {info['tick']} score {info['score']} "
+        f"reward {total} winner {info['winner']} timeout {info['timeout']}"
+    )
     if a.save_frame and ep == 0:
         Image.fromarray(obs).save(a.save_frame)
 dt = time.perf_counter() - t0

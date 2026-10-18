@@ -287,6 +287,10 @@ public class SerializableStateObservation {
 
 
     public byte[] imageToByteArray() throws IOException {
+        if (core.vgdl.VGDLViewer.lastPng != null) {
+            imageArray = core.vgdl.VGDLViewer.lastPng;
+            return imageArray;
+        }
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         File pngfile = new File(CompetitionParameters.SCREENSHOT_FILENAME);
         if (pngfile != null) {

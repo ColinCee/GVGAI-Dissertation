@@ -5,6 +5,7 @@ Behaviour matches the 2018 learning-track setup the dissertation used:
 - a game lasts at most 2000 ticks and running out of time is a loss;
 - each reset plays a random level from 0-2 unless one is fixed.
 """
+
 import os
 import random
 import sys
@@ -12,31 +13,36 @@ import sys
 import gymnasium as gym
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "vendor"))
+HERE = os.path.dirname(os.path.abspath(__file__))
+ENGINE_DIR = os.path.join(HERE, "..", "engine")
+sys.path.insert(0, os.path.join(HERE, "vendor"))
+sys.path.insert(0, ENGINE_DIR)
+import build  # noqa: E402
 import ClientCommGYM  # noqa: E402
-
-GVGAI_GYM_DIR = os.environ.get("GVGAI_GYM_DIR", r"D:\Repos\GVGAI_GYM")
-ENVS_DIR = os.path.join(GVGAI_GYM_DIR, "gym_gvgai", "envs")
 
 
 class GvgaiEnv(gym.Env):
     metadata = {"render_modes": ["rgb_array"]}
 
-    def __init__(self, game="aliens", levels=(0, 1, 2), max_ticks=2000, include_nil=False, version=0,
-                 frame_delay_ms=0):
+    def __init__(
+        self, game="aliens", levels=(0, 1, 2), max_ticks=2000, include_nil=False, version=0, frame_delay_ms=0
+    ):
         # The engine sleeps frame_delay_ms per tick to pace the game for viewing (25 ms in 2018).
-        # It has no effect on game logic; needs gvgai_gym.patch applied to the GVGAI_GYM checkout.
+        # It has no effect on game logic.
+        build.ensure_built()
+        ClientCommGYM.JAVA = build.java()
         ClientCommGYM.JAVA_OPTS = [f"-Dgvgai.longDelay={frame_delay_ms}"]
         self.game = game
         self.levels = tuple(levels)
         self.max_ticks = max_ticks
         self.include_nil = include_nil
         self._rng = random.Random()
-        self.comm = ClientCommGYM.ClientCommGYM(game, version, self.levels[0], ENVS_DIR)
+        self.comm = ClientCommGYM.ClientCommGYM(game, version, self.levels[0], ENGINE_DIR)
         # The client prefixes ACTION_NIL; index i of our action space maps to client index i + offset.
         self.action_names = self.comm.actions() if include_nil else self.comm.actions()[1:]
         self._offset = 0 if include_nil else 1
-        self.action_space = gym.spaces.Discrete(len(self.action_names))
+        self.n_actions = len(self.action_names)
+        self.action_space = gym.spaces.Discrete(self.n_actions)
         img = self.comm.sso.image
         self.observation_space = gym.spaces.Box(0, 255, shape=img.shape, dtype=np.uint8)
         self._ticks = 0

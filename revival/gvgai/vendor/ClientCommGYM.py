@@ -26,21 +26,7 @@ from IOSocket import IOSocket
 from Types import LEARNING_SSO_TYPE
 
 
-def _find_java():
-    # Windows' javapath\java.exe is a launcher stub: killing it leaves the real JVM running.
-    home = os.environ.get("JAVA_HOME")
-    if home:
-        return os.path.join(home, "bin", "java")
-    found = shutil.which("java")
-    if found and "javapath" in found.lower():
-        import glob
-        jdks = sorted(glob.glob("C:/Program Files/Java/jdk-*/bin/java.exe"))
-        if jdks:
-            return jdks[-1]
-    return found or "java"
-
-
-JAVA = _find_java()
+JAVA: str = "java"  # set by the caller to the JDK's java
 JAVA_OPTS = []  # set by the caller, e.g. ["-Dgvgai.longDelay=0"]
 
 
@@ -65,27 +51,12 @@ class ClientCommGYM:
         
         self.sso.Terminal=False
 
-        baseDir = os.path.join(pathStr, 'gvgai')
-        srcDir = os.path.join(baseDir, 'src')
-        buildDir = os.path.join(baseDir, 'GVGAI_Build')
+        # pathStr is revival/engine; classes are built by revival/engine/build.py
+        buildDir = os.path.join(pathStr, 'build', 'classes')
         gamesDir = os.path.join(pathStr, 'games', '{}_v{}'.format(game, version))
-        cmd = [JAVA] + JAVA_OPTS + ["-classpath", buildDir, "tracks.singleLearning.utils.JavaServer", "-game", game, "-gamesDir", gamesDir, "-imgDir", baseDir, "-portNum", str(self.io.port)]
-
-        #Check build version
-        sys.path.append(baseDir)
-        import check_build
-
-        if(not os.path.isdir(buildDir)):
-            raise Exception("Couldn't find build directory. Please run build.py from the install directory or reinstall with pip.")
-        elif(not check_build.isCorrectBuild(srcDir, buildDir)):
-            raise Exception("Your build is out of date. Please run build.py from the install directory or reinstall with pip.")
-        else:
-            try:
-                # stderr to DEVNULL too: an inherited handle keeps the caller's pipe open after we exit
-                self.java = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, cwd=self.tempDir.name)
-            except subprocess.CalledProcessError as e:
-                print('exit code: {}'.format(e.returncode))
-                print('stderr: {}'.format(e.stderr.decode(sys.getfilesystemencoding())))
+        cmd = [JAVA] + JAVA_OPTS + ["-classpath", buildDir, "tracks.singleLearning.utils.JavaServer", "-game", game, "-gamesDir", gamesDir, "-imgDir", pathStr, "-portNum", str(self.io.port)]
+        # stdin/stderr to DEVNULL too: an inherited handle keeps the caller's pipe open after we exit
+        self.java = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, cwd=self.tempDir.name)
 
         self.startComm()
         self.reset(lvl)

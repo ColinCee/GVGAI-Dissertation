@@ -1,4 +1,5 @@
 """Env throughput with N games running in parallel processes (random play, 4-tick action repeat)."""
+
 import argparse
 import multiprocessing as mp
 import random
@@ -7,6 +8,7 @@ import time
 
 def worker(game, seconds, q):
     from gvgai.env import GvgaiEnv
+
     env = GvgaiEnv(game)
     ticks = 0
     env.reset()
@@ -14,7 +16,7 @@ def worker(game, seconds, q):
     t = 0
     while time.perf_counter() < t_end:
         if t % 4 == 0:
-            act = random.randrange(env.action_space.n)
+            act = random.randrange(env.n_actions)
         t += 1
         *_, term, trunc, _ = env.step(act)
         ticks += 1
@@ -39,4 +41,7 @@ if __name__ == "__main__":
         total = sum(q.get() for _ in procs)
         for pr in procs:
             pr.join()
-        print(f"{n:>2} games: {total / a.seconds:6.0f} ticks/s total, {total / a.seconds / n:4.0f} per game", flush=True)
+        print(
+            f"{n:>2} games: {total / a.seconds:6.0f} ticks/s total, {total / a.seconds / n:4.0f} per game",
+            flush=True,
+        )

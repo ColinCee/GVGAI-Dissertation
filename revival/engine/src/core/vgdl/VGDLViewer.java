@@ -133,6 +133,8 @@ public class VGDLViewer extends JComponent
         return size;
     }
 
+    public static byte[] lastPng = null;
+
     public void saveImage(String fileName)  {
         try {
             BufferedImage bi = new BufferedImage( (int) size.getWidth(), (int) size.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -142,7 +144,11 @@ public class VGDLViewer extends JComponent
             if (justImage) {
                 graphics.dispose();
             }
-            ImageIO.write(bi, "png", file);
+            // Encode once and keep the bytes, so the state observation needn't re-read the file.
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            ImageIO.write(bi, "png", out);
+            lastPng = out.toByteArray();
+            java.nio.file.Files.write(file.toPath(), lastPng);
         } catch (IOException ie) {
             ie.printStackTrace();
         }
