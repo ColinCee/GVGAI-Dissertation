@@ -1,0 +1,7 @@
+# Does a bigger network change what the 2018 reward does? IMPALA encoder x 2018 reward, Aliens, 2018's ticks, 3 seeds
+train_modern.py --game aliens --preset dqn-reward2018-impala --ticks 1014134 --seed 0 --name aliens-dqn-reward2018-impala-b18-s0
+train_modern.py --game aliens --preset dqn-reward2018-impala --ticks 1014134 --seed 1 --name aliens-dqn-reward2018-impala-b18-s1
+train_modern.py --game aliens --preset dqn-reward2018-impala --ticks 1014134 --seed 2 --name aliens-dqn-reward2018-impala-b18-s2
+train_modern.py --game aliens --preset rainbow-reward2018-impala --ticks 1014134 --seed 0 --name aliens-rainbow-reward2018-impala-b18-s0
+train_modern.py --game aliens --preset rainbow-reward2018-impala --ticks 1014134 --seed 1 --name aliens-rainbow-reward2018-impala-b18-s1
+train_modern.py --game aliens --preset rainbow-reward2018-impala --ticks 1014134 --seed 2 --name aliens-rainbow-reward2018-impala-b18-s2
