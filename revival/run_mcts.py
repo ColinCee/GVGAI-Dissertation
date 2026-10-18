@@ -31,6 +31,7 @@ def main() -> None:
     p.add_argument("--games", nargs="+", default=GAMES)
     p.add_argument("--games-per-game", type=int, default=50)
     p.add_argument("--ms", type=int, default=40)
+    p.add_argument("--iters", type=int, default=0, help="fixed search budget per move instead of --ms")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument(
         "--split-levels", action="store_true", help="one process per level (faster, but more processes than cores)"
@@ -46,7 +47,7 @@ def main() -> None:
         per_level = -(-a.games_per_game // len(levels))
         procs[g] = []
         for lvl in levels if a.split_levels else [",".join(map(str, levels))]:
-            cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", f"-Dgvgai.actionTime={a.ms}", "-Dgvgai.maxTicks=2000",
+            cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", f"-Dgvgai.actionTime={a.ms if not a.iters else 10**8}", f"-Dgvgai.mctsIters={a.iters}", "-Dgvgai.maxTicks=2000",
                    "-cp", str(classes), "tracks.RunMCTS", str(d / f"{g}.txt"), str(d / f"{g}_lvl"), str(lvl),
                    str(per_level), str(a.seed)]  # fmt: skip
             # cwd: the engine loads sprites by relative path
@@ -58,13 +59,14 @@ def main() -> None:
         for pr in prs:
             text, _ = pr.communicate()
             lines += [ln for ln in text.splitlines() if ln[:1].isdigit()]
-        (out / f"{g}.csv").write_text("\n".join(lines) + "\n")
+        (out / f"{g}{'-i' + str(a.iters) if a.iters else ''}.csv").write_text("\n".join(lines) + "\n")
         rows = list(csv.DictReader(io.StringIO("\n".join(lines))))
         if not rows:
             print(f"{g}: no games finished")
             continue
         res = {
-            "name": f"mcts-{g}", "agent": f"MCTS {a.ms} ms", "game": g, "seed": a.seed,
+            "name": f"mcts-{g}" + (f"-i{a.iters}" if a.iters else ""),
+            "agent": f"MCTS {a.iters} iterations" if a.iters else f"MCTS {a.ms} ms", "game": g, "seed": a.seed,
             "levels": list(DEFAULT_LEVELS.get(g, (0, 1, 2))),
             "eval": {
                 "games": len(rows),
@@ -73,7 +75,7 @@ def main() -> None:
                 "iters_per_move": sum(float(r["iters_per_move"]) for r in rows) / len(rows),
             },
         }  # fmt: skip
-        (HERE / "results" / f"mcts-{g}.json").write_text(json.dumps(res, indent=1))
+        (HERE / "results" / f"{res['name']}.json").write_text(json.dumps(res, indent=1))
         e = res["eval"]
         print(f"{g}: {e['mean_score']:.1f} ({e['win_rate']:.0%}), {e['iters_per_move']:.0f} iterations per move")
 

@@ -1,0 +1,13 @@
+# Replay ratio: updates per decision 0.5 (2x) and 1.0 (4x) vs the default 0.25, Aliens, 2018's ticks
+train_modern.py --game aliens --preset dqn --replay-ratio 0.5 --ticks 1014134 --seed 0 --name aliens-dqn-rr0.5-b18-s0
+train_modern.py --game aliens --preset dqn --replay-ratio 0.5 --ticks 1014134 --seed 1 --name aliens-dqn-rr0.5-b18-s1
+train_modern.py --game aliens --preset dqn --replay-ratio 0.5 --ticks 1014134 --seed 2 --name aliens-dqn-rr0.5-b18-s2
+train_modern.py --game aliens --preset dqn --replay-ratio 1.0 --ticks 1014134 --seed 0 --name aliens-dqn-rr1.0-b18-s0
+train_modern.py --game aliens --preset dqn --replay-ratio 1.0 --ticks 1014134 --seed 1 --name aliens-dqn-rr1.0-b18-s1
+train_modern.py --game aliens --preset dqn --replay-ratio 1.0 --ticks 1014134 --seed 2 --name aliens-dqn-rr1.0-b18-s2
+train_modern.py --game aliens --preset rainbow --replay-ratio 0.5 --ticks 1014134 --seed 0 --name aliens-rainbow-rr0.5-b18-s0
+train_modern.py --game aliens --preset rainbow --replay-ratio 0.5 --ticks 1014134 --seed 1 --name aliens-rainbow-rr0.5-b18-s1
+train_modern.py --game aliens --preset rainbow --replay-ratio 0.5 --ticks 1014134 --seed 2 --name aliens-rainbow-rr0.5-b18-s2
+train_modern.py --game aliens --preset rainbow --replay-ratio 1.0 --ticks 1014134 --seed 0 --name aliens-rainbow-rr1.0-b18-s0
+train_modern.py --game aliens --preset rainbow --replay-ratio 1.0 --ticks 1014134 --seed 1 --name aliens-rainbow-rr1.0-b18-s1
+train_modern.py --game aliens --preset rainbow --replay-ratio 1.0 --ticks 1014134 --seed 2 --name aliens-rainbow-rr1.0-b18-s2

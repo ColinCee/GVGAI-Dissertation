@@ -28,6 +28,7 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("jobs")
     p.add_argument("--parallel", type=int, default=4)
+    p.add_argument("--max-minutes", type=float, default=120, help="kill a run that takes longer (hang guard)")
     p.add_argument(
         "--low-priority", action="store_true", help="idle priority (and its game servers): for while Colin games"
     )
@@ -39,6 +40,7 @@ def main() -> None:
     beat.touch()
     env = {**os.environ, "GVGAI_HEARTBEAT": str(beat)}
     running: dict[str, subprocess.Popen] = {}
+    started: dict[str, float] = {}
     failed = []
     while todo or running:
         while todo and len(running) < a.parallel:
@@ -48,10 +50,15 @@ def main() -> None:
             running[n] = subprocess.Popen([sys.executable, "-u", *j], cwd=HERE, stdout=log, stderr=subprocess.STDOUT,
                                           stdin=subprocess.DEVNULL, env=env,
                                           creationflags=IDLE if a.low_priority else 0)  # fmt: skip
+            started[n] = time.time()
             print(f"start {n}", flush=True)
         time.sleep(5)
         beat.touch()
         for n, pr in list(running.items()):
+            if pr.poll() is None and time.time() - started[n] > a.max_minutes * 60:
+                print(f"TIMEOUT {n} after {a.max_minutes:.0f} min: killing it and its game servers", flush=True)
+                subprocess.run(["taskkill", "/T", "/F", "/PID", str(pr.pid)], capture_output=True)
+                pr.wait()
             if pr.poll() is not None:
                 ok = pr.returncode == 0 and (HERE / "results" / f"{n}.json").exists()
                 print(f"{'done' if ok else 'FAILED'} {n} (exit {pr.returncode})", flush=True)

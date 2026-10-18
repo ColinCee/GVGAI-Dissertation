@@ -146,6 +146,8 @@ def main() -> None:
     p.add_argument("--buffer", type=int, default=None, help="replay size in decisions")
     p.add_argument("--learning-starts", type=int, default=None)
     p.add_argument("--eval-games", type=int, default=50)
+    p.add_argument("--replay-ratio", type=float, default=None, help="updates per decision (default 0.25)")
+    p.add_argument("--train-levels", default=None, help="e.g. 0,1,2,3,4 (default: the game's usual levels)")
     p.add_argument("--processes", action="store_true", help="old env layer: worker processes + PIL Lanczos")
     p.add_argument("--early-stop", action="store_true", help="long budget: stop once training stops improving")
     a = p.parse_args()
@@ -156,10 +158,13 @@ def main() -> None:
         cfg.buffer_decisions = a.buffer
     if a.learning_starts is not None:
         cfg.learning_starts = a.learning_starts
+    if a.replay_ratio is not None:
+        cfg.replay_ratio = a.replay_ratio
     run = HERE / "runs" / a.name
     run.mkdir(parents=True, exist_ok=True)
     levels = DEFAULT_LEVELS.get(a.game, (0, 1, 2))
-    env = vector(a.game, a.envs, a.seed, levels, cfg.action_repeat, processes=a.processes)
+    train_levels = tuple(int(x) for x in a.train_levels.split(",")) if a.train_levels else levels
+    env = vector(a.game, a.envs, a.seed, train_levels, cfg.action_repeat, processes=a.processes)
     obs, _ = env.reset(seed=a.seed)
     n_actions = int(env.single_action_space.n)
     h, w = obs.shape[1:]
@@ -239,7 +244,8 @@ def main() -> None:
         "updates": agent.updates, "envs": a.envs,
         "env_layer": "processes+PIL" if a.processes else "in-process+gray_half",
         "device": a.device, "config": asdict(cfg),
-        "eval": ev, "eval_heldout": ev_held, "budget_ticks": a.ticks, "stopped_early_at": stopped_early,
+        "eval": ev, "eval_heldout": ev_held, "budget_ticks": a.ticks, "train_levels": list(train_levels),
+        "stopped_early_at": stopped_early,
         "commit": commit,
     }  # fmt: skip
     (HERE / "results").mkdir(exist_ok=True)
