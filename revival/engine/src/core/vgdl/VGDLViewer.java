@@ -145,7 +145,14 @@ public class VGDLViewer extends JComponent
     // and skip PNG encoding and the frame file. Off by default, so the original protocol still works.
     public static final boolean RAW_FRAMES = Boolean.getBoolean("gvgai.rawFrames");
     public static byte[] lastRgb = null;
+    // -Dgvgai.grayHalf=true (with rawFrames): send the frame as greyscale at half size (PIL's "L"
+    // weights, then 2x2 averages): 8 KB instead of 99 KB, and the client needn't shrink it.
+    public static final boolean GRAY_HALF = Boolean.getBoolean("gvgai.grayHalf");
     public static int lastWidth, lastHeight;
+
+    private static int luma(int p) {  // PIL's RGB -> L: (R*19595 + G*38470 + B*7471 + 0x8000) >> 16
+        return (((p >> 16) & 0xff) * 19595 + ((p >> 8) & 0xff) * 38470 + (p & 0xff) * 7471 + 0x8000) >> 16;
+    }
 
     private BufferedImage rawImage;  // RAW_FRAMES: one image and graphics context reused for every frame
     private Graphics2D rawGraphics;
@@ -156,13 +163,27 @@ public class VGDLViewer extends JComponent
                 if (rawImage == null) {
                     rawImage = new BufferedImage((int) size.getWidth(), (int) size.getHeight(), BufferedImage.TYPE_INT_ARGB);
                     rawGraphics = rawImage.createGraphics();
-                    lastRgb = new byte[rawImage.getWidth() * rawImage.getHeight() * 3];
+                    int w = rawImage.getWidth(), h = rawImage.getHeight();
+                    lastRgb = GRAY_HALF ? new byte[(w / 2) * (h / 2)] : new byte[w * h * 3];
                 }
                 int[] argb = ((java.awt.image.DataBufferInt) rawImage.getRaster().getDataBuffer()).getData();
                 java.util.Arrays.fill(argb, 0);  // as a fresh image: transparent black
                 paintWithGraphics(rawGraphics);
                 // lastRgb is reused: each frame is sent before the next one is drawn.
                 byte[] rgb = lastRgb;
+                if (GRAY_HALF) {
+                    int w = rawImage.getWidth(), hw = w / 2, hh = rawImage.getHeight() / 2;
+                    for (int y = 0; y < hh; y++) {
+                        for (int x = 0; x < hw; x++) {
+                            int i0 = (2 * y) * w + 2 * x, i1 = i0 + w;
+                            int sum = luma(argb[i0]) + luma(argb[i0 + 1]) + luma(argb[i1]) + luma(argb[i1 + 1]);
+                            rgb[y * hw + x] = (byte) ((sum + 2) >> 2);
+                        }
+                    }
+                    lastWidth = hw;
+                    lastHeight = hh;
+                    return;
+                }
                 for (int i = 0, j = 0; i < argb.length; i++) {
                     int p = argb[i];
                     rgb[j++] = (byte) (p >> 16);

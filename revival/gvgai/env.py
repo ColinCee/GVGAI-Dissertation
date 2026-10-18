@@ -38,20 +38,24 @@ class GvgaiEnv(gym.Env):
         java_opts=(),
         raw_frames=True,
         light_obs=True,
+        gray_half=False,
     ):
         # The engine sleeps frame_delay_ms per tick to pace the game for viewing (25 ms in 2018).
         # It has no effect on game logic.
         # engine_seed fixes the engine's per-level random seeds, so games replay exactly.
         build.ensure_built(Path(engine_dir))
         ClientCommGYM.JAVA = build.java()
-        # Serial GC and a small heap: 122 MB per server instead of 686 MB, same speed (RAM is shared).
-        ClientCommGYM.JAVA_OPTS = ["-XX:+UseSerialGC", "-Xmx128m", f"-Dgvgai.longDelay={frame_delay_ms}"]
+        # Serial GC and a small heap: ~150 MB per server instead of 686 MB, same speed (RAM is shared);
+        # 256 MB, not 128, so a long game's garbage collection can't stall a batched step.
+        ClientCommGYM.JAVA_OPTS = ["-XX:+UseSerialGC", "-Xmx256m", f"-Dgvgai.longDelay={frame_delay_ms}"]
         if engine_seed is not None:
             ClientCommGYM.JAVA_OPTS.append(f"-Dgvgai.seed={engine_seed}")
         if raw_frames:  # pixels inline instead of PNG + frame file; the unmodified engine ignores this
             ClientCommGYM.JAVA_OPTS.append("-Dgvgai.rawFrames=true")
         if light_obs:  # skip the per-tick sprite copies only planning agents need
             ClientCommGYM.JAVA_OPTS.append("-Dgvgai.lightObs=true")
+        if gray_half:  # frames come greyscale at half size (modern agents; 2018's replay uses PIL Lanczos)
+            ClientCommGYM.JAVA_OPTS.append("-Dgvgai.grayHalf=true")
         ClientCommGYM.JAVA_OPTS += list(java_opts)
         self.game = game
         self.levels = tuple(levels)
@@ -83,10 +87,20 @@ class GvgaiEnv(gym.Env):
     def step(self, action, repeat=1):
         """Play `action`; with repeat > 1 the server holds it that many ticks (stopping at the game's end
         or the tick limit) and returns only the last frame."""
+        self.step_send(action, repeat)
+        return self.step_recv()
+
+    def step_send(self, action, repeat=1):
+        """First half of step(): send the move without waiting (see gvgai/vec.py)."""
         assert not self._terminal, "call reset() after the game ends"
-        before = self.comm.sso.gameTick
-        repeat = max(1, min(repeat, self.max_ticks - before))
-        obs, reward, done, info = self.comm.step(int(action) + self._offset, repeat)
+        self._before = self.comm.sso.gameTick
+        repeat = max(1, min(repeat, self.max_ticks - self._before))
+        self.comm.step_send(int(action) + self._offset, repeat)
+
+    def step_recv(self):
+        """Second half of step(): wait for the result."""
+        before = self._before
+        obs, reward, done, info = self.comm.step_recv()
         # the game-over message reports the tick the game ended on, one short of ticks played
         advanced = max(1, self.comm.sso.gameTick - before + (1 if done else 0))
         self._ticks += advanced

@@ -83,8 +83,9 @@ def flattened(history: list[tuple[int, float, int]], ticks: int, min_ticks: int 
     return win_gain < 2 and score_gain < 0.02
 
 
-def evaluate(agent: ModernAgent, game: str, n_envs: int, games: int, levels, seed: int, repeat: int) -> dict:
-    env = vector(game, n_envs, seed, levels, repeat)
+def evaluate(agent: ModernAgent, game: str, n_envs: int, games: int, levels, seed: int, repeat: int,
+             processes: bool = False) -> dict:  # fmt: skip
+    env = vector(game, n_envs, seed, levels, repeat, processes=processes)
     obs, _ = env.reset(seed=seed)
     stacks = Stacks(obs, agent.device)
     per_env = -(-games // n_envs)
@@ -123,6 +124,7 @@ def main() -> None:
     p.add_argument("--buffer", type=int, default=None, help="replay size in decisions")
     p.add_argument("--learning-starts", type=int, default=None)
     p.add_argument("--eval-games", type=int, default=50)
+    p.add_argument("--processes", action="store_true", help="old env layer: worker processes + PIL Lanczos")
     p.add_argument("--early-stop", action="store_true", help="long budget: stop once training stops improving")
     a = p.parse_args()
 
@@ -134,7 +136,7 @@ def main() -> None:
     run = HERE / "runs" / a.name
     run.mkdir(parents=True, exist_ok=True)
     levels = DEFAULT_LEVELS.get(a.game, (0, 1, 2))
-    env = vector(a.game, a.envs, a.seed, levels, cfg.action_repeat)
+    env = vector(a.game, a.envs, a.seed, levels, cfg.action_repeat, processes=a.processes)
     obs, _ = env.reset(seed=a.seed)
     n_actions = int(env.single_action_space.n)
     h, w = obs.shape[1:]
@@ -202,12 +204,13 @@ def main() -> None:
     env.close()
     train_wall = time.perf_counter() - t0
     torch.save(agent.q.state_dict(), run / "q.pt")
-    ev = evaluate(agent, a.game, a.envs, a.eval_games, levels, a.seed + 7, cfg.action_repeat)
-    ev_held = evaluate(agent, a.game, a.envs, a.eval_games, (3, 4), a.seed + 8, cfg.action_repeat)
+    ev = evaluate(agent, a.game, a.envs, a.eval_games, levels, a.seed + 7, cfg.action_repeat, a.processes)
+    ev_held = evaluate(agent, a.game, a.envs, a.eval_games, (3, 4), a.seed + 8, cfg.action_repeat, a.processes)
     result = {
         "name": a.name, "agent": a.preset, "game": a.game, "seed": a.seed, "train_ticks": ticks,
         "decisions": decisions, "train_wall_s": train_wall, "env_s": t_env, "learn_s": t_learn,
-        "updates": agent.updates, "envs": a.envs, "device": a.device, "config": asdict(cfg),
+        "updates": agent.updates, "envs": a.envs,
+        "env_layer": "processes+PIL" if a.processes else "in-process+gray_half", "device": a.device, "config": asdict(cfg),
         "eval": ev, "eval_heldout": ev_held, "budget_ticks": a.ticks, "stopped_early_at": stopped_early,
         "commit": git_commit(),
     }  # fmt: skip

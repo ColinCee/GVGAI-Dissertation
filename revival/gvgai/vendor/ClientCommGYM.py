@@ -16,7 +16,10 @@ def _raw_frame(sso):
     raw = getattr(sso, "imageRawBytes", None)
     if raw is None:
         return None
-    return np.frombuffer(raw, np.uint8).reshape(sso.imageHeight, sso.imageWidth, 3)
+    shape = (sso.imageHeight, sso.imageWidth)  # greyscale when the server sends one byte per pixel
+    if len(raw) != shape[0] * shape[1]:
+        shape += (3,)
+    return np.frombuffer(raw, np.uint8).reshape(shape)
 
 
 def _imread(path):
@@ -83,13 +86,22 @@ class ClientCommGYM:
     """
 
     def step(self,act,repeat=1):
-        #self.sso.phase = Phase.ACT
-        if not self.sso.Terminal:
+        self.step_send(act, repeat)
+        return self.step_recv()
+
+    # Split in two so a caller can send to many servers before waiting on any of them.
+    def step_send(self,act,repeat=1):
+        self._sent = not self.sso.Terminal
+        if self._sent:
             if(act == 0):
                 self.act("", repeat)
             else:
                 action = self.sso.availableActions[act - 1]
                 self.act(action, repeat)
+
+    def step_recv(self):
+        #self.sso.phase = Phase.ACT
+        if self._sent:
             self.line = self.io.readLine()
             self.line = self.line.rstrip("\r\n")
             self.processLine(self.line)

@@ -40,6 +40,64 @@ class Preprocessed(gym.Wrapper):
         return self._p(obs), total, term, trunc, out
 
 
+class InProcVec:
+    """The subset of gymnasium's vector API the trainers use (SAME_STEP autoreset), in this process.
+
+    Sends every game its move, then reads all the results: the Java servers play in parallel and
+    there are no worker processes or pipes. Frames arrive greyscale at half size from the server
+    (gray_half), so there is no image work here either. AsyncVectorEnv + PIL Lanczos is kept as
+    `vector(..., processes=True)` for comparison.
+    """
+
+    def __init__(self, game: str, n: int, seed: int, levels=(0, 1, 2), repeat: int = 4):
+        self.envs = [GvgaiEnv(game, levels=levels, engine_seed=seed * 1000 + i, gray_half=True) for i in range(n)]
+        self.repeat = repeat
+        self.num_envs = n
+        self.single_action_space = self.envs[0].action_space
+        self.single_observation_space = self.envs[0].observation_space
+
+    def reset(self, seed=None):
+        obs = [env.reset(seed=None if seed is None else seed + i)[0] for i, env in enumerate(self.envs)]
+        return np.stack(obs), {}
+
+    def step_async(self, actions) -> None:
+        for env, a in zip(self.envs, actions, strict=True):
+            env.step_send(int(a), self.repeat)
+
+    def step_wait(self):
+        n = self.num_envs
+        obs, rew = [None] * n, np.zeros(n, np.float32)
+        term, trunc = np.zeros(n, bool), np.zeros(n, bool)
+        ticks = np.zeros(n, np.int64)
+        finals: dict[int, tuple] = {}
+        for e, env in enumerate(self.envs):
+            o, r, t, _, info = env.step_recv()
+            ticks[e] = info["advanced"]
+            if info["timeout"]:
+                t, tr = False, True
+            else:
+                tr = False
+            rew[e], term[e], trunc[e] = r, t, tr
+            if t or tr:
+                finals[e] = (o, info)
+                o, _ = env.reset()
+            obs[e] = o
+        out: dict = {"ticks": ticks}
+        if finals:
+            out["final_obs"] = np.stack([finals[e][0] if e in finals else obs[e] for e in range(n)])
+            out["final_info"] = {k: np.array([finals[e][1][k] if e in finals else 0 for e in range(n)])
+                                 for k in ("score", "win", "level")}  # fmt: skip
+        return np.stack(obs), rew, term, trunc, out
+
+    def step(self, actions):
+        self.step_async(actions)
+        return self.step_wait()
+
+    def close(self) -> None:
+        for env in self.envs:
+            env.close()
+
+
 def make(game: str, seed: int, levels=(0, 1, 2), repeat: int = 4):
     def thunk():
         return Preprocessed(GvgaiEnv(game, levels=levels, engine_seed=seed), repeat)
@@ -47,7 +105,9 @@ def make(game: str, seed: int, levels=(0, 1, 2), repeat: int = 4):
     return thunk
 
 
-def vector(game: str, n: int, seed: int, levels=(0, 1, 2), repeat: int = 4) -> gym.vector.AsyncVectorEnv:
+def vector(game: str, n: int, seed: int, levels=(0, 1, 2), repeat: int = 4, processes: bool = False):
+    if not processes:
+        return InProcVec(game, n, seed, levels, repeat)
     return gym.vector.AsyncVectorEnv(
         [make(game, seed * 1000 + i, levels, repeat) for i in range(n)],
         autoreset_mode=gym.vector.AutoresetMode.SAME_STEP,
