@@ -26,6 +26,7 @@ public class SingleTreeNode
     Types.ACTIONS[] actions;
     public int ROLLOUT_DEPTH = 10;
     public double K = Math.sqrt(2);
+    public static long TOTAL_ITERS = 0;  // read by tracks.RunMCTS to report search effort per move
 
     public StateObservation rootState;
 
@@ -67,6 +68,7 @@ public class SingleTreeNode
             backUp(selected, delta);
 
             numIters++;
+            TOTAL_ITERS++;
             acumTimeTaken += (elapsedTimerIteration.elapsedMillis()) ;
             //System.out.println(elapsedTimerIteration.elapsedMillis() + " --> " + acumTimeTaken + " (" + remaining + ")");
             avgTimeTaken  = acumTimeTaken/numIters;

@@ -12,7 +12,8 @@ public class CompetitionParameters
     /**
      * Milliseconds allowed per controller action.
      */
-    public static final int ACTION_TIME = 400000;
+    // Planning time per move; 2018's competition engine used 40 ms. -Dgvgai.actionTime overrides.
+    public static final int ACTION_TIME = Integer.getInteger("gvgai.actionTime", 400000);
 
     /**
      * Milliseconds for controller disqualification, if it returns an action after this time.
@@ -123,7 +124,8 @@ public class CompetitionParameters
     /**
      * Max time a game can run
      */
-    public static final int MAX_TIMESTEPS = 200000000;
+    // Game length cap; 2018's engine used 2000. -Dgvgai.maxTicks overrides.
+    public static final int MAX_TIMESTEPS = Integer.getInteger("gvgai.maxTicks", 200000000);
 
     /**
      * Terminates the program when the playing window is closed

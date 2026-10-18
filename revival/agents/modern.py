@@ -35,7 +35,7 @@ class ModernConfig:
     buffer_decisions: int = 1_000_000
     learning_starts: int = 20_000  # decisions
     replay_ratio: float = 0.25  # gradient updates per decision (CleanRL: train every 4 steps)
-    target_every: int = 2_000  # updates
+    target_every: int = 250  # updates; CleanRL DQN: every 1000 steps = 250 updates
     eps_start: float = 1.0
     eps_end: float = 0.01
     eps_fraction: float = 0.1  # of the decision budget
@@ -51,8 +51,9 @@ class ModernConfig:
 
 
 def rainbow() -> ModernConfig:
+    # CleanRL rainbow_atari defaults; target every 8000 steps = 2000 updates
     return ModernConfig(dueling=True, distributional=True, noisy=True, n_step=3, per=True, lr=6.25e-5,
-                        adam_eps=1.5e-4, eps_start=0.0, eps_end=0.0)  # fmt: skip
+                        adam_eps=1.5e-4, eps_start=0.0, eps_end=0.0, target_every=2000)  # fmt: skip
 
 
 class NoisyLinear(nn.Module):
@@ -189,7 +190,9 @@ class FrameReplay:
             k = self.t[e] % self.cap
             self.final.pop((e, k), None)
             self.frames[e, k] = obs[e]
-            self.action[e, k], self.reward[e, k] = action[e], reward[e]
+            # reward clipped per decision (Atari convention), so every preset sees the same scale
+            r = np.sign(reward[e]) if self.cfg.clip_reward else reward[e]
+            self.action[e, k], self.reward[e, k] = action[e], r
             self.term[e, k], self.end[e, k] = term[e], term[e] or trunc[e]
             self.start[e, k] = self.ep_start[e]
             if self.end[e, k]:
@@ -203,7 +206,8 @@ class FrameReplay:
     def _valid(self, e: np.ndarray, abs_t: np.ndarray) -> np.ndarray:
         # needs n_step following decisions written (or an episode end before them) and STACK-1 history
         newest = self.t[e] - 1
-        ok = (abs_t >= self.t[e] - self.cap + STACK) & (abs_t <= newest - self.cfg.n_step + 1)
+        # strictly before the newest decision: its next frame isn't written until the next step
+        ok = (abs_t >= self.t[e] - self.cap + STACK) & (abs_t <= newest - self.cfg.n_step)
         return ok
 
     def _stack(self, e: np.ndarray, abs_t: np.ndarray) -> np.ndarray:
@@ -212,7 +216,7 @@ class FrameReplay:
         ts = np.maximum(ts, self.start[e, abs_t % self.cap][:, None])
         return self.frames[e[:, None], ts % self.cap]
 
-    def sample(self, k: int):
+    def sample(self, k: int, beta: float = 0.4):
         cfg = self.cfg
         while True:
             if self.tree is not None:
@@ -252,7 +256,8 @@ class FrameReplay:
             alive &= ~ended
         # next stack: after `last`; at an episode end it is the final frame's stack
         nxt_t = last + 1
-        s2 = self._stack(e, np.minimum(nxt_t, self.t[e] - 1))
+        assert (nxt_t <= self.t[e] - 1).all()  # guaranteed by _valid
+        s2 = self._stack(e, nxt_t)
         for i in range(len(e)):
             lk = last[i] % self.cap
             if self.end[e[i], lk]:
@@ -263,7 +268,7 @@ class FrameReplay:
         if self.tree is not None:
             p = self.tree.tree[flat + self.tree.size] / self.tree.total()
             filled = int(np.minimum(self.t, self.cap).sum())
-            weights = (filled * p) ** (-cfg.per_beta)
+            weights = (filled * p) ** (-beta)
             weights = (weights / weights.max()).astype(np.float32)
         a = self.action[e, abs_t % self.cap]
         return s, a, ret, s2, done, (cfg.gamma**steps).astype(np.float32), weights, flat
@@ -287,7 +292,7 @@ class ModernAgent:
         self.opt = torch.optim.Adam(self.q.parameters(), lr=cfg.lr, eps=cfg.adam_eps)
         self.replay = FrameReplay(n_envs, cfg.buffer_decisions, h, w, cfg, self.rng)
         self.updates = 0
-        self.beta0 = cfg.per_beta
+        self.beta0 = self.beta = cfg.per_beta
 
     def epsilon(self, decisions: int, budget: int) -> float:
         c = self.cfg
@@ -296,15 +301,17 @@ class ModernAgent:
 
     @torch.no_grad()
     def act(self, stacks: np.ndarray, eps: float) -> np.ndarray:
+        if self.cfg.noisy and self.q.training:
+            self.q.reset_noise()  # otherwise one frozen draw acts until learning starts
         q = self.q.q(torch.from_numpy(stacks).to(self.device)).argmax(1).cpu().numpy()
         rand = self.rng.random(len(q)) < eps
         return np.where(rand, self.rng.integers(0, self.n_actions, len(q)), q)
 
-    def update(self, progress: float) -> float:
+    def update(self, progress: float) -> torch.Tensor:
         c = self.cfg
         if c.per:
-            c.per_beta = self.beta0 + progress * (1 - self.beta0)
-        s, a, ret, s2, done, gn, w, flat = self.replay.sample(c.batch_size)
+            self.beta = self.beta0 + progress * (1 - self.beta0)
+        s, a, ret, s2, done, gn, w, flat = self.replay.sample(c.batch_size, self.beta)
         dev = self.device
         s, s2 = torch.from_numpy(s).to(dev), torch.from_numpy(s2).to(dev)
         a, ret = torch.from_numpy(a).to(dev), torch.from_numpy(ret).to(dev)
@@ -316,11 +323,12 @@ class ModernAgent:
         if c.noisy:
             self.q.reset_noise()
             self.target.reset_noise()
-        if c.clip_reward:
-            ret = ret.clamp(-c.n_step, c.n_step) if c.n_step > 1 else ret.clamp(-1, 1)
         b = torch.arange(len(a), device=dev)
+        both = self.q(torch.cat([s, s2]))  # one online pass for the prediction and the Double-DQN argmax
+        online, online_next = both[: len(a)], both[len(a) :].detach()
         with torch.no_grad():
-            best = (self.q.q(s2) if c.double else self.target.q(s2)).argmax(1)
+            q_next = (online_next.exp() * self.q.support).sum(2) if c.distributional else online_next
+            best = (q_next if c.double else self.target.q(s2)).argmax(1)
             if c.distributional:
                 next_p = self.target(s2).exp()[b, best]  # [B, atoms]
                 tz = (ret[:, None] + gn[:, None] * self.q.support[None] * (~done)[:, None]).clamp(c.v_min, c.v_max)
@@ -333,11 +341,11 @@ class ModernAgent:
             else:
                 target = ret + gn * self.target.q(s2)[b, best] * (~done)
         if c.distributional:
-            logp = self.q(s)[b, a]
+            logp = online[b, a]
             per_sample = -(target * logp).sum(1)
             err = per_sample.detach()
         else:
-            pred = self.q(s)[b, a]
+            pred = online[b, a]
             per_sample = F.smooth_l1_loss(pred, target, reduction="none") if c.huber else (pred - target) ** 2
             err = (pred - target).detach()
         loss = (per_sample * w).mean()
@@ -349,4 +357,4 @@ class ModernAgent:
         self.updates += 1
         if self.updates % c.target_every == 0:
             self.target.load_state_dict(self.q.state_dict())
-        return float(loss.item())
+        return loss.detach()  # a tensor: no GPU sync per update
