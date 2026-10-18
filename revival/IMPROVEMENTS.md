@@ -10,6 +10,6 @@ One row per change that landed. Speeds are game ticks per second for one Aliens 
 | 4 | Engine speed | Java sends the PNG it already encoded instead of saving, re-reading and re-encoding it | 136 → ~200 ticks/s | `smoke.py`, 40 games | `632bc10` |
 | 5 | Fidelity | Rebuilt the 2018 Wafer Thin Mints rules (today's version adds a −20 death penalty) from GVGAI_GYM's June 2018 file, typo fixed | random deaths score −10 → 11, as in 2018's data | `smoke.py` vs 2018 `reward_history.csv` | `632bc10` |
 | 6 | Fidelity | Golden test: four games replayed with fixed seeds; every later change must give the same state and pixels on every tick as the unmodified engine | — | `tests/golden.py` | `7d60156` |
-| 7 | Engine speed | Sprites scaled once and cached instead of on every draw | 214 → 233 ticks/s | `bench.py` (30 s, after warm-up; used from here on) | `COMMIT_A` |
-| 8 | Engine speed | Server's output buffered and sent in one write, Nagle off | 233 → 274 ticks/s | `bench.py` | `COMMIT_A` |
-| 9 | Engine speed | Frames sent as raw RGB inside the message: no PNG encode, no frame file written each tick (reusing one JSON encoder alone changed nothing) | 274 → 1,017 ticks/s | `bench.py` | `COMMIT_A` |
+| 7 | Engine speed | Sprites scaled once and cached instead of on every draw | 214 → 233 ticks/s | `bench.py` (30 s, after warm-up; used from here on) | `a24a0f3` |
+| 8 | Engine speed | Server's output buffered and sent in one write, Nagle off | 233 → 274 ticks/s | `bench.py` | `a24a0f3` |
+| 9 | Engine speed | Frames sent as raw RGB inside the message: no PNG encode, no frame file written each tick (reusing one JSON encoder alone changed nothing) | 274 → 1,017 ticks/s | `bench.py` | `a24a0f3` |
