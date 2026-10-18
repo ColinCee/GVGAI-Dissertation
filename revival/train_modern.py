@@ -33,7 +33,10 @@ PRESETS = {
     "dqn-per-dueling": lambda: ModernConfig(per=True, dueling=True),
     "dqn-per-dueling-nstep": lambda: ModernConfig(per=True, dueling=True, n_step=3),
     "rainbow": rainbow,
-    "dqn-reward2018": lambda: ModernConfig(reward2018=True),  # modern DQN with the dissertation's reward
+    # reward experiments (modern DQN): the dissertation's reward, outcome only, outcome + longer horizon
+    "dqn-reward2018": lambda: ModernConfig(outcome_reward=True, loss_penalty=0.5),
+    "dqn-outcome": lambda: ModernConfig(outcome_reward=True),
+    "dqn-outcome-g997": lambda: ModernConfig(outcome_reward=True, gamma=0.997),
 }
 
 

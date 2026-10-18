@@ -46,10 +46,11 @@ class ModernConfig:
     v_min: float = -10.0
     v_max: float = 10.0
     clip_reward: bool = True
-    # The dissertation's reward on top of clipped score changes: a game's last move gets +1 for a win
-    # or -1 otherwise (timeouts count as losses, as in 2018), and every move of a lost game -0.5,
-    # clipped at -1. Off by default: modern agents normally see only the score.
-    reward2018: bool = False
+    # Outcome reward: a game's last move gets +1 for a win or -1 otherwise (timeouts count as losses, as
+    # in 2018), replacing its score change. loss_penalty: also subtract this from every move of a lost
+    # game, clipped at -1 (2018 used 0.5). Off by default: modern agents normally see only the score.
+    outcome_reward: bool = False
+    loss_penalty: float = 0.0
     grad_clip: float = 10.0
     action_repeat: int = 4
     amp: bool = True  # bf16 network passes on the GPU
@@ -189,9 +190,9 @@ class GpuReplay:
             ended = bool(term[e] or trunc[e])
             es.append(e), ts.append(self.t_host[e]), frames.append(obs[e]), acts.append(int(action[e]))
             r = float(np.sign(reward[e])) if self.cfg.clip_reward else float(reward[e])
-            if self.cfg.reward2018 and ended:
+            if self.cfg.outcome_reward and ended:
                 r = 1.0 if won[e] else -1.0  # 2018 replaced the last move's score change with the outcome
-                if not won[e]:
+                if not won[e] and self.cfg.loss_penalty:
                     lost.append((e, int(self.ep_start[e]), int(self.t_host[e])))
             rews.append(r), terms.append(bool(term[e])), ends.append(ended), starts.append(self.ep_start[e])
             fo.append(False)
@@ -218,7 +219,7 @@ class GpuReplay:
         for e, first, last in lost:  # 2018's penalty on every move of a lost game (this one included)
             first = max(first, last - self.cap + 1)
             k = torch.arange(first, last + 1, device=dev) % self.cap
-            self.reward[e, k] = (self.reward[e, k] - 0.5).clamp(min=-1.0)
+            self.reward[e, k] = (self.reward[e, k] - self.cfg.loss_penalty).clamp(min=-1.0)
 
     def _stack(self, e: torch.Tensor, abs_t: torch.Tensor) -> torch.Tensor:
         ts = abs_t[:, None] + self.offs[None, :]

@@ -1,0 +1,17 @@
+{
+ "name": "mcts-aliens",
+ "agent": "MCTS 40 ms",
+ "game": "aliens",
+ "seed": 0,
+ "levels": [
+  0,
+  1,
+  2
+ ],
+ "eval": {
+  "games": 51,
+  "mean_score": 79.09803921568627,
+  "win_rate": 1.0,
+  "iters_per_move": 218.92549019607844
+ }
+}
