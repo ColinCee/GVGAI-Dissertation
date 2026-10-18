@@ -210,7 +210,8 @@ def main() -> None:
         "name": a.name, "agent": a.preset, "game": a.game, "seed": a.seed, "train_ticks": ticks,
         "decisions": decisions, "train_wall_s": train_wall, "env_s": t_env, "learn_s": t_learn,
         "updates": agent.updates, "envs": a.envs,
-        "env_layer": "processes+PIL" if a.processes else "in-process+gray_half", "device": a.device, "config": asdict(cfg),
+        "env_layer": "processes+PIL" if a.processes else "in-process+gray_half",
+        "device": a.device, "config": asdict(cfg),
         "eval": ev, "eval_heldout": ev_held, "budget_ticks": a.ticks, "stopped_early_at": stopped_early,
         "commit": git_commit(),
     }  # fmt: skip
