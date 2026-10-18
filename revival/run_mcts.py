@@ -18,6 +18,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "engine"))
 import build  # noqa: E402
+
 from train2018 import DEFAULT_LEVELS  # noqa: E402
 
 GAMES = ["aliens", "chase", "deceptizelda", "waferthinmints2018"]
@@ -44,7 +45,10 @@ def main() -> None:
             cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", f"-Dgvgai.actionTime={a.ms}", "-Dgvgai.maxTicks=2000",
                    "-cp", str(classes), "tracks.RunMCTS", str(d / f"{g}.txt"), str(d / f"{g}_lvl"), str(lvl),
                    str(per_level), str(a.seed + lvl)]  # fmt: skip
-            procs[g].append(subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True))
+            # cwd: the engine loads sprites by relative path
+            procs[g].append(
+                subprocess.Popen(cmd, cwd=HERE / "engine", stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+            )
     for g, prs in procs.items():
         lines = [HEADER]
         for pr in prs:
