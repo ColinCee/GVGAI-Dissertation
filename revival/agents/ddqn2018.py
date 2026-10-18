@@ -238,16 +238,17 @@ class Agent2018:
         loss.backward()
         nn.utils.clip_grad_norm_(self.q.parameters(), 1.0)
         for g in self.opt.param_groups:
-            g["lr"] = self.cfg.lr / (1 + self.cfg.lr_decay * self.updates)  # Keras 2 `decay`
+            g["lr"] = self.cfg.lr / (1 + self.cfg.lr_decay * (self.updates + 1))  # Keras 2 `decay`
         self.opt.step()
         self.updates += 1
 
     def end_episode(self, transitions: list, decisions: int, warmup: bool) -> int:
+        """`decisions` is 2018's current_episode_step: ticks seen, not stacks."""
         """2018's result(): remember, train, decay epsilon, maybe sync. Returns minibatches trained."""
         self.remember_episode(transitions, warmup)
         if warmup:
             return 0
-        n = int(2 * decisions / self.cfg.batch_size)
+        n = int(2 * (decisions / FRAMES_PER_STACK) / self.cfg.batch_size)  # 2018 passed ticks, then /4
         for _ in range(n):
             self.train_step()
         if self.epsilon > self.cfg.eps_min:

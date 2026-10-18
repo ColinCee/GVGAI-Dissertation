@@ -81,7 +81,8 @@ class GvgaiEnv(gym.Env):
         assert not self._terminal, "call reset() after the game ends"
         obs, reward, done, info = self.comm.step(int(action) + self._offset)
         self._ticks += 1
-        timeout = not done and self._ticks >= self.max_ticks
+        # reset() already played one tick, so count the engine's own tick
+        timeout = not done and self.comm.sso.gameTick >= self.max_ticks
         winner = info["winner"]
         if timeout:
             winner = "PLAYER_LOSES"
