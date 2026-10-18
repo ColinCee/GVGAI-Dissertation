@@ -53,6 +53,9 @@ class InProcVec:
         self.envs = [GvgaiEnv(game, levels=levels, engine_seed=seed * 1000 + i, gray_half=True) for i in range(n)]
         self.repeat = repeat
         self.num_envs = n
+        from concurrent.futures import ThreadPoolExecutor
+
+        self.pool = ThreadPoolExecutor(n)
         self.single_action_space = self.envs[0].action_space
         self.single_observation_space = self.envs[0].observation_space
 
@@ -80,8 +83,12 @@ class InProcVec:
             rew[e], term[e], trunc[e] = r, t, tr
             if t or tr:
                 finals[e] = (o, info)
-                o, _ = env.reset()
             obs[e] = o
+        if finals:
+            # Resets in parallel: each waits on its server loading a level. One after another, a game
+            # whose episodes last ~15 ticks (Deceptizelda, once learned) ran ~10x slower.
+            for e, (o, _) in zip(finals, self.pool.map(lambda i: self.envs[i].reset(), list(finals)), strict=True):
+                obs[e] = o
         out: dict = {"ticks": ticks}
         if finals:
             out["final_obs"] = np.stack([finals[e][0] if e in finals else obs[e] for e in range(n)])
@@ -94,6 +101,7 @@ class InProcVec:
         return self.step_wait()
 
     def close(self) -> None:
+        self.pool.shutdown()
         for env in self.envs:
             env.close()
 
