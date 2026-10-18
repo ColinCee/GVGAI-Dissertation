@@ -173,16 +173,17 @@ class GpuReplay:
                 terms.append(False), ends.append(False), starts.append(self.ep_start[e]), fo.append(True)
                 self.t_host[e] += 1
                 self.ep_start[e] = self.t_host[e]
+        # one upload for all the small fields (separate torch.tensor calls cost ~0.2 ms each)
         dev = self.dev
-        e_t = torch.tensor(es, device=dev)
-        k_t = torch.tensor(ts, device=dev) % self.cap
+        meta = torch.from_numpy(np.array([es, ts, acts, starts, terms, ends, fo], np.int64)).to(dev, non_blocking=True)
+        e_t, k_t = meta[0], meta[1] % self.cap
+        fo_t = meta[6].bool()
         self.frames[e_t, k_t] = torch.from_numpy(np.stack(frames)).to(dev, non_blocking=True)
-        self.action[e_t, k_t] = torch.tensor(acts, device=dev)
-        self.reward[e_t, k_t] = torch.tensor(rews, device=dev)
-        self.term[e_t, k_t] = torch.tensor(terms, device=dev)
-        self.end[e_t, k_t] = torch.tensor(ends, device=dev)
-        self.start[e_t, k_t] = torch.tensor(starts, device=dev)
-        fo_t = torch.tensor(fo, device=dev)
+        self.action[e_t, k_t] = meta[2]
+        self.reward[e_t, k_t] = torch.from_numpy(np.array(rews, np.float32)).to(dev, non_blocking=True)
+        self.term[e_t, k_t] = meta[4].bool()
+        self.end[e_t, k_t] = meta[5].bool()
+        self.start[e_t, k_t] = meta[3]
         p_new = self.max_p**self.cfg.per_alpha if self.cfg.per else torch.ones((), device=dev)
         self.weight[e_t * self.cap + k_t] = torch.where(fo_t, torch.zeros((), device=dev), p_new)
         self.t.copy_(torch.from_numpy(self.t_host), non_blocking=True)
