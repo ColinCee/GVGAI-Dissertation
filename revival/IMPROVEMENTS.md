@@ -13,4 +13,4 @@ One row per change that landed. Speeds are game ticks per second for one Aliens 
 | 7 | Engine speed | Sprites scaled once and cached instead of on every draw | 214 → 233 ticks/s | `bench.py` (30 s, after warm-up; used from here on) | `a24a0f3` |
 | 8 | Engine speed | Server's output buffered and sent in one write, Nagle off | 233 → 274 ticks/s | `bench.py` | `a24a0f3` |
 | 9 | Engine speed | Frames sent as raw RGB inside the message: no PNG encode, no frame file written each tick (reusing one JSON encoder alone changed nothing) | 274 → 1,017 ticks/s | `bench.py` | `a24a0f3` |
-| 10 | Engine speed | Serial GC and a 128 MB heap per game server | 686 → 122 MB RAM per server, same speed; 16 servers: 854 → 6,660 ticks/s total (Phase 0 → now) | `runs/mem.py`, `bench_parallel.py` | `COMMIT_B` |
+| 10 | Engine speed | Serial GC and a 128 MB heap per game server | 686 → 122 MB RAM per server, same speed; 16 servers: 854 → 6,660 ticks/s total (Phase 0 → now) | `runs/mem.py`, `bench_parallel.py` | `1e8a08c` |
