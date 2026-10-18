@@ -54,6 +54,7 @@ class ModernConfig:
     grad_clip: float = 10.0
     action_repeat: int = 4
     amp: bool = True  # bf16 network passes on the GPU
+    scale_input: bool = True  # pixels / 255 (2018 fed raw 0-255 values)
 
 
 def rainbow() -> ModernConfig:
@@ -122,7 +123,8 @@ class Net(nn.Module):
         """Q-values [B, A], or log-probabilities [B, A, atoms] when distributional."""
         # bf16 for the layers on the GPU (fp32 accumulate); combining and softmax stay in fp32
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=self.cfg.amp and x.is_cuda):
-            h = self.conv((x.float() / 255.0).contiguous(memory_format=torch.channels_last))
+            x = x.float() / 255.0 if self.cfg.scale_input else x.float()
+            h = self.conv(x.contiguous(memory_format=torch.channels_last))
             a = self.adv(h)
             v = self.val(h) if self.val is not None else None
         a = a.float().view(-1, self.n_actions, self.atoms)
@@ -192,8 +194,8 @@ class GpuReplay:
             r = float(np.sign(reward[e])) if self.cfg.clip_reward else float(reward[e])
             if self.cfg.outcome_reward and ended:
                 r = 1.0 if won[e] else -1.0  # 2018 replaced the last move's score change with the outcome
-                if not won[e] and self.cfg.loss_penalty:
-                    lost.append((e, int(self.ep_start[e]), int(self.t_host[e])))
+            if self.cfg.loss_penalty and ended and not won[e]:  # a loss is the game's own: death or timeout
+                lost.append((e, int(self.ep_start[e]), int(self.t_host[e])))
             rews.append(r), terms.append(bool(term[e])), ends.append(ended), starts.append(self.ep_start[e])
             fo.append(False)
             self.t_host[e] += 1

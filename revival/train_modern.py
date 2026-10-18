@@ -27,6 +27,14 @@ from gvgai.vec import vector
 from train2018 import DEFAULT_LEVELS
 
 HERE = Path(__file__).resolve().parent
+
+
+def _with(cfg: ModernConfig, **kw) -> ModernConfig:
+    for k, v in kw.items():
+        setattr(cfg, k, v)
+    return cfg
+
+
 PRESETS = {
     "dqn": ModernConfig,  # DQN with today's defaults: Double, Huber, Adam, big replay, /255 inputs
     "dqn-per": lambda: ModernConfig(per=True),
@@ -37,6 +45,12 @@ PRESETS = {
     "dqn-reward2018": lambda: ModernConfig(outcome_reward=True, loss_penalty=0.5),
     "dqn-outcome": lambda: ModernConfig(outcome_reward=True),
     "dqn-outcome-g997": lambda: ModernConfig(outcome_reward=True, gamma=0.997),
+    "dqn-penalty-only": lambda: ModernConfig(loss_penalty=0.5),
+    "dqn-reward2018-p1": lambda: ModernConfig(outcome_reward=True, loss_penalty=1.0),
+    "dqn-reward2018-raw-mse": lambda: ModernConfig(
+        outcome_reward=True, loss_penalty=0.5, scale_input=False, huber=False
+    ),
+    "rainbow-reward2018": lambda: _with(rainbow(), outcome_reward=True, loss_penalty=0.5),
 }
 
 

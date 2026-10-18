@@ -2,7 +2,8 @@
 
     uv run python run_mcts.py --games aliens chase
 
-One JVM per game and level, all at once (12 on 16 threads): Chase alone took ~1 h in one process.
+One JVM per game (4 at once, one per core, so the 40 ms budget isn't shared); --split-levels runs one
+per level instead.
 Same levels as the agents (Deceptizelda 0 and 2), 50 games per game split over its levels.
 Writes runs/mcts/<game>.csv and results/mcts-<game>.json.
 """
@@ -31,6 +32,9 @@ def main() -> None:
     p.add_argument("--games-per-game", type=int, default=50)
     p.add_argument("--ms", type=int, default=40)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument(
+        "--split-levels", action="store_true", help="one process per level (faster, but more processes than cores)"
+    )
     a = p.parse_args()
     classes = build.ensure_built()
     out = HERE / "runs" / "mcts"
@@ -41,10 +45,10 @@ def main() -> None:
         levels = DEFAULT_LEVELS.get(g, (0, 1, 2))
         per_level = -(-a.games_per_game // len(levels))
         procs[g] = []
-        for lvl in levels:
+        for lvl in levels if a.split_levels else [",".join(map(str, levels))]:
             cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", f"-Dgvgai.actionTime={a.ms}", "-Dgvgai.maxTicks=2000",
                    "-cp", str(classes), "tracks.RunMCTS", str(d / f"{g}.txt"), str(d / f"{g}_lvl"), str(lvl),
-                   str(per_level), str(a.seed + lvl)]  # fmt: skip
+                   str(per_level), str(a.seed)]  # fmt: skip
             # cwd: the engine loads sprites by relative path
             procs[g].append(
                 subprocess.Popen(cmd, cwd=HERE / "engine", stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
