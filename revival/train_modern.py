@@ -128,6 +128,7 @@ def main() -> None:
     p.add_argument("--early-stop", action="store_true", help="long budget: stop once training stops improving")
     a = p.parse_args()
 
+    commit = git_commit()  # at start: a commit made while the run trains isn't the code it ran
     cfg = PRESETS[a.preset]()
     if a.buffer:
         cfg.buffer_decisions = a.buffer
@@ -216,7 +217,7 @@ def main() -> None:
         "env_layer": "processes+PIL" if a.processes else "in-process+gray_half",
         "device": a.device, "config": asdict(cfg),
         "eval": ev, "eval_heldout": ev_held, "budget_ticks": a.ticks, "stopped_early_at": stopped_early,
-        "commit": git_commit(),
+        "commit": commit,
     }  # fmt: skip
     (HERE / "results").mkdir(exist_ok=True)
     (HERE / "results" / f"{a.name}.json").write_text(json.dumps(result, indent=1))

@@ -115,6 +115,8 @@ def main() -> None:
     a = p.parse_args()
 
     torch.set_num_threads(a.threads)
+    # at start: a commit made while the run trains isn't the code it ran
+    commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
     run = HERE / "runs" / a.name
     run.mkdir(parents=True, exist_ok=True)
     ckpt = run / "checkpoint"
@@ -182,8 +184,7 @@ def main() -> None:
         "episodes": a.episodes, "levels": list(levels),
         "train_ticks": cum_ticks, "train_wall_s": train_wall, "eval_wall_s": time.perf_counter() - t_eval,
         "updates": agent.updates, "device": a.device, "per_sample": a.per_sample, "config": asdict(cfg),
-        "eval": ev, "commit": subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True,
-                                             text=True).stdout.strip(),
+        "eval": ev, "commit": commit,
         "machine": platform.processor(), "torch": torch.__version__,
     }  # fmt: skip
     (HERE / "results").mkdir(exist_ok=True)
