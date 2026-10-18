@@ -10,6 +10,7 @@ evaluation: 50 games, greedy, levels 0-2, weights from the last target sync.
 import argparse
 import csv
 import json
+import os
 import pickle
 import platform
 import random
@@ -104,6 +105,8 @@ def main() -> None:
     p.add_argument("--checkpoint-minutes", type=float, default=15)
     p.add_argument("--warmup-stacks", type=int, default=Config.warmup_stacks, help="smaller only for tests")
     p.add_argument("--target-update-stacks", type=int, default=Config.target_update_stacks)
+    p.add_argument("--loss-penalty", type=float, default=Config.loss_penalty, help="0 = 2018's old reward")
+    p.add_argument("--fix-bugs", action="store_true", help="fix 2018's reward timing and PER weights")
     a = p.parse_args()
 
     torch.set_num_threads(a.threads)
@@ -121,6 +124,8 @@ def main() -> None:
         per_sample=a.per_sample,
         warmup_stacks=a.warmup_stacks,
         target_update_stacks=a.target_update_stacks,
+        loss_penalty=a.loss_penalty,
+        fix_bugs=a.fix_bugs,
     )
     agent = Agent2018(env.n_actions - 1, (h, w), cfg, a.device)
 
@@ -162,7 +167,8 @@ def main() -> None:
     ev = evaluate(env, agent, a.eval_games)
     env.close()
     result = {
-        "name": a.name, "agent": "ddqn2018", "game": a.game, "seed": a.seed, "episodes": a.episodes,
+        "name": a.name, "agent": "ddqn2018-fixed" if a.fix_bugs else "ddqn2018", "game": a.game, "seed": a.seed,
+        "episodes": a.episodes,
         "train_ticks": cum_ticks, "train_wall_s": train_wall, "eval_wall_s": time.perf_counter() - t_eval,
         "updates": agent.updates, "device": a.device, "per_sample": a.per_sample, "config": asdict(cfg),
         "eval": ev, "commit": subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True,
@@ -177,3 +183,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+    os._exit(0)  # see train_modern.py: teardown can segfault on Windows after everything is written

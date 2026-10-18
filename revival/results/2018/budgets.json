@@ -1,0 +1,9 @@
+{
+ "ticks_2018": {
+  "aliens": 1014134,
+  "chase": 1771844,
+  "deceptizelda": 848891,
+  "waferthinmints2018": 1602768
+ },
+ "source": "2018 reward_history logs: aliens first 2000 episodes (spreadsheet/DDQN + PER Reward.csv); chase/deceptizelda/wafer whole runs (report/images/different games)"
+}

@@ -46,6 +46,9 @@ class Config:
     per_eps: float = 1e-4
     loss_penalty: float = 0.5
     per_sample: bool = False
+    # Fix 2018's two bugs and nothing else: credit each score change to the action that caused it,
+    # and weight prioritised samples by importance (beta 0.4 -> 1 as epsilon decays).
+    fix_bugs: bool = False
     seed: int = 0
     extra: dict = field(default_factory=dict)
 
@@ -229,7 +232,13 @@ class Agent2018:
         # Keras fit on (s, q with the taken action replaced by target): MSE averaged over all actions.
         y = q.detach().clone()
         y[torch.arange(len(idx)), a] = target
-        loss = ((q - y) ** 2).mean()
+        per_sample = ((q - y) ** 2).mean(1)
+        if self.cfg.fix_bugs:
+            beta = 0.4 + 0.6 * min(1.0, (1 - self.epsilon) / (1 - self.cfg.eps_min))
+            p = rp.tree.tree[np.array(leaves)] / rp.tree.total()
+            w = (rp.tree.filled * p) ** (-beta)
+            per_sample = per_sample * torch.from_numpy((w / w.max()).astype(np.float32)).to(self.device)
+        loss = per_sample.mean()
         self.opt.zero_grad()
         loss.backward()
         nn.utils.clip_grad_norm_(self.q.parameters(), 1.0)
@@ -284,14 +293,16 @@ def play_episode(env, agent: Agent2018, train: bool = True, greedy: bool = False
                 stack = np.stack(frames)
                 action = agent.act(stack, greedy=greedy, net=net)
                 decisions += 1
+                # Score change since the last decision. 2018 credited it to the action chosen now;
+                # with fix_bugs it goes to the previous action, which caused it.
+                diff = score - prev_score
+                prev_score = score
                 if prev_state is not None and train:
-                    transitions.append((prev_state, prev_action, prev_reward, stack, 0.0))
+                    r = float(np.sign(diff)) if agent.cfg.fix_bugs else prev_reward
+                    transitions.append((prev_state, prev_action, r, stack, 0.0))
                     agent.total_stacks += 1
                     agent.stacks_since_sync += 1
                 prev_state, prev_action = stack, action
-                # Score change since the last decision: credited to the action just chosen (2018 quirk).
-                diff = score - prev_score
-                prev_score = score
                 prev_reward = float(np.sign(diff))
                 total_reward += prev_reward
             else:

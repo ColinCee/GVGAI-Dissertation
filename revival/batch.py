@@ -1,0 +1,56 @@
+"""Run a list of training commands, a few at a time; skip any whose result file already exists.
+
+    uv run python batch.py jobs/phase2.txt --parallel 6
+
+Each line of the jobs file is the arguments for train2018.py or train_modern.py, starting with the
+script name, e.g. `train2018.py --game chase --seed 1 --name chase-ddqn2018-s1 --device cuda`.
+Wrap in `lease run` for the GPU; a stopped batch picks up where it left off (train2018 resumes from
+its checkpoint).
+"""
+
+import argparse
+import shlex
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+
+
+def name_of(args: list[str]) -> str:
+    return args[args.index("--name") + 1]
+
+
+def main() -> None:
+    p = argparse.ArgumentParser()
+    p.add_argument("jobs")
+    p.add_argument("--parallel", type=int, default=4)
+    a = p.parse_args()
+    jobs = [shlex.split(ln) for ln in Path(a.jobs).read_text().splitlines() if ln.strip() and not ln.startswith("#")]
+    todo = [j for j in jobs if not (HERE / "results" / f"{name_of(j)}.json").exists()]
+    print(f"{len(todo)} of {len(jobs)} jobs to run", flush=True)
+    running: dict[str, subprocess.Popen] = {}
+    failed = []
+    while todo or running:
+        while todo and len(running) < a.parallel:
+            j = todo.pop(0)
+            n = name_of(j)
+            log = open(HERE / "runs" / f"{n}.log", "a")  # noqa: SIM115 - closed with the process
+            running[n] = subprocess.Popen([sys.executable, "-u", *j], cwd=HERE, stdout=log, stderr=subprocess.STDOUT,
+                                          stdin=subprocess.DEVNULL)  # fmt: skip
+            print(f"start {n}", flush=True)
+        time.sleep(5)
+        for n, pr in list(running.items()):
+            if pr.poll() is not None:
+                ok = pr.returncode == 0 and (HERE / "results" / f"{n}.json").exists()
+                print(f"{'done' if ok else 'FAILED'} {n} (exit {pr.returncode})", flush=True)
+                if not ok:
+                    failed.append(n)
+                del running[n]
+    print(f"finished; failed: {failed or 'none'}")
+    sys.exit(1 if failed else 0)
+
+
+if __name__ == "__main__":
+    main()
