@@ -12,6 +12,7 @@ import csv
 import json
 import os
 import subprocess
+import sys
 import time
 from collections import deque
 from dataclasses import asdict
@@ -93,7 +94,7 @@ def main() -> None:
     p.add_argument("--game", default="aliens")
     p.add_argument("--preset", choices=PRESETS, default="dqn")
     p.add_argument("--ticks", type=int, default=1_014_134)
-    p.add_argument("--envs", type=int, default=16)
+    p.add_argument("--envs", type=int, default=8)  # 8 cores: 8 games beat 16 (17k vs 11k ticks/s)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--name", required=True)
     p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -129,9 +130,18 @@ def main() -> None:
             eps = agent.epsilon(decisions, budget_decisions)
             current = stacks.array()
             act = agent.act(current, eps)
+            # The games play this move while the learner trains on what is already in replay.
+            env.step_async(act)
+            if decisions >= cfg.learning_starts:
+                pending_updates += a.envs * cfg.replay_ratio
+                tl = time.perf_counter()
+                while pending_updates >= 1:
+                    agent.update(min(1.0, decisions / budget_decisions))
+                    pending_updates -= 1
+                t_learn += time.perf_counter() - tl
             te = time.perf_counter()
-            obs, r, term, trunc, info = env.step(act)
-            t_env += time.perf_counter() - te
+            obs, r, term, trunc, info = env.step_wait()
+            t_env += time.perf_counter() - te  # time spent waiting on the games beyond the learning
             ended = term | trunc
             final = np.array(obs)
             if ended.any():
@@ -145,13 +155,6 @@ def main() -> None:
                 episodes += 1
                 out.writerow([episodes, row["score"], int(row["win"]), row["level"], ticks, agent.updates,
                               f"{eps:.3f}", f"{time.perf_counter() - t0:.1f}"])  # fmt: skip
-            if decisions >= cfg.learning_starts:
-                pending_updates += a.envs * cfg.replay_ratio
-                tl = time.perf_counter()
-                while pending_updates >= 1:
-                    agent.update(min(1.0, decisions / budget_decisions))
-                    pending_updates -= 1
-                t_learn += time.perf_counter() - tl
             if decisions % (a.envs * 500) == 0:
                 f.flush()
                 el = time.perf_counter() - t0
@@ -176,7 +179,16 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if "--profile" in sys.argv:  # print where the main process spends its time
+        sys.argv.remove("--profile")
+        import cProfile
+        import pstats
+
+        prof = cProfile.Profile()
+        prof.runcall(main)
+        pstats.Stats(prof).sort_stats("tottime").print_stats(20)
+    else:
+        main()
     # Interpreter teardown with spawned env workers and torch loaded sometimes segfaults on Windows,
     # after everything is written; exit directly so the exit code reflects the run.
     os._exit(0)
