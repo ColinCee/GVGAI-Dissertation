@@ -91,6 +91,11 @@ public class SocketComm extends Comm {
     public void commSend(String msg) throws IOException {
         String message = messageId + TOKEN_SEP + msg + lineSep;
         out.print(message);
+        byte[] frame = core.game.SerializableStateObservation.pendingFrame;
+        if (frame != null && msg.startsWith("{")) {  // only serialized observations carry a frame
+            out.write(frame);
+            core.game.SerializableStateObservation.pendingFrame = null;
+        }
         out.flush();
         messageId++;
     }

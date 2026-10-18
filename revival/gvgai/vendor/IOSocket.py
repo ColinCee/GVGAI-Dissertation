@@ -19,6 +19,7 @@ class IOSocket:
         self.TOKEN_SEP = '#'
         self.hostname, self.port = self.getOpenAddress()
         self.connected = False
+        self._buf = bytearray()
         self.socket = None
         self.logfilename = os.path.normpath(os.path.join(tmpDir, "logs", "clientLog.txt"))
 
@@ -80,20 +81,20 @@ class IOSocket:
         return address
     
     def recv_end(self):
-        total_data = []
-        data = ''
+        # Buffered: a binary frame can follow the line (see read_exact), so keep what comes after the newline.
+        buf = self._buf
         while True:
-            databuffer = self.socket.recv(self.BUFF_SIZE)
-            data = databuffer.decode()
-            if self.END in data:
-                total_data.append(data[:data.find(self.END)])
-                break
-            total_data.append(data)
-            if len(total_data) > 1:
-                last_pair = total_data[-2] + total_data[-1]
-                if self.END in last_pair:
-                    total_data[-2] = last_pair[:last_pair.find(self.END)]
-                    total_data.pop()
-                    break
-        return ''.join(total_data)
+            i = buf.find(b"\n")
+            if i >= 0:
+                line = bytes(buf[:i])
+                del buf[: i + 1]
+                return line.decode()
+            buf += self.socket.recv(1 << 20)
 
+    def read_exact(self, n):
+        buf = self._buf
+        while len(buf) < n:
+            buf += self.socket.recv(max(1 << 20, n - len(buf)))
+        out = bytes(buf[:n])
+        del buf[:n]
+        return out

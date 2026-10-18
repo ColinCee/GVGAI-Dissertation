@@ -1,4 +1,3 @@
-import base64
 import io
 import json
 import logging
@@ -13,11 +12,11 @@ from PIL import Image
 
 
 def _raw_frame(sso):
-    """RGB frame sent inline by an engine run with -Dgvgai.rawFrames=true, else None."""
-    raw = getattr(sso, "imageRaw", None)
-    if not raw:
+    """RGB frame that followed the message (engine run with -Dgvgai.rawFrames=true), else None."""
+    raw = getattr(sso, "imageRawBytes", None)
+    if raw is None:
         return None
-    return np.frombuffer(base64.b64decode(raw), np.uint8).reshape(sso.imageHeight, sso.imageWidth, 3)
+    return np.frombuffer(raw, np.uint8).reshape(sso.imageHeight, sso.imageWidth, 3)
 
 
 def _imread(path):
@@ -303,6 +302,8 @@ class ClientCommGYM:
             else:
                 js.replace('"', '')
                 self.parse_json(js)
+                if getattr(self.sso, "imageBytes", 0):
+                    self.sso.imageRawBytes = self.io.read_exact(self.sso.imageBytes)
                 # self.sso = json.loads(js, object_hook=self.as_sso)
             if self.sso.phase == "ACT":
                 if(self.lastSsoType == LEARNING_SSO_TYPE.IMAGE or self.lastSsoType == "IMAGE" \

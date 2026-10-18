@@ -33,7 +33,8 @@ def _h(data: bytes) -> str:
 
 
 def play(game: str, engine_dir: str, engine_seed: int = ENGINE_SEED) -> list[dict]:
-    env = GvgaiEnv(game, levels=LEVELS, max_ticks=MAX_TICKS, engine_seed=engine_seed, engine_dir=engine_dir)
+    # The test counts its own MAX_TICKS steps per game (the env's cap counts engine ticks, one more).
+    env = GvgaiEnv(game, levels=LEVELS, max_ticks=10**9, engine_seed=engine_seed, engine_dir=engine_dir)
     moves = random.Random(f"{ENGINE_SEED}-{game}")
     episodes = []
     try:
@@ -45,7 +46,7 @@ def play(game: str, engine_dir: str, engine_seed: int = ENGINE_SEED) -> list[dic
                 sso = env.comm.sso
                 state = json.dumps([getattr(sso, f, None) for f in STATE_FIELDS], sort_keys=True, default=str)
                 ticks.append(f"{_h(state.encode())}{_h(obs.tobytes())}")
-                if term or trunc:
+                if term or trunc or len(ticks) > MAX_TICKS:
                     break
             episodes.append({"level": level, "score": info["score"], "winner": info["winner"], "ticks": ticks})
     finally:

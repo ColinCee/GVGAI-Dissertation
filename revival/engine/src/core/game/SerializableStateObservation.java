@@ -28,8 +28,10 @@ public class SerializableStateObservation {
 
     // State Observation variables
     public byte[] imageArray;
-    public String imageRaw;  // base64 RGB, with -Dgvgai.rawFrames (see VGDLViewer.RAW_FRAMES)
-    public int imageWidth, imageHeight;
+    // With -Dgvgai.rawFrames (see VGDLViewer.RAW_FRAMES) the RGB frame follows the JSON line as
+    // imageBytes raw bytes, sent by SocketComm.commSend; encoding it inside the JSON took ~40% of a tick.
+    public int imageWidth, imageHeight, imageBytes;
+    public static byte[] pendingFrame;
     public boolean isValidation;
     public float gameScore;
     public int gameTick;
@@ -122,8 +124,10 @@ public class SerializableStateObservation {
         gameTick = s.getGameTick();
         gameWinner = s.getGameWinner();
         isGameOver = s.isGameOver();
-        if (core.vgdl.VGDLViewer.RAW_FRAMES && core.vgdl.VGDLViewer.lastRgb != null) {
-            imageRaw = java.util.Base64.getEncoder().encodeToString(core.vgdl.VGDLViewer.lastRgb);
+        if (core.vgdl.VGDLViewer.RAW_FRAMES) {
+            // the latest observation built decides what follows the next message (null: nothing)
+            pendingFrame = core.vgdl.VGDLViewer.lastRgb;
+            imageBytes = pendingFrame == null ? 0 : pendingFrame.length;
             imageWidth = core.vgdl.VGDLViewer.lastWidth;
             imageHeight = core.vgdl.VGDLViewer.lastHeight;
         }
