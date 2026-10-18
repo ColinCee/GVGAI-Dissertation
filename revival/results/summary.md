@@ -1,27 +1,61 @@
 # Results
 
-Average score (win %) over 50 evaluation games, levels 0–2. For our runs: mean over seeds, win-% range, seed count.
+Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizelda 0 and 2). For 2026 runs: mean over 3 seeds, then the range of win % across seeds; 2018 rows are single runs.
 
 | Agent | Aliens | Chase | Deceptizelda | Wafer Thin Mints |
 |---|---|---|---|---|
 | Human (2018) | 42.6 (100%) | 1.2 (0%) | 10.6 (80%) | 11 (0%) |
-| MCTS (2018) | 79.2 (100%) | 3.5 (3.7%) | 1.91 (84.4%) | 9.9 (75.5%) |
-| DDQN+PER (2018) | 56.3 (82.6%) | 0.7 (0%) | 1.99 (99%) | 10.2 (33%) |
-| ddqn2018 (2026) | 49.5 (79%, 66–92, n=2) | – | – | – |
+| MCTS, 40 ms (2018) | 79.2 (100%) | 3.5 (3.7%) | 1.91 (84.4%) | 9.9 (75.5%) |
+| 2018 final agent (2018 report) | 56.3 (82.6%) | 0.7 (0%) | 1.99 (99%) | 10.2 (33%) |
+| MCTS, 40 ms (2026 PC) | – | – | – | – |
+| 2018 final agent, replayed | 50.1 (81%, 66–92) | 0.2 (0%, 0–0) | – | 10.2 (35%, 32–38) |
+| 2018 final agent, bugs fixed | 48.2 (80%) | – | – | – |
+| Modern DQN, 2018's ticks | 39.5 (57%, 42–84) | 0.0 (0%, 0–0) | 0.0 (0%) | 7.7 (52%, 34–70) |
+| Modern DQN + 2018's reward, 2018's ticks | – | – | – | – |
+| Rainbow, 2018's ticks | 43.2 (66%, 62–72) | 0.0 (0%, 0–0) | -0.4 (0%) | 7.4 (57%, 42–86) |
+| Modern DQN, up to 5M ticks | 58.6 (89%, 84–94) | 0.5 (0%) | – | – |
+| Rainbow, up to 5M ticks | 56.7 (94%, 90–98) | 0.0 (0%, 0–0) | 2.0 (100%) | 9.5 (35%, 20–60) |
 
-## Aliens learning: win % per 500 training games
+## Held-out levels 3–4 (never trained on)
 
-| Run | 1–500 | 501–1000 | 1001–1500 | 1501–2000 |
+| Agent | Aliens | Chase | Deceptizelda | Wafer Thin Mints |
 |---|---|---|---|---|
-| 2018 run A (report) | 9% | 34% | 61% | 72% |
-| 2018 run B (CSV) | 4% | 22% | 71% | 82% |
-| aliens-ddqn2018-s0 | 8% | 29% | 61% | 75% |
-| aliens-ddqn2018-s1 | 10% | 31% | 53% | 64% |
+| Modern DQN, 2018's ticks | 35.1 (61%, 28–78) | 0.0 (0%, 0–0) | 0.0 (0%) | 7.8 (51%, 38–68) |
+| Modern DQN + 2018's reward, 2018's ticks | – | – | – | – |
+| Rainbow, 2018's ticks | 39.1 (89%, 82–100) | 0.0 (0%, 0–0) | -0.3 (0%) | 6.8 (59%, 38–86) |
+| Modern DQN, up to 5M ticks | 35.8 (69%, 46–80) | 0.1 (0%) | – | – |
+| Rainbow, up to 5M ticks | 38.0 (73%, 64–82) | 0.0 (0%, 0–0) | 2.0 (100%) | 9.8 (39%, 28–54) |
 
-## Training time
+## 2018's ablation on Aliens: win % per 500 training games
+
+| Variant | 2018 report | 2026 replay (mean of seeds) | 2026 eval score (wins) |
+|---|---|---|---|
+| DQN | 6 / 12 / 29 / 35 | 6 / 12 / 26 / 31 | 39.9 (33%, 8–74) |
+| DDQN | 3 / 17 / 47 / 57 | 8 / 19 / 44 / 59 | 46.3 (81%, 66–94) |
+| Dueling | – (figure only) | 7 / 28 / 61 / 70 | 45.6 (76%, 54–90) |
+| DDQN + PER + new reward (final) | 4 / 22 / 58 / 68 | 8 / 30 / 57 / 69 | 50.1 (81%, 66–92) |
+| Final, bugs fixed | – (figure only) | 7 / 28 / 53 / 57 | 48.2 (80%) |
+
+## Improvement ladder on Aliens, 2018's ticks (1.01M), seed 0 unless noted
+
+| Step | Eval score (wins) | Train time |
+|---|---|---|
+| 2018 final agent, replayed | 50.1 (81%, 66–92) | 27.4 min |
+| Modern DQN (Double, Huber, Adam, /255 inputs) | 39.5 (57%, 42–84) | 4.0 min |
+| + prioritised replay | 40.1 (62%) | 4.0 min |
+| + dueling | 43.0 (50%) | 4.2 min |
+| + 3-step returns | 46.2 (82%) | 4.3 min |
+| + noisy nets + distributional = Rainbow | 43.2 (66%, 62–72) | 2.7 min |
+
+## Training time for one run
 
 | Run | Game ticks | Wall clock | Ticks/s |
 |---|---|---|---|
-| 2018 plain DQN, GTX 980 (report) | ~1.0M | ~12 h | ~23 |
-| aliens-ddqn2018-s0 | 0.99M | 34 min | 491 |
-| aliens-ddqn2018-s1 | 1.00M | 26 min | 648 |
+| 2018 plain DQN on Aliens, GTX 980 (report) | ~1.0M | ~12 h | ~23 |
+| 2018 final agent replayed, Aliens (mean of 3) | 0.99M | 27 min | 604 |
+| Modern DQN, Aliens, 2018's ticks (mean of 3) | 1.01M | 4 min | 4,225 |
+| Rainbow, Aliens, 2018's ticks (mean of 3) | 1.01M | 3 min | 6,325 |
+| Modern DQN, Aliens, 5M ticks (mean of 3) | 5.00M | 15 min | 5,377 |
+| Rainbow, Aliens, 5M ticks (mean of 2) | 5.00M | 12 min | 6,828 |
+
+Long runs stopped early (no longer improving after 3M ticks): chase-dqn-long-s0 at 4.3M, chase-rainbow-long-s0 at 3.3M, chase-rainbow-long-s1 at 3.5M, chase-rainbow-long-s2 at 4.3M, deceptizelda-rainbow-long-s2 at 3.3M, waferthinmints2018-rainbow-long-s0 at 3.5M, waferthinmints2018-rainbow-long-s1 at 3.3M, waferthinmints2018-rainbow-long-s2 at 3.8M
