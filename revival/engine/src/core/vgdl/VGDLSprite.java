@@ -847,8 +847,10 @@ public abstract class VGDLSprite {
      */
     // Scaling a sprite on every draw was ~40% of the server's time. Scale each image once per size,
     // the same way drawImage did (default nearest-neighbour), and copy pixels exactly (Src composite).
+    // Weak keys: levels load fresh image objects, and a strong map kept every one (heap full after a few
+    // thousand Deceptizelda games, then the server died). Image doesn't override equals: identity keys.
     private static final java.util.Map<Image, java.util.Map<Long, java.awt.image.BufferedImage>> SCALED =
-            java.util.Collections.synchronizedMap(new java.util.IdentityHashMap<>());
+            java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
 
     static Image scaled(Image image, int dw, int dh) {
         if (dw <= 0 || dh <= 0) return image;

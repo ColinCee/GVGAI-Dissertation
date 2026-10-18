@@ -89,12 +89,18 @@ class IOSocket:
                 line = bytes(buf[:i])
                 del buf[: i + 1]
                 return line.decode()
-            buf += self.socket.recv(1 << 20)
+            chunk = self.socket.recv(1 << 20)
+            if not chunk:  # the server is gone: fail instead of spinning forever
+                raise ConnectionError("game server closed the connection")
+            buf += chunk
 
     def read_exact(self, n):
         buf = self._buf
         while len(buf) < n:
-            buf += self.socket.recv(max(1 << 20, n - len(buf)))
+            chunk = self.socket.recv(max(1 << 20, n - len(buf)))
+            if not chunk:
+                raise ConnectionError("game server closed the connection")
+            buf += chunk
         out = bytes(buf[:n])
         del buf[:n]
         return out
