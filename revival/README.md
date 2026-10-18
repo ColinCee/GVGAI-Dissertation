@@ -42,3 +42,11 @@ The 2018 engine had the same 25 ms sleep per tick, so roughly 7 of the original 
 Several games at once (separate processes): 1 → 196, 4 → 325, 8 → 408, 16 → 854 ticks/s in total. Scaling is poor. Phase 2 ideas: JVM flags through `JAVA_OPTS` (`-XX:ActiveProcessorCount=1 -XX:+UseSerialGC -XX:TieredStopAtLevel=1`), and dropping the per-tick frame file the engine still writes.
 
 **Wafer Thin Mints rules.** In 2018's data (`Dissertation-Report/report/images/different games/new reward/wafer/reward_history.csv`: episode, game score, clipped reward, ticks, win, ε) every win is at exactly tick 1500 and deaths score +11. GVGAI_GYM's current file (Oct 2018) adds a −20 death penalty, so random deaths score −10. `waferthinmints2018` is its June 2018 file (commit `3dbe18b`) with one typo fixed (`changeScore` → `scoreChange`; without it nothing scores). Random deaths there score 11, matching 2018.
+
+## Protocol notes (for reading the results)
+
+- 2018 Aliens rows: "run A" is the report's `report/images/reward/reward.xlsx` (the report's tables were built from it, though its 58.0% / 68.2% match neither raw file exactly); "run B" is `spreadsheet/DDQN + PER Reward.csv`. The two runs of the same agent differ by 10–17 win-% points per block, so treat that as the noise floor.
+- A 50-game evaluation has about ±10 points of binomial uncertainty in win %.
+- Deceptizelda: every agent plays levels 0 and 2 only (level 1 is a bigger map; 2018's network could not have played it).
+- Chase: 2018's only run used the old reward (no −0.5 loss penalty), so the replay does too. Modern agents never use the loss penalty.
+- Each game's 2018 replay trains for as many games as 2018 did (Aliens 2000, Chase 2015, Deceptizelda 5231, Wafer Thin Mints 2292); modern agents get the same number of game ticks ([results/2018/budgets.json](results/2018/budgets.json)).
