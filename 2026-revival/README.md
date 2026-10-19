@@ -19,7 +19,7 @@ Run everything from this folder as modules, e.g. `uv run python -m train.modern 
 | `agents/` | The learners: `ddqn2018.py` (the 2018 agent, every setting and bug kept), `modern.py` (DQN, Rainbow and their pieces; replay and the whole update on the GPU), `evaluate.py` (the evaluation every agent is scored with) |
 | `train/` | One entry point per family: `-m train.ddqn2018` (variants dqn / ddqn / dueling, `--fix-bugs`), `-m train.modern --preset ...`, `-m train.ppo` (CleanRL's Atari defaults) |
 | `baselines/` | Players that don't learn: `-m baselines.mcts` (40 ms or a fixed number of iterations per move), `-m baselines.trivial` (one button held all game, random play) |
-| `tools/` | `-m tools.screen` (several setups × seeds at once, one table), `-m tools.batch` (a run list a few at a time, skipping finished runs), `-m tools.report` (builds [results/summary.md](results/summary.md)), `-m tools.smoke` (random play: does the engine run, how fast) |
+| `tools/` | `-m tools.screen` (several setups × seeds at once, one table), `-m tools.batch` (a run list a few at a time, skipping finished runs), `-m tools.report` (builds [results/summary.md](results/summary.md)), `-m tools.smoke` (random play: does the engine run, how fast), `-m tools.record` (one game as video, poster and per-move JSON with Q-values, for showing agents play) |
 | `experiments/` | The run lists behind every reported number: `uv run python -m tools.batch experiments/<file>.txt` |
 | `results/` | One JSON per run (evaluation, timing, config, commit); `results/curves/` the training logs behind reported curves; `results/2018/` the 2018 training data |
 | `gvgai/` | The Python side of the engine: env, many games at once, shared game list |
