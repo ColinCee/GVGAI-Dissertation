@@ -6,7 +6,7 @@ Written in October 2026, for whoever opens this again in 2034 or later. What to 
 
 1. Read [RESULTS.md](RESULTS.md) (findings) and this file. Nothing else is needed to start.
 2. Install with the exact versions below. If they no longer install, see "What will have rotted".
-3. `uv run python tests/golden.py check`: every recorded game must replay identically. This is the guarantee that the engine is still the 2018 games. If it fails, nothing else is trustworthy.
+3. `uv run python tests/golden.py check`: every recorded game must replay identically. This is the guarantee that the engine is still the 2018 games. A failure names the game, the first differing tick and whether the *state* (positions, score, game over) or only the *pixels* differ. State differences mean the games changed: stop there. Pixel-only differences are most likely a newer JDK drawing sprites slightly differently; the learning agents see pixels, so re-record (`tests/golden.py record`) only after checking a few frames by eye.
 4. `uv run python tests/replay_check.py` and `tests/repeat_check.py`: replay sampling and action repeat are exact.
 5. A short run: `uv run python train_modern.py --game aliens --preset dqn --ticks 100000 --eval-games 8 --name check` (about a minute in 2026; `results/check.json` appears at the end).
 6. A real number to compare against: `uv run python screen.py dqn-outcome-score01 --ticks 5000000 --seeds 3` gave Aliens 60.1 points / 98% wins (training-curve 58.5 / 98%) in ~17 min per run.
@@ -29,11 +29,11 @@ All timings in RESULTS.md and IMPROVEMENTS.md are on this machine; they mean not
 
 ## What will have rotted
 
-- **PyTorch's CUDA wheels.** Old CUDA builds disappear from download.pytorch.org over the years. `uv.lock` records the exact wheel URLs and hashes; if they are gone, take the nearest PyTorch for a current Python and re-run the checklist. Nothing here depends on 2.14 specifically except `torch.compile` (optional: set `compile=False` in `ModernConfig`) and CUDA graphs (on since PyTorch 1.10).
+- **PyTorch's CUDA wheels.** Old CUDA builds disappear from download.pytorch.org over the years. `uv.lock` records the exact wheel URLs and hashes, and `pyproject.toml` the index (`pytorch-cu130`); if they are gone, point the index at a current CUDA build, `uv lock --upgrade`, and take the nearest PyTorch for a current Python and re-run the checklist. Nothing here depends on 2.14 specifically except `torch.compile` (optional: set `compile=False` in `ModernConfig`) and CUDA graphs (on since PyTorch 1.10).
 - **Python.** Raise `requires-python` and `target-version` in `pyproject.toml`, `uv sync`, run ruff and the checklist.
 - **Java.** The engine is plain Java with no dependencies, built by one `javac` call; point `GVGAI_JDK` at any recent JDK (only JDK 25 was tested).
 - **Windows-only bits.** `batch.py` uses `taskkill` and Windows idle priority; `bench/heap_growth.py` asks PowerShell for memory; the JDK default path is a Windows path. The rest is portable.
-- **2018 history.** The 2018 code needs Keras 2 / TensorFlow 1 on Python 3.6 and will not install; it is kept for reading. `agents/ddqn2018.py` is the runnable version.
+- **2018 history.** The 2018 code needs Keras 2 / TensorFlow 1 on Python 3.6 and will not install; it is kept for reading. `agents/ddqn2018.py` is the runnable version. The 2018 report lives in a separate repository (Dissertation-Report); its training logs, which the reproduction and the per-game budgets rest on, are copied into `results/2018/`.
 
 ## What the project found (the short version)
 
@@ -62,7 +62,7 @@ Full log with tags: [IMPROVEMENTS.md](IMPROVEMENTS.md). One game went from 34 to
 - **The engine disqualifies a move that takes over 500 s** (`ACTION_TIME_DISQ`): a slow first `torch.compile` in the middle of a game killed runs. Autotuned compile is off for that reason.
 - **Runs starting together corrupted the shared `torch.compile` cache**; each process now gets its own.
 - **Results record the commit at the start of a run**, not the end; a commit made while a run trains is not the code it ran.
-- **The golden test** compares every tick's state and pixels. Re-recording from `tests/pristine_engine.py` in October 2026 gave identical ticks, but games cut off at the tick limit were labelled `NO_WINNER` instead of `PLAYER_LOSES`; the recorded files keep the original labels, which the current engine matches. Not investigated further.
+- **The golden test** compares every tick's state and pixels. Re-recording from `tests/pristine_engine.py` in October 2026 gave identical ticks, but the games the test cuts off before they end were labelled `NO_WINNER` instead of `PLAYER_LOSES`. The recorded files keep the original labels, which the current engine matches. Results don't depend on it: evaluation and 2018's reward count every game without a win as a loss. Cause not investigated.
 - **Early stopping** must not stop on a plateau before ~3M ticks: Rainbow's curve flattens and then climbs again.
 
 ## What I'd do next

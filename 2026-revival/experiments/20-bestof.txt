@@ -1,4 +1,4 @@
-# Best 5M setup per game, at 10M ticks, 3 seeds, 100 eval games (written by bestof.py)
+# Best 5M setup per game, at 10M ticks, 3 seeds, 100 eval games (picked by bestof.py, since removed: screen.py replaces it)
 # aliens: aliens-rainbow-long (57.0, 93% at 5M)
 train_modern.py --game aliens --preset rainbow --ticks 10000000 --early-stop --seed 0 --name aliens-best-s0 --eval-games 100
 train_modern.py --game aliens --preset rainbow --ticks 10000000 --early-stop --seed 1 --name aliens-best-s1 --eval-games 100

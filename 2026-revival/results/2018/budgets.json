@@ -5,5 +5,5 @@
   "deceptizelda": 848891,
   "waferthinmints2018": 1602768
  },
- "source": "2018 reward_history logs: aliens first 2000 episodes (spreadsheet/DDQN + PER Reward.csv); chase/deceptizelda/wafer whole runs (report/images/different games)"
+ "source": "2018 reward_history logs, copied into this folder: aliens = first 2000 episodes of 'DDQN + PER Reward.csv' (the Dissertation-Report repo's spreadsheet/); chase, deceptizelda, wafer = whole runs, *-reward_history.csv (from its report/images/different games/)"
 }

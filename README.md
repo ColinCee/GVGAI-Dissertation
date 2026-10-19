@@ -9,4 +9,6 @@ Deep Q-learning agents playing four GVGAI games (Aliens, Chase, Deceptizelda, Wa
 
 The 2018 variants each lived on their own branch; they are frozen under tags `2018-dqn`, `2018-ddqn`, `2018-ddqn-per` (the final agent) and `2018-dueling`. The report itself is in a separate repository (Dissertation-Report); the 2018 training data it was built from is copied into [2026-revival/results/2018/](2026-revival/results/2018/).
 
+The state at the end of the 2026 round (19 October 2026) is tagged `revival-2026`.
+
 **Start here:** findings in [2026-revival/RESULTS.md](2026-revival/RESULTS.md); coming back after years, [2026-revival/LEARNINGS.md](2026-revival/LEARNINGS.md).
