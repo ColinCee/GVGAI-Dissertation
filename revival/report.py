@@ -107,6 +107,11 @@ def main() -> None:
     out += ["| Agent | " + " | ".join(NAMES[x] for x in GAMES) + " |", "|---" * (len(GAMES) + 1) + "|"]
     for label, row in TABLE_2018.items():
         out.append(f"| {label} | " + " | ".join(f"{row[x][0]} ({row[x][1]}%)" for x in GAMES) + " |")
+    holds = {x: max((r for k, v in g.items() if k.startswith(f"baseline-{x}-hold-") for r in v),
+                    key=lambda r: (r["eval"]["win_rate"], r["eval"]["mean_score"])) for x in GAMES}  # fmt: skip
+    out.append("| One button held all game (best button) | " + " | ".join(
+        f"{cell([holds[x]])} {holds[x]['agent'].split('-', 1)[1]}" for x in GAMES) + " |")  # fmt: skip
+    out.append("| Random play | " + " | ".join(cell(g.get(f"baseline-{x}-random", [])) for x in GAMES) + " |")
     for label, pat in ROWS_2026:
         out.append(f"| {label} | " + " | ".join(cell(g.get(pat.format(g=x), [])) for x in GAMES) + " |")
 

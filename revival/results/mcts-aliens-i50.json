@@ -1,0 +1,17 @@
+{
+ "name": "mcts-aliens-i50",
+ "agent": "MCTS 50 iterations",
+ "game": "aliens",
+ "seed": 0,
+ "levels": [
+  0,
+  1,
+  2
+ ],
+ "eval": {
+  "games": 51,
+  "mean_score": 77.88235294117646,
+  "win_rate": 1.0,
+  "iters_per_move": 50.1
+ }
+}

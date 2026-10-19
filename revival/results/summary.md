@@ -7,6 +7,8 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | Human (2018) | 42.6 (100%) | 1.2 (0%) | 10.6 (80%) | 11 (0%) |
 | MCTS, 40 ms (2018) | 79.2 (100%) | 3.5 (3.7%) | 1.91 (84.4%) | 9.9 (75.5%) |
 | 2018 final agent (2018 report) | 56.3 (82.6%) | 0.7 (0%) | 1.99 (99%) | 10.2 (33%) |
+| One button held all game (best button) | 36.3 (82%) use | 0.0 (0%) down | 2.0 (100%) right | 1.6 (100%) right |
+| Random play | 33.7 (8%) | 1.5 (0%) | 1.0 (66%) | 10.8 (4%) |
 | MCTS, 40 ms (2026 PC) | 77.8 (100%) | 3.5 (10%) | 1.9 (90%) | 9.7 (75%) |
 | 2018 final agent, replayed | 50.1 (81%, 66–92) | 0.2 (0%, 0–0) | 1.6 (79%, 38–100) | 10.2 (35%, 32–38) |
 | 2018 final agent, bugs fixed | 48.2 (80%) | – | – | – |
