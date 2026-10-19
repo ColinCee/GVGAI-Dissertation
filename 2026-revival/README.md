@@ -1,52 +1,48 @@
-# Revival: the 2018 GVGAI DQN dissertation on 2026 software
+# 2026 revival
 
-Plan: [../PLAN.md](../PLAN.md). The 2018 code is frozen under tags `2018-dqn`, `2018-ddqn`, `2018-ddqn-per`, `2018-dueling`.
+The 2018 dissertation rebuilt on 2026 software: the GVGAI engine made ~75× faster per game, the 2018 agent ported to PyTorch with every 2018 setting and bug kept, and today's methods compared on the same games and budgets. Findings: [RESULTS.md](RESULTS.md). Every speed step, with a tag to check it out: [IMPROVEMENTS.md](IMPROVEMENTS.md). Coming back later: [LEARNINGS.md](LEARNINGS.md).
 
 ## Setup (Windows)
 
-1. [uv](https://docs.astral.sh/uv/) and JDK 25 (Temurin zip unpacked to `D:\Java\jdk-25.0.4.1+1`; set `GVGAI_JDK` if elsewhere).
-2. `uv sync` in this folder (Python 3.14, the newest `torch.compile` supports; PyTorch from PyTorch's CUDA 13 index).
-3. `uv run python smoke.py --game aliens --episodes 5 --repeat 4`. The engine compiles itself on first use ([engine/build.py](engine/build.py)).
-4. Before committing: `uv run ruff format . && uv run ruff check .`; `uv run ty check` is advisory.
+1. [uv](https://docs.astral.sh/uv/), and JDK 25 (Temurin zip unpacked to `D:\Java\jdk-25.0.4.1+1`, or set `GVGAI_JDK`).
+2. `uv sync` in this folder: Python 3.14 (the newest `torch.compile` supports), PyTorch from PyTorch's CUDA 13 index. Exact versions are in `uv.lock`.
+3. `uv run python tests/golden.py check`: the engine compiles itself on first use ([engine/build.py](engine/build.py)) and must replay the recorded games identically.
+4. Before committing: `uv run ruff format . && uv run ruff check .`; `uv run ty check` is advisory (most of its warnings are gaps in PyTorch's type hints).
 
-[engine/](engine/) is GVGAI_GYM's Java engine and games, imported unmodified at commit `15e0a86` (first commit touching it), then changed:
-- the engine's per-tick sleep is configurable (`-Dgvgai.longDelay`, default still 25 ms; our env passes 0);
-- it sends the frame PNG it already encoded instead of writing, re-reading and re-encoding it each tick;
-- Wafer Thin Mints levels 1–4 added (GVGAI_GYM ships only level 0), from [GAIGResearch/GVGAI](https://github.com/GAIGResearch/GVGAI), whose level 0 is identical;
-- `waferthinmints2018` added: the rules as the dissertation ran them (see below).
+## Layout
 
-Python client changes are listed in [gvgai/vendor/README.md](gvgai/vendor/README.md). The env is [gvgai/env.py](gvgai/env.py): the game's own actions (no extra no-op), random level 0–2 per game, 2000-tick limit counted as a loss.
-
-## Phase 0 results (18 Oct 2026)
-
-| Game | Actions | Frame (2018 downscaled) | Notes |
-|---|---|---|---|
-| Aliens | USE, LEFT, RIGHT | 110×300 (55×150) | matches 2018 exactly |
-| Chase | LEFT, RIGHT, DOWN, UP | 110×240 (55×120) | |
-| Deceptizelda | USE + 4 moves | 120×130 (60×65) | |
-| Wafer Thin Mints | 4 moves | 100×100 (50×50) | use `waferthinmints2018`, see below |
-
-Random play on Aliens with 2018's 4-tick action repeat wins 3/40 (7.5%); 2018's random phase won 4–6%. Without the repeat it wins ~45%, so the repeat matters.
-
-Speed, Aliens, random play, one game:
-
-| Step | Ticks/s |
+| Path | What |
 |---|---|
-| As shipped | 34 |
-| Engine sleep removed | 75 |
-| + Python decodes frames in memory | 136 |
-| + Java sends the PNG it already made | ~200 |
+| `train2018.py`, `agents/ddqn2018.py` | The 2018 agent, replayed exactly (variants dqn / ddqn / dueling, `--fix-bugs`) |
+| `train_modern.py`, `agents/modern.py` | DQN, Rainbow and their pieces as presets; replay and the whole update on the GPU |
+| `train_ppo.py` | PPO (CleanRL's Atari defaults) on the same games and evaluation |
+| `run_mcts.py`, `baselines.py` | MCTS at 40 ms or a fixed number of iterations per move; one button held all game, random play |
+| `screen.py` | Quick comparison: several setups × seeds at once, one table |
+| `smoke.py` | Random play on one game: a quick check that the engine runs, and its speed |
+| `batch.py` | Runs a list of commands a few at a time, skipping finished ones |
+| `report.py` | Builds [results/summary.md](results/summary.md) from `results/*.json` |
+| `experiments/` | The run lists behind every reported number: `uv run python batch.py experiments/<file>.txt` |
+| `results/` | One JSON per run (evaluation, timing, config, commit); `results/2018/` the 2018 training data |
+| `gvgai/` | The Python side of the engine: env, many games at once, shared game list |
+| `engine/` | GVGAI_GYM's Java engine and games (commit `15e0a86`) with this project's speed changes |
+| `tests/` | Golden replay of the engine, action repeat, replay sampling |
+| `bench/` | The measurements cited in IMPROVEMENTS.md |
+| `runs/` | Per-run training logs and checkpoints (not in git) |
 
-The 2018 engine had the same 25 ms sleep per tick, so roughly 7 of the original 12 hours for 2000 episodes were the game pausing on purpose.
+## Engine changes
 
-Several games at once (separate processes): 1 → 196, 4 → 325, 8 → 408, 16 → 854 ticks/s in total. Scaling is poor. Phase 2 ideas: JVM flags through `JAVA_OPTS` (`-XX:ActiveProcessorCount=1 -XX:+UseSerialGC -XX:TieredStopAtLevel=1`), and dropping the per-tick frame file the engine still writes.
+[engine/](engine/) was imported unmodified at GVGAI_GYM commit `15e0a86`, then changed (each change is a row in IMPROVEMENTS.md, and the golden test proves the games still play the same):
 
-**Wafer Thin Mints rules.** In 2018's data (`Dissertation-Report/report/images/different games/new reward/wafer/reward_history.csv`: episode, game score, clipped reward, ticks, win, ε) every win is at exactly tick 1500 and deaths score +11. GVGAI_GYM's current file (Oct 2018) adds a −20 death penalty, so random deaths score −10. `waferthinmints2018` is its June 2018 file (commit `3dbe18b`) with one typo fixed (`changeScore` → `scoreChange`; without it nothing scores). Random deaths there score 11, matching 2018.
+- the 25 ms sleep in every tick is configurable (`-Dgvgai.longDelay`; the env passes 0);
+- frames are sent raw and can be greyscaled and halved on the server (`gvgai.rawFrames`, `gvgai.grayHalf`), drawing is skipped while an action repeats, and actions can be repeated server-side (`ACTION#IMAGE#k`);
+- a fixed seed (`gvgai.seed`), a tick cap (`gvgai.maxTicks`) and MCTS budgets (`gvgai.actionTime`, `gvgai.mctsIters`);
+- Wafer Thin Mints levels 1–4 added from GAIGResearch/GVGAI, and `waferthinmints2018`: the June 2018 rules the dissertation ran (GVGAI_GYM commit `3dbe18b`), with the `changeScore` → `scoreChange` typo fixed and the timeout rule re-indented so it applies.
 
-## Protocol notes (for reading the results)
+Python client changes: [gvgai/vendor/README.md](gvgai/vendor/README.md).
 
-- 2018 Aliens rows: "run A" is the report's `report/images/reward/reward.xlsx` (the report's tables were built from it, though its 58.0% / 68.2% match neither raw file exactly); "run B" is `spreadsheet/DDQN + PER Reward.csv`. The two runs of the same agent differ by 10–17 win-% points per block, so treat that as the noise floor.
-- A 50-game evaluation has about ±10 points of binomial uncertainty in win %.
-- Deceptizelda: every agent plays levels 0 and 2 only (level 1 is a bigger map; 2018's network could not have played it).
-- Chase: 2018's only run used the old reward (no −0.5 loss penalty), so the replay does too. Modern agents never use the loss penalty.
-- Each game's 2018 replay trains for as many games as 2018 did (Aliens 2000, Chase 2015, Deceptizelda 5231, Wafer Thin Mints 2292); modern agents get the same number of game ticks ([results/2018/budgets.json](results/2018/budgets.json)).
+## Protocol
+
+- Budgets are in game ticks: "2018's ticks" is what 2018 used per game ([results/2018/budgets.json](results/2018/budgets.json)); long runs go to 5M with early stopping.
+- Evaluation: 50 games (100 for the best-of rows), greedy, levels 0–2, plus held-out levels 3–4. Deceptizelda uses levels 0 and 2 only: level 1 is a bigger map than 2018's network could take.
+- A 50-game win rate is ±10 points; 2018's two runs of the same agent differ by 10–17 points per 500-game block.
+- The 2000-tick limit counts as a loss in evaluation and in 2018's reward, and as a truncation (bootstrapped) for modern learners.

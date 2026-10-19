@@ -1,0 +1,6 @@
+train_modern.py --game aliens --preset dqn --ticks 1014134 --seed 0 --name aliens-dqn-scr1.01413m-s0
+train_modern.py --game aliens --preset dqn --ticks 1014134 --seed 1 --name aliens-dqn-scr1.01413m-s1
+train_modern.py --game aliens --preset dqn --ticks 1014134 --seed 2 --name aliens-dqn-scr1.01413m-s2
+train_modern.py --game aliens --preset rainbow --ticks 1014134 --seed 0 --name aliens-rainbow-scr1.01413m-s0
+train_modern.py --game aliens --preset rainbow --ticks 1014134 --seed 1 --name aliens-rainbow-scr1.01413m-s1
+train_modern.py --game aliens --preset rainbow --ticks 1014134 --seed 2 --name aliens-rainbow-scr1.01413m-s2

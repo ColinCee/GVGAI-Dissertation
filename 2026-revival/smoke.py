@@ -1,4 +1,4 @@
-"""Phase 0 check: play random games, print frame/action facts and env speed."""
+"""Random play on one game: frame and action facts, and the engine's speed."""
 
 import argparse
 import random

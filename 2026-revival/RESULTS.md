@@ -158,9 +158,17 @@ Suggestive only (one seed, ±10 points): 3-step returns look like the piece that
 - Wafer Thin Mints: the engine's current rules differ from 2018's; the 2018 rules were rebuilt from the engine's history.
 - Modern agents see 2×2-averaged greyscale frames; the 2018 replay keeps 2018's PIL Lanczos frames.
 - "Lost" for the −0.5 penalty is the game's own verdict, as in 2018's code: on Wafer Thin Mints surviving to tick 1500 is a win, dying a loss.
-- MCTS at 40 ms on today's CPU gets far more search per move than in 2018 (140–600 iterations per move), yet scores the same: the games are easy for it either way.
+- MCTS at 40 ms on today's CPU gets more search per move than in 2018 (140–600 iterations), yet scores the same: the games need little search (table at the end).
 - The 2018 agent's timing averages one CPU run and two GPU runs.
 
-## Still running
+## MCTS at a fixed search budget
 
-MCTS at fixed search budgets (50 / 200 / 800 iterations per move; 2026's 40 ms buys 140–600).
+2026's 40 ms per move buys 140–600 iterations; a fixed number of iterations is comparable across machines. 50 games each:
+
+| Iterations per move | Aliens | Chase | Deceptizelda | Wafer Thin Mints |
+|---|---|---|---|---|
+| 50 | 77.9 (100%) | 3.9 (16%) | 2.0 (84%) | 10.3 (55%) |
+| 200 | 77.8 (100%) | 3.5 (6%) | 2.0 (96%) | 9.7 (73%) |
+| 40 ms (140–600) | 77.8 (100%) | 3.5 (10%) | 1.9 (90%) | 9.7 (75%) |
+
+A little search is enough on these games: more mostly buys Wafer wins (surviving) at the cost of a little score.

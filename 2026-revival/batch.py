@@ -1,9 +1,10 @@
 """Run a list of training commands, a few at a time; skip any whose result file already exists.
 
-    uv run python batch.py jobs/phase2.txt --parallel 6
+    uv run python batch.py experiments/phase2.txt --parallel 6
 
-Each line of the jobs file is the arguments for train2018.py or train_modern.py, starting with the
-script name, e.g. `train2018.py --game chase --seed 1 --name chase-ddqn2018-s1 --device cuda`.
+Each line of the run list is the arguments for a training script (train2018.py, train_modern.py,
+train_ppo.py), starting with the script name, e.g.
+`train2018.py --game chase --seed 1 --name chase-ddqn2018-s1 --device cuda`.
 Wrap in `lease run` for the GPU; a stopped batch picks up where it left off (train2018 resumes from
 its checkpoint).
 """
