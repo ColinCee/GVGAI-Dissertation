@@ -1,7 +1,7 @@
 # Generalisation: train on all 5 levels (0-4), up to 5M ticks; its 'held-out' eval (3-4) is then SEEN levels
-train_modern.py --game aliens --preset dqn --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-alllevels-long-s0
-train_modern.py --game aliens --preset dqn --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-alllevels-long-s1
-train_modern.py --game aliens --preset dqn --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-alllevels-long-s2
-train_modern.py --game aliens --preset rainbow --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 0 --name aliens-rainbow-alllevels-long-s0
-train_modern.py --game aliens --preset rainbow --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 1 --name aliens-rainbow-alllevels-long-s1
-train_modern.py --game aliens --preset rainbow --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 2 --name aliens-rainbow-alllevels-long-s2
+-m train.modern --game aliens --preset dqn --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-alllevels-long-s0
+-m train.modern --game aliens --preset dqn --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-alllevels-long-s1
+-m train.modern --game aliens --preset dqn --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-alllevels-long-s2
+-m train.modern --game aliens --preset rainbow --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 0 --name aliens-rainbow-alllevels-long-s0
+-m train.modern --game aliens --preset rainbow --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 1 --name aliens-rainbow-alllevels-long-s1
+-m train.modern --game aliens --preset rainbow --train-levels 0,1,2,3,4 --ticks 5000000 --early-stop --seed 2 --name aliens-rainbow-alllevels-long-s2

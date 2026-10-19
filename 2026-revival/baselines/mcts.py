@@ -1,6 +1,6 @@
 """Play the engine's sampleMCTS on each game with 2018's limits (40 ms per move, 2000 ticks).
 
-    uv run python run_mcts.py --games aliens chase
+    uv run python -m baselines.mcts --games aliens chase
 
 One JVM per game (4 at once, one per core, so the 40 ms budget isn't shared).
 Same levels as the agents (Deceptizelda 0 and 2), 50 games per game split over its levels.
@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE / "engine"))
 import build  # noqa: E402
 

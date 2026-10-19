@@ -1,6 +1,6 @@
 # Improvements, in order
 
-One row per change that landed. Each row's commit is tagged `imp-NN` (row number), so `git checkout imp-NN` gives the code as it was, and the "How measured" command reproduces the number (scripts in `bench/`, `tests/`). Speeds are game ticks per second for one Aliens game with random play unless the row says otherwise; rows from 13 on were measured on a quiet machine.
+One row per change that landed. Each row's commit is tagged `imp-NN` (row number), so `git checkout imp-NN` gives the code as it was, and the "How measured" command reproduces the number (commands are as they were at that tag; the scripts moved into `train/`, `tools/` and `baselines/` at `revival-2026`) (scripts in `bench/`, `tests/`). Speeds are game ticks per second for one Aliens game with random play unless the row says otherwise; rows from 13 on were measured on a quiet machine.
 
 | # | Area | Change | Before → after | How measured | Commit |
 |---|---|---|---|---|---|

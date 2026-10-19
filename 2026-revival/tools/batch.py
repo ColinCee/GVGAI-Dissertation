@@ -1,10 +1,9 @@
 """Run a list of training commands, a few at a time; skip any whose result file already exists.
 
-    uv run python batch.py experiments/phase2.txt --parallel 6
+    uv run python -m tools.batch experiments/phase2.txt --parallel 6
 
-Each line of the run list is the arguments for a training script (train2018.py, train_modern.py,
-train_ppo.py), starting with the script name, e.g.
-`train2018.py --game chase --seed 1 --name chase-ddqn2018-s1 --device cuda`.
+Each line of the run list is the arguments to `python`, run from this folder, e.g.
+`-m train.ddqn2018 --game chase --seed 1 --name chase-ddqn2018-s1 --device cuda`.
 Wrap in `lease run` for the GPU; a stopped batch picks up where it left off (train2018 resumes from
 its checkpoint).
 """
@@ -17,7 +16,9 @@ import sys
 import time
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
+from gvgai.games import ROOT
+
+HERE = ROOT
 IDLE = 0x40  # Windows IDLE_PRIORITY_CLASS; the run's game servers inherit it
 
 
@@ -37,6 +38,7 @@ def main() -> None:
     jobs = [shlex.split(ln) for ln in Path(a.jobs).read_text().splitlines() if ln.strip() and not ln.startswith("#")]
     todo = [j for j in jobs if not (HERE / "results" / f"{name_of(j)}.json").exists()]
     print(f"{len(todo)} of {len(jobs)} jobs to run", flush=True)
+    (HERE / "runs").mkdir(exist_ok=True)
     beat = HERE / "runs" / f"batch-{os.getpid()}.alive"  # see gvgai/heartbeat.py
     beat.touch()
     env = {**os.environ, "GVGAI_HEARTBEAT": str(beat)}

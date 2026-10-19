@@ -1,6 +1,9 @@
 """The four games of the 2018 dissertation, and the levels every agent trains and is evaluated on."""
 
 import subprocess
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]  # the 2026-revival folder: results/ and runs/ live here
 
 GAMES = ["aliens", "chase", "deceptizelda", "waferthinmints2018"]
 

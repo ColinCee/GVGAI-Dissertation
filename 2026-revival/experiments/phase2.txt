@@ -1,14 +1,14 @@
 # Phase 2: the 2018 final agent, 4 games x 3 seeds, each game for as many games as 2018 trained it.
 # Chase: 2018's only run used the old reward (no loss penalty). aliens seed 0 is the gate run.
-train2018.py --game aliens --episodes 2000 --seed 0 --name aliens-ddqn2018-s0 --device cuda --threads 1
-train2018.py --game chase --episodes 2015 --seed 0 --loss-penalty 0 --name chase-ddqn2018-s0 --device cuda --threads 1
-train2018.py --game deceptizelda --episodes 5231 --seed 0 --name deceptizelda-ddqn2018-s0 --device cuda --threads 1
-train2018.py --game waferthinmints2018 --episodes 2292 --seed 0 --name waferthinmints2018-ddqn2018-s0 --device cuda --threads 1
-train2018.py --game aliens --episodes 2000 --seed 1 --name aliens-ddqn2018-s1 --device cuda --threads 1
-train2018.py --game chase --episodes 2015 --seed 1 --loss-penalty 0 --name chase-ddqn2018-s1 --device cuda --threads 1
-train2018.py --game deceptizelda --episodes 5231 --seed 1 --name deceptizelda-ddqn2018-s1 --device cuda --threads 1
-train2018.py --game waferthinmints2018 --episodes 2292 --seed 1 --name waferthinmints2018-ddqn2018-s1 --device cuda --threads 1
-train2018.py --game aliens --episodes 2000 --seed 2 --name aliens-ddqn2018-s2 --device cuda --threads 1
-train2018.py --game chase --episodes 2015 --seed 2 --loss-penalty 0 --name chase-ddqn2018-s2 --device cuda --threads 1
-train2018.py --game deceptizelda --episodes 5231 --seed 2 --name deceptizelda-ddqn2018-s2 --device cuda --threads 1
-train2018.py --game waferthinmints2018 --episodes 2292 --seed 2 --name waferthinmints2018-ddqn2018-s2 --device cuda --threads 1
+-m train.ddqn2018 --game aliens --episodes 2000 --seed 0 --name aliens-ddqn2018-s0 --device cuda --threads 1
+-m train.ddqn2018 --game chase --episodes 2015 --seed 0 --loss-penalty 0 --name chase-ddqn2018-s0 --device cuda --threads 1
+-m train.ddqn2018 --game deceptizelda --episodes 5231 --seed 0 --name deceptizelda-ddqn2018-s0 --device cuda --threads 1
+-m train.ddqn2018 --game waferthinmints2018 --episodes 2292 --seed 0 --name waferthinmints2018-ddqn2018-s0 --device cuda --threads 1
+-m train.ddqn2018 --game aliens --episodes 2000 --seed 1 --name aliens-ddqn2018-s1 --device cuda --threads 1
+-m train.ddqn2018 --game chase --episodes 2015 --seed 1 --loss-penalty 0 --name chase-ddqn2018-s1 --device cuda --threads 1
+-m train.ddqn2018 --game deceptizelda --episodes 5231 --seed 1 --name deceptizelda-ddqn2018-s1 --device cuda --threads 1
+-m train.ddqn2018 --game waferthinmints2018 --episodes 2292 --seed 1 --name waferthinmints2018-ddqn2018-s1 --device cuda --threads 1
+-m train.ddqn2018 --game aliens --episodes 2000 --seed 2 --name aliens-ddqn2018-s2 --device cuda --threads 1
+-m train.ddqn2018 --game chase --episodes 2015 --seed 2 --loss-penalty 0 --name chase-ddqn2018-s2 --device cuda --threads 1
+-m train.ddqn2018 --game deceptizelda --episodes 5231 --seed 2 --name deceptizelda-ddqn2018-s2 --device cuda --threads 1
+-m train.ddqn2018 --game waferthinmints2018 --episodes 2292 --seed 2 --name waferthinmints2018-ddqn2018-s2 --device cuda --threads 1

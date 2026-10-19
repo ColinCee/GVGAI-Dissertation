@@ -1,5 +1,5 @@
 # Seeds 1-2 for the IMPALA encoder to 5M on Aliens (seed 0 was the best single run of the night)
-train_modern.py --game aliens --preset dqn-impala --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-impala-long-s1
-train_modern.py --game aliens --preset dqn-impala --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-impala-long-s2
-train_modern.py --game aliens --preset rainbow-impala --ticks 5000000 --early-stop --seed 1 --name aliens-rainbow-impala-long-s1
-train_modern.py --game aliens --preset rainbow-impala --ticks 5000000 --early-stop --seed 2 --name aliens-rainbow-impala-long-s2
+-m train.modern --game aliens --preset dqn-impala --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-impala-long-s1
+-m train.modern --game aliens --preset dqn-impala --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-impala-long-s2
+-m train.modern --game aliens --preset rainbow-impala --ticks 5000000 --early-stop --seed 1 --name aliens-rainbow-impala-long-s1
+-m train.modern --game aliens --preset rainbow-impala --ticks 5000000 --early-stop --seed 2 --name aliens-rainbow-impala-long-s2

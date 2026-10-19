@@ -1,14 +1,14 @@
 # Reward experiments: modern DQN on Aliens and Wafer Thin Mints at 2018's ticks, 3 seeds.
 # (score only = *-dqn-b18, 2018's reward = *-dqn-reward2018-b18, both done.)
-train_modern.py --game aliens --preset dqn-outcome --ticks 1014134 --seed 0 --name aliens-dqn-outcome-b18-s0
-train_modern.py --game aliens --preset dqn-outcome --ticks 1014134 --seed 1 --name aliens-dqn-outcome-b18-s1
-train_modern.py --game aliens --preset dqn-outcome --ticks 1014134 --seed 2 --name aliens-dqn-outcome-b18-s2
-train_modern.py --game waferthinmints2018 --preset dqn-outcome --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-outcome-b18-s0
-train_modern.py --game waferthinmints2018 --preset dqn-outcome --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-outcome-b18-s1
-train_modern.py --game waferthinmints2018 --preset dqn-outcome --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-outcome-b18-s2
-train_modern.py --game aliens --preset dqn-outcome-g997 --ticks 1014134 --seed 0 --name aliens-dqn-outcome-g997-b18-s0
-train_modern.py --game aliens --preset dqn-outcome-g997 --ticks 1014134 --seed 1 --name aliens-dqn-outcome-g997-b18-s1
-train_modern.py --game aliens --preset dqn-outcome-g997 --ticks 1014134 --seed 2 --name aliens-dqn-outcome-g997-b18-s2
-train_modern.py --game waferthinmints2018 --preset dqn-outcome-g997 --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-outcome-g997-b18-s0
-train_modern.py --game waferthinmints2018 --preset dqn-outcome-g997 --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-outcome-g997-b18-s1
-train_modern.py --game waferthinmints2018 --preset dqn-outcome-g997 --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-outcome-g997-b18-s2
+-m train.modern --game aliens --preset dqn-outcome --ticks 1014134 --seed 0 --name aliens-dqn-outcome-b18-s0
+-m train.modern --game aliens --preset dqn-outcome --ticks 1014134 --seed 1 --name aliens-dqn-outcome-b18-s1
+-m train.modern --game aliens --preset dqn-outcome --ticks 1014134 --seed 2 --name aliens-dqn-outcome-b18-s2
+-m train.modern --game waferthinmints2018 --preset dqn-outcome --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-outcome-b18-s0
+-m train.modern --game waferthinmints2018 --preset dqn-outcome --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-outcome-b18-s1
+-m train.modern --game waferthinmints2018 --preset dqn-outcome --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-outcome-b18-s2
+-m train.modern --game aliens --preset dqn-outcome-g997 --ticks 1014134 --seed 0 --name aliens-dqn-outcome-g997-b18-s0
+-m train.modern --game aliens --preset dqn-outcome-g997 --ticks 1014134 --seed 1 --name aliens-dqn-outcome-g997-b18-s1
+-m train.modern --game aliens --preset dqn-outcome-g997 --ticks 1014134 --seed 2 --name aliens-dqn-outcome-g997-b18-s2
+-m train.modern --game waferthinmints2018 --preset dqn-outcome-g997 --ticks 1602768 --seed 0 --name waferthinmints2018-dqn-outcome-g997-b18-s0
+-m train.modern --game waferthinmints2018 --preset dqn-outcome-g997 --ticks 1602768 --seed 1 --name waferthinmints2018-dqn-outcome-g997-b18-s1
+-m train.modern --game waferthinmints2018 --preset dqn-outcome-g997 --ticks 1602768 --seed 2 --name waferthinmints2018-dqn-outcome-g997-b18-s2

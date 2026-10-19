@@ -1,19 +1,19 @@
 # PPO on the other three games at 2018's ticks, plain and with 2018's reward, 3 seeds
-train_ppo.py --game chase --ticks 1771844 --seed 0 --name chase-ppo-b18-s0
-train_ppo.py --game chase --ticks 1771844 --seed 0 --reward2018 --name chase-ppo-reward2018-b18-s0
-train_ppo.py --game chase --ticks 1771844 --seed 1 --name chase-ppo-b18-s1
-train_ppo.py --game chase --ticks 1771844 --seed 1 --reward2018 --name chase-ppo-reward2018-b18-s1
-train_ppo.py --game chase --ticks 1771844 --seed 2 --name chase-ppo-b18-s2
-train_ppo.py --game chase --ticks 1771844 --seed 2 --reward2018 --name chase-ppo-reward2018-b18-s2
-train_ppo.py --game deceptizelda --ticks 848891 --seed 0 --name deceptizelda-ppo-b18-s0
-train_ppo.py --game deceptizelda --ticks 848891 --seed 0 --reward2018 --name deceptizelda-ppo-reward2018-b18-s0
-train_ppo.py --game deceptizelda --ticks 848891 --seed 1 --name deceptizelda-ppo-b18-s1
-train_ppo.py --game deceptizelda --ticks 848891 --seed 1 --reward2018 --name deceptizelda-ppo-reward2018-b18-s1
-train_ppo.py --game deceptizelda --ticks 848891 --seed 2 --name deceptizelda-ppo-b18-s2
-train_ppo.py --game deceptizelda --ticks 848891 --seed 2 --reward2018 --name deceptizelda-ppo-reward2018-b18-s2
-train_ppo.py --game waferthinmints2018 --ticks 1602768 --seed 0 --name waferthinmints2018-ppo-b18-s0
-train_ppo.py --game waferthinmints2018 --ticks 1602768 --seed 0 --reward2018 --name waferthinmints2018-ppo-reward2018-b18-s0
-train_ppo.py --game waferthinmints2018 --ticks 1602768 --seed 1 --name waferthinmints2018-ppo-b18-s1
-train_ppo.py --game waferthinmints2018 --ticks 1602768 --seed 1 --reward2018 --name waferthinmints2018-ppo-reward2018-b18-s1
-train_ppo.py --game waferthinmints2018 --ticks 1602768 --seed 2 --name waferthinmints2018-ppo-b18-s2
-train_ppo.py --game waferthinmints2018 --ticks 1602768 --seed 2 --reward2018 --name waferthinmints2018-ppo-reward2018-b18-s2
+-m train.ppo --game chase --ticks 1771844 --seed 0 --name chase-ppo-b18-s0
+-m train.ppo --game chase --ticks 1771844 --seed 0 --reward2018 --name chase-ppo-reward2018-b18-s0
+-m train.ppo --game chase --ticks 1771844 --seed 1 --name chase-ppo-b18-s1
+-m train.ppo --game chase --ticks 1771844 --seed 1 --reward2018 --name chase-ppo-reward2018-b18-s1
+-m train.ppo --game chase --ticks 1771844 --seed 2 --name chase-ppo-b18-s2
+-m train.ppo --game chase --ticks 1771844 --seed 2 --reward2018 --name chase-ppo-reward2018-b18-s2
+-m train.ppo --game deceptizelda --ticks 848891 --seed 0 --name deceptizelda-ppo-b18-s0
+-m train.ppo --game deceptizelda --ticks 848891 --seed 0 --reward2018 --name deceptizelda-ppo-reward2018-b18-s0
+-m train.ppo --game deceptizelda --ticks 848891 --seed 1 --name deceptizelda-ppo-b18-s1
+-m train.ppo --game deceptizelda --ticks 848891 --seed 1 --reward2018 --name deceptizelda-ppo-reward2018-b18-s1
+-m train.ppo --game deceptizelda --ticks 848891 --seed 2 --name deceptizelda-ppo-b18-s2
+-m train.ppo --game deceptizelda --ticks 848891 --seed 2 --reward2018 --name deceptizelda-ppo-reward2018-b18-s2
+-m train.ppo --game waferthinmints2018 --ticks 1602768 --seed 0 --name waferthinmints2018-ppo-b18-s0
+-m train.ppo --game waferthinmints2018 --ticks 1602768 --seed 0 --reward2018 --name waferthinmints2018-ppo-reward2018-b18-s0
+-m train.ppo --game waferthinmints2018 --ticks 1602768 --seed 1 --name waferthinmints2018-ppo-b18-s1
+-m train.ppo --game waferthinmints2018 --ticks 1602768 --seed 1 --reward2018 --name waferthinmints2018-ppo-reward2018-b18-s1
+-m train.ppo --game waferthinmints2018 --ticks 1602768 --seed 2 --name waferthinmints2018-ppo-b18-s2
+-m train.ppo --game waferthinmints2018 --ticks 1602768 --seed 2 --reward2018 --name waferthinmints2018-ppo-reward2018-b18-s2

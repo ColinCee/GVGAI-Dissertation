@@ -1,6 +1,6 @@
 """Trivial baselines: one action held for the whole game, and uniform random play, on the agents' evaluation.
 
-    uv run python baselines.py            # writes results/baseline-<game>-<policy>.json
+    uv run python -m baselines.trivial            # writes results/baseline-<game>-<policy>.json
 
 Same levels, seeds (7) and 50 games as a seed-0 agent's evaluation, so a learned agent that matches a row
 exactly has learned that policy.
@@ -10,9 +10,8 @@ import json
 
 import numpy as np
 
-from gvgai.games import GAMES, game_levels
-from report import HERE
-from train_modern import evaluate
+from agents.evaluate import evaluate
+from gvgai.games import GAMES, ROOT, game_levels
 
 
 class Fixed:
@@ -50,7 +49,7 @@ def main() -> None:
             ev = evaluate(Fixed(action, n), g, 8, 50, lv, 7, 4)
             label = "random" if action is None else f"hold-{names[action].removeprefix('ACTION_').lower()}"
             res = {"name": f"baseline-{g}-{label}", "agent": f"baseline {label}", "game": g, "eval": ev}
-            (HERE / "results" / f"{res['name']}.json").write_text(json.dumps(res, indent=1))
+            (ROOT / "results" / f"{res['name']}.json").write_text(json.dumps(res, indent=1))
             print(f"{g} {label}: {ev['mean_score']:.1f} ({ev['win_rate']:.0%})", flush=True)
 
 

@@ -1,12 +1,12 @@
-train_modern.py --game aliens --preset dqn-outcome-only --ticks 5000000 --seed 0 --name aliens-dqn-outcome-only-scr5m-s0
-train_modern.py --game aliens --preset dqn-outcome-only --ticks 5000000 --seed 1 --name aliens-dqn-outcome-only-scr5m-s1
-train_modern.py --game aliens --preset dqn-outcome-only --ticks 5000000 --seed 2 --name aliens-dqn-outcome-only-scr5m-s2
-train_modern.py --game aliens --preset dqn-outcome-score01 --ticks 5000000 --seed 0 --name aliens-dqn-outcome-score01-scr5m-s0
-train_modern.py --game aliens --preset dqn-outcome-score01 --ticks 5000000 --seed 1 --name aliens-dqn-outcome-score01-scr5m-s1
-train_modern.py --game aliens --preset dqn-outcome-score01 --ticks 5000000 --seed 2 --name aliens-dqn-outcome-score01-scr5m-s2
-train_modern.py --game aliens --preset dqn-outcome-only-nstep --ticks 5000000 --seed 0 --name aliens-dqn-outcome-only-nstep-scr5m-s0
-train_modern.py --game aliens --preset dqn-outcome-only-nstep --ticks 5000000 --seed 1 --name aliens-dqn-outcome-only-nstep-scr5m-s1
-train_modern.py --game aliens --preset dqn-outcome-only-nstep --ticks 5000000 --seed 2 --name aliens-dqn-outcome-only-nstep-scr5m-s2
-train_ppo.py --game aliens --ticks 5000000 --seed 0 --outcome-score 0.1 --name aliens-ppo-outcome-score-0.1-scr5m-s0
-train_ppo.py --game aliens --ticks 5000000 --seed 1 --outcome-score 0.1 --name aliens-ppo-outcome-score-0.1-scr5m-s1
-train_ppo.py --game aliens --ticks 5000000 --seed 2 --outcome-score 0.1 --name aliens-ppo-outcome-score-0.1-scr5m-s2
+-m train.modern --game aliens --preset dqn-outcome-only --ticks 5000000 --seed 0 --name aliens-dqn-outcome-only-scr5m-s0
+-m train.modern --game aliens --preset dqn-outcome-only --ticks 5000000 --seed 1 --name aliens-dqn-outcome-only-scr5m-s1
+-m train.modern --game aliens --preset dqn-outcome-only --ticks 5000000 --seed 2 --name aliens-dqn-outcome-only-scr5m-s2
+-m train.modern --game aliens --preset dqn-outcome-score01 --ticks 5000000 --seed 0 --name aliens-dqn-outcome-score01-scr5m-s0
+-m train.modern --game aliens --preset dqn-outcome-score01 --ticks 5000000 --seed 1 --name aliens-dqn-outcome-score01-scr5m-s1
+-m train.modern --game aliens --preset dqn-outcome-score01 --ticks 5000000 --seed 2 --name aliens-dqn-outcome-score01-scr5m-s2
+-m train.modern --game aliens --preset dqn-outcome-only-nstep --ticks 5000000 --seed 0 --name aliens-dqn-outcome-only-nstep-scr5m-s0
+-m train.modern --game aliens --preset dqn-outcome-only-nstep --ticks 5000000 --seed 1 --name aliens-dqn-outcome-only-nstep-scr5m-s1
+-m train.modern --game aliens --preset dqn-outcome-only-nstep --ticks 5000000 --seed 2 --name aliens-dqn-outcome-only-nstep-scr5m-s2
+-m train.ppo --game aliens --ticks 5000000 --seed 0 --outcome-score 0.1 --name aliens-ppo-outcome-score-0.1-scr5m-s0
+-m train.ppo --game aliens --ticks 5000000 --seed 1 --outcome-score 0.1 --name aliens-ppo-outcome-score-0.1-scr5m-s1
+-m train.ppo --game aliens --ticks 5000000 --seed 2 --outcome-score 0.1 --name aliens-ppo-outcome-score-0.1-scr5m-s2

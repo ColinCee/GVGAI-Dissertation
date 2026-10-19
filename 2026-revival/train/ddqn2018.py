@@ -1,6 +1,6 @@
 """Train and evaluate the 2018 agent (agents/ddqn2018.py) on one game.
 
-    uv run python train2018.py --game aliens --episodes 2000 --seed 0 --name aliens-2018-s0
+    uv run python -m train.ddqn2018 --game aliens --episodes 2000 --seed 0 --name aliens-2018-s0
 
 Writes runs/<name>/episodes.csv (2018's reward_history columns plus timing), a checkpoint every
 --checkpoint-minutes (a stopped run resumes from it), and results/<name>.json with the 2018-style
@@ -24,9 +24,9 @@ import torch
 from agents.ddqn2018 import Agent2018, Config, play_episode
 from gvgai import heartbeat
 from gvgai.env import GvgaiEnv
-from gvgai.games import game_levels, git_commit
+from gvgai.games import ROOT, game_levels, git_commit
 
-HERE = Path(__file__).resolve().parent
+HERE = ROOT
 COLUMNS = ["episode", "score", "total_reward", "steps", "win", "epsilon", "ticks", "trained", "warmup",
            "level", "cum_ticks", "wall_s"]  # fmt: skip
 
@@ -186,4 +186,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    os._exit(0)  # see train_modern.py: teardown can segfault on Windows after everything is written
+    os._exit(0)  # see train/modern.py: teardown can segfault on Windows after everything is written

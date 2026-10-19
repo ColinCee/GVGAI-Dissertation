@@ -1,41 +1,41 @@
 # Overnight (batch-4). The -0.5 penalty is outcome shaping (domain knowledge): label it so in tables.
 # Headline: Rainbow + 2018's reward at 2018's ticks
-train_modern.py --game aliens --preset rainbow-reward2018 --ticks 1014134 --seed 0 --name aliens-rainbow-reward2018-b18-s0
-train_modern.py --game aliens --preset rainbow-reward2018 --ticks 1014134 --seed 1 --name aliens-rainbow-reward2018-b18-s1
-train_modern.py --game aliens --preset rainbow-reward2018 --ticks 1014134 --seed 2 --name aliens-rainbow-reward2018-b18-s2
-train_modern.py --game chase --preset rainbow-reward2018 --ticks 1771844 --seed 0 --name chase-rainbow-reward2018-b18-s0
-train_modern.py --game chase --preset rainbow-reward2018 --ticks 1771844 --seed 1 --name chase-rainbow-reward2018-b18-s1
-train_modern.py --game chase --preset rainbow-reward2018 --ticks 1771844 --seed 2 --name chase-rainbow-reward2018-b18-s2
-train_modern.py --game deceptizelda --preset rainbow-reward2018 --ticks 848891 --seed 0 --name deceptizelda-rainbow-reward2018-b18-s0
-train_modern.py --game deceptizelda --preset rainbow-reward2018 --ticks 848891 --seed 1 --name deceptizelda-rainbow-reward2018-b18-s1
-train_modern.py --game deceptizelda --preset rainbow-reward2018 --ticks 848891 --seed 2 --name deceptizelda-rainbow-reward2018-b18-s2
-train_modern.py --game waferthinmints2018 --preset rainbow-reward2018 --ticks 1602768 --seed 0 --name waferthinmints2018-rainbow-reward2018-b18-s0
-train_modern.py --game waferthinmints2018 --preset rainbow-reward2018 --ticks 1602768 --seed 1 --name waferthinmints2018-rainbow-reward2018-b18-s1
-train_modern.py --game waferthinmints2018 --preset rainbow-reward2018 --ticks 1602768 --seed 2 --name waferthinmints2018-rainbow-reward2018-b18-s2
+-m train.modern --game aliens --preset rainbow-reward2018 --ticks 1014134 --seed 0 --name aliens-rainbow-reward2018-b18-s0
+-m train.modern --game aliens --preset rainbow-reward2018 --ticks 1014134 --seed 1 --name aliens-rainbow-reward2018-b18-s1
+-m train.modern --game aliens --preset rainbow-reward2018 --ticks 1014134 --seed 2 --name aliens-rainbow-reward2018-b18-s2
+-m train.modern --game chase --preset rainbow-reward2018 --ticks 1771844 --seed 0 --name chase-rainbow-reward2018-b18-s0
+-m train.modern --game chase --preset rainbow-reward2018 --ticks 1771844 --seed 1 --name chase-rainbow-reward2018-b18-s1
+-m train.modern --game chase --preset rainbow-reward2018 --ticks 1771844 --seed 2 --name chase-rainbow-reward2018-b18-s2
+-m train.modern --game deceptizelda --preset rainbow-reward2018 --ticks 848891 --seed 0 --name deceptizelda-rainbow-reward2018-b18-s0
+-m train.modern --game deceptizelda --preset rainbow-reward2018 --ticks 848891 --seed 1 --name deceptizelda-rainbow-reward2018-b18-s1
+-m train.modern --game deceptizelda --preset rainbow-reward2018 --ticks 848891 --seed 2 --name deceptizelda-rainbow-reward2018-b18-s2
+-m train.modern --game waferthinmints2018 --preset rainbow-reward2018 --ticks 1602768 --seed 0 --name waferthinmints2018-rainbow-reward2018-b18-s0
+-m train.modern --game waferthinmints2018 --preset rainbow-reward2018 --ticks 1602768 --seed 1 --name waferthinmints2018-rainbow-reward2018-b18-s1
+-m train.modern --game waferthinmints2018 --preset rainbow-reward2018 --ticks 1602768 --seed 2 --name waferthinmints2018-rainbow-reward2018-b18-s2
 # Modern DQN + 2018's reward, up to 5M ticks
-train_modern.py --game aliens --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-reward2018-long-s0
-train_modern.py --game aliens --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-reward2018-long-s1
-train_modern.py --game aliens --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-reward2018-long-s2
-train_modern.py --game chase --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 0 --name chase-dqn-reward2018-long-s0
-train_modern.py --game chase --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 1 --name chase-dqn-reward2018-long-s1
-train_modern.py --game chase --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 2 --name chase-dqn-reward2018-long-s2
-train_modern.py --game deceptizelda --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 0 --name deceptizelda-dqn-reward2018-long-s0
-train_modern.py --game deceptizelda --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 1 --name deceptizelda-dqn-reward2018-long-s1
-train_modern.py --game deceptizelda --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 2 --name deceptizelda-dqn-reward2018-long-s2
-train_modern.py --game waferthinmints2018 --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 0 --name waferthinmints2018-dqn-reward2018-long-s0
-train_modern.py --game waferthinmints2018 --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 1 --name waferthinmints2018-dqn-reward2018-long-s1
-train_modern.py --game waferthinmints2018 --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 2 --name waferthinmints2018-dqn-reward2018-long-s2
+-m train.modern --game aliens --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-reward2018-long-s0
+-m train.modern --game aliens --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-reward2018-long-s1
+-m train.modern --game aliens --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-reward2018-long-s2
+-m train.modern --game chase --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 0 --name chase-dqn-reward2018-long-s0
+-m train.modern --game chase --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 1 --name chase-dqn-reward2018-long-s1
+-m train.modern --game chase --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 2 --name chase-dqn-reward2018-long-s2
+-m train.modern --game deceptizelda --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 0 --name deceptizelda-dqn-reward2018-long-s0
+-m train.modern --game deceptizelda --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 1 --name deceptizelda-dqn-reward2018-long-s1
+-m train.modern --game deceptizelda --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 2 --name deceptizelda-dqn-reward2018-long-s2
+-m train.modern --game waferthinmints2018 --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 0 --name waferthinmints2018-dqn-reward2018-long-s0
+-m train.modern --game waferthinmints2018 --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 1 --name waferthinmints2018-dqn-reward2018-long-s1
+-m train.modern --game waferthinmints2018 --preset dqn-reward2018 --ticks 5000000 --early-stop --seed 2 --name waferthinmints2018-dqn-reward2018-long-s2
 # Penalty ablation on Aliens (0.25 dropped: below the noise floor at 3 seeds)
-train_modern.py --game aliens --preset dqn-penalty-only --ticks 1014134 --seed 0 --name aliens-dqn-penalty-only-b18-s0
-train_modern.py --game aliens --preset dqn-penalty-only --ticks 1014134 --seed 1 --name aliens-dqn-penalty-only-b18-s1
-train_modern.py --game aliens --preset dqn-penalty-only --ticks 1014134 --seed 2 --name aliens-dqn-penalty-only-b18-s2
-train_modern.py --game aliens --preset dqn-reward2018-p1 --ticks 1014134 --seed 0 --name aliens-dqn-reward2018-p1-b18-s0
-train_modern.py --game aliens --preset dqn-reward2018-p1 --ticks 1014134 --seed 1 --name aliens-dqn-reward2018-p1-b18-s1
-train_modern.py --game aliens --preset dqn-reward2018-p1 --ticks 1014134 --seed 2 --name aliens-dqn-reward2018-p1-b18-s2
+-m train.modern --game aliens --preset dqn-penalty-only --ticks 1014134 --seed 0 --name aliens-dqn-penalty-only-b18-s0
+-m train.modern --game aliens --preset dqn-penalty-only --ticks 1014134 --seed 1 --name aliens-dqn-penalty-only-b18-s1
+-m train.modern --game aliens --preset dqn-penalty-only --ticks 1014134 --seed 2 --name aliens-dqn-penalty-only-b18-s2
+-m train.modern --game aliens --preset dqn-reward2018-p1 --ticks 1014134 --seed 0 --name aliens-dqn-reward2018-p1-b18-s0
+-m train.modern --game aliens --preset dqn-reward2018-p1 --ticks 1014134 --seed 1 --name aliens-dqn-reward2018-p1-b18-s1
+-m train.modern --game aliens --preset dqn-reward2018-p1 --ticks 1014134 --seed 2 --name aliens-dqn-reward2018-p1-b18-s2
 # Score-gap checks on Aliens: 2018's replay size (100k), and raw 0-255 inputs + MSE loss as 2018
-train_modern.py --game aliens --preset dqn-reward2018 --buffer 100000 --ticks 1014134 --seed 0 --name aliens-dqn-reward2018-buf100k-b18-s0
-train_modern.py --game aliens --preset dqn-reward2018 --buffer 100000 --ticks 1014134 --seed 1 --name aliens-dqn-reward2018-buf100k-b18-s1
-train_modern.py --game aliens --preset dqn-reward2018 --buffer 100000 --ticks 1014134 --seed 2 --name aliens-dqn-reward2018-buf100k-b18-s2
-train_modern.py --game aliens --preset dqn-reward2018-raw-mse --ticks 1014134 --seed 0 --name aliens-dqn-reward2018-raw-mse-b18-s0
-train_modern.py --game aliens --preset dqn-reward2018-raw-mse --ticks 1014134 --seed 1 --name aliens-dqn-reward2018-raw-mse-b18-s1
-train_modern.py --game aliens --preset dqn-reward2018-raw-mse --ticks 1014134 --seed 2 --name aliens-dqn-reward2018-raw-mse-b18-s2
+-m train.modern --game aliens --preset dqn-reward2018 --buffer 100000 --ticks 1014134 --seed 0 --name aliens-dqn-reward2018-buf100k-b18-s0
+-m train.modern --game aliens --preset dqn-reward2018 --buffer 100000 --ticks 1014134 --seed 1 --name aliens-dqn-reward2018-buf100k-b18-s1
+-m train.modern --game aliens --preset dqn-reward2018 --buffer 100000 --ticks 1014134 --seed 2 --name aliens-dqn-reward2018-buf100k-b18-s2
+-m train.modern --game aliens --preset dqn-reward2018-raw-mse --ticks 1014134 --seed 0 --name aliens-dqn-reward2018-raw-mse-b18-s0
+-m train.modern --game aliens --preset dqn-reward2018-raw-mse --ticks 1014134 --seed 1 --name aliens-dqn-reward2018-raw-mse-b18-s1
+-m train.modern --game aliens --preset dqn-reward2018-raw-mse --ticks 1014134 --seed 2 --name aliens-dqn-reward2018-raw-mse-b18-s2

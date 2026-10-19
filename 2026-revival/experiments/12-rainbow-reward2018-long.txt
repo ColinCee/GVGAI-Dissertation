@@ -1,13 +1,13 @@
 # Rainbow + 2018's reward up to 5M ticks, all games, 3 seeds (best-of candidate)
-train_modern.py --game aliens --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 0 --name aliens-rainbow-reward2018-long-s0
-train_modern.py --game aliens --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 1 --name aliens-rainbow-reward2018-long-s1
-train_modern.py --game aliens --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 2 --name aliens-rainbow-reward2018-long-s2
-train_modern.py --game chase --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 0 --name chase-rainbow-reward2018-long-s0
-train_modern.py --game chase --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 1 --name chase-rainbow-reward2018-long-s1
-train_modern.py --game chase --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 2 --name chase-rainbow-reward2018-long-s2
-train_modern.py --game deceptizelda --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 0 --name deceptizelda-rainbow-reward2018-long-s0
-train_modern.py --game deceptizelda --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 1 --name deceptizelda-rainbow-reward2018-long-s1
-train_modern.py --game deceptizelda --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 2 --name deceptizelda-rainbow-reward2018-long-s2
-train_modern.py --game waferthinmints2018 --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 0 --name waferthinmints2018-rainbow-reward2018-long-s0
-train_modern.py --game waferthinmints2018 --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 1 --name waferthinmints2018-rainbow-reward2018-long-s1
-train_modern.py --game waferthinmints2018 --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 2 --name waferthinmints2018-rainbow-reward2018-long-s2
+-m train.modern --game aliens --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 0 --name aliens-rainbow-reward2018-long-s0
+-m train.modern --game aliens --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 1 --name aliens-rainbow-reward2018-long-s1
+-m train.modern --game aliens --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 2 --name aliens-rainbow-reward2018-long-s2
+-m train.modern --game chase --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 0 --name chase-rainbow-reward2018-long-s0
+-m train.modern --game chase --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 1 --name chase-rainbow-reward2018-long-s1
+-m train.modern --game chase --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 2 --name chase-rainbow-reward2018-long-s2
+-m train.modern --game deceptizelda --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 0 --name deceptizelda-rainbow-reward2018-long-s0
+-m train.modern --game deceptizelda --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 1 --name deceptizelda-rainbow-reward2018-long-s1
+-m train.modern --game deceptizelda --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 2 --name deceptizelda-rainbow-reward2018-long-s2
+-m train.modern --game waferthinmints2018 --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 0 --name waferthinmints2018-rainbow-reward2018-long-s0
+-m train.modern --game waferthinmints2018 --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 1 --name waferthinmints2018-rainbow-reward2018-long-s1
+-m train.modern --game waferthinmints2018 --preset rainbow-reward2018 --ticks 5000000 --early-stop --seed 2 --name waferthinmints2018-rainbow-reward2018-long-s2

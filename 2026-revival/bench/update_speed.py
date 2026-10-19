@@ -13,7 +13,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from agents.modern import ModernAgent  # noqa: E402
-from train_modern import PRESETS  # noqa: E402
+from train.modern import PRESETS  # noqa: E402
 
 if __name__ == "__main__":
     for preset, compiled in [(p, c) for p in sys.argv[1:] or ["dqn"] for c in (False, True)]:

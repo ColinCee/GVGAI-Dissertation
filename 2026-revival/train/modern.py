@@ -1,6 +1,6 @@
 """Train and evaluate a modern agent (agents/modern.py) on one game, many games in parallel.
 
-    uv run python train_modern.py --game aliens --preset dqn --ticks 1014134 --seed 0 --name aliens-dqn-s0
+    uv run python -m train.modern --game aliens --preset dqn --ticks 1014134 --seed 0 --name aliens-dqn-s0
 
 Budget is in game ticks (2018's first 2000 Aliens episodes used 1,014,134). Writes
 runs/<name>/episodes.csv and results/<name>.json with the same evaluation as the 2018 runs
@@ -15,17 +15,17 @@ import sys
 import time
 from contextlib import nullcontext
 from dataclasses import asdict, replace
-from pathlib import Path
 
 import numpy as np
 import torch
 
-from agents.modern import STACK, ModernAgent, ModernConfig, rainbow, upload
+from agents.evaluate import Stacks, evaluate, finished
+from agents.modern import ModernAgent, ModernConfig, rainbow
 from gvgai import heartbeat
-from gvgai.games import HELD_OUT, game_levels, git_commit
+from gvgai.games import HELD_OUT, ROOT, game_levels, git_commit
 from gvgai.vec import vector
 
-HERE = Path(__file__).resolve().parent
+HERE = ROOT
 
 
 PRESETS = {
@@ -58,33 +58,6 @@ PRESETS = {
 }
 
 
-class Stacks:
-    """Last STACK frames per game, kept on the agent's device; a new episode starts with its first
-    frame repeated. `newest` is the latest frame as numpy, for the replay."""
-
-    def __init__(self, first: np.ndarray, device: str):
-        self.device = device
-        f = upload(first, device)
-        self.s = f[:, None].repeat(1, STACK, 1, 1)
-        self.newest = first
-
-    def push(self, frames: np.ndarray, reset: np.ndarray) -> None:
-        f = upload(frames, self.device)
-        self.s = torch.cat([self.s[:, 1:], f[:, None]], 1)
-        if reset.any():
-            r = torch.from_numpy(reset).to(self.device)
-            self.s[r] = f[r][:, None].repeat(1, STACK, 1, 1)
-        self.newest = frames
-
-    def array(self) -> torch.Tensor:
-        return self.s
-
-
-def finished(info: dict, ended: np.ndarray) -> list[dict]:
-    fi = info.get("final_info", {})
-    return [{k: fi[k][e] for k in ("score", "win", "level")} for e in np.flatnonzero(ended)]
-
-
 def flattened(history: list[tuple[int, float, int]], ticks: int, min_ticks: int = 3_000_000) -> bool:
     """The plan's rule for long runs: compare the last 20% of ticks with the 20% before it; stop when
     wins rose by under 2 points and mean score by under 2%. history: (cum_ticks, score, win) per game."""
@@ -99,34 +72,6 @@ def flattened(history: list[tuple[int, float, int]], ticks: int, min_ticks: int 
     s_prior = np.mean([x[0] for x in prior])
     score_gain = (np.mean([x[0] for x in recent]) - s_prior) / max(abs(s_prior), 0.5)
     return win_gain < 2 and score_gain < 0.02
-
-
-def evaluate(agent: ModernAgent, game: str, n_envs: int, games: int, levels, seed: int, repeat: int) -> dict:
-    env = vector(game, n_envs, seed, levels, repeat)
-    obs, _ = env.reset(seed=seed)
-    stacks = Stacks(obs, agent.device)
-    per_env = -(-games // n_envs)
-    done_count = np.zeros(n_envs, np.int64)
-    rows: list[dict] = []
-    agent.q.eval()
-    while (done_count < per_env).any():
-        a = agent.act(stacks.array(), 0.0)
-        obs, _, term, trunc, info = env.step(a)
-        ended = term | trunc
-        for e, r in zip(np.flatnonzero(ended), finished(info, ended), strict=True):
-            if done_count[e] < per_env:
-                rows.append(r)
-            done_count[e] += 1
-        stacks.push(obs, ended)
-    agent.q.train()
-    env.close()
-    rows = rows[:games]
-    return {
-        "games": len(rows), "levels": list(levels),
-        "mean_score": float(np.mean([r["score"] for r in rows])),
-        "win_rate": float(np.mean([r["win"] for r in rows])),
-        "scores": [float(r["score"]) for r in rows], "wins": [int(r["win"]) for r in rows],
-    }  # fmt: skip
 
 
 def main() -> None:

@@ -1,10 +1,10 @@
 """PPO on one game: the policy-gradient branch of today's methods, for comparison with the DQN family.
 
-    uv run python train_ppo.py --game aliens --ticks 1014134 --seed 0 --name aliens-ppo-b18-s0
+    uv run python -m train.ppo --game aliens --ticks 1014134 --seed 0 --name aliens-ppo-b18-s0
 
 Follows CleanRL's ppo_atari.py defaults (8 games x 128 moves per rollout, 4 epochs of 4 minibatches,
 clip 0.1, entropy 0.01, GAE 0.95, learning rate annealed to 0) on the same env layer, preprocessing,
-action repeat and evaluation as train_modern.py. A timeout is a truncation: its value is bootstrapped.
+action repeat and evaluation as train/modern.py. A timeout is a truncation: its value is bootstrapped.
 """
 
 import argparse
@@ -13,20 +13,19 @@ import json
 import os
 import time
 from dataclasses import asdict, dataclass
-from pathlib import Path
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
 
+from agents.evaluate import Stacks, evaluate, finished
 from agents.modern import STACK, upload
 from gvgai import heartbeat
-from gvgai.games import HELD_OUT, game_levels, git_commit
+from gvgai.games import HELD_OUT, ROOT, game_levels, git_commit
 from gvgai.vec import vector
-from train_modern import Stacks, evaluate, finished
 
-HERE = Path(__file__).resolve().parent
+HERE = ROOT
 
 
 @dataclass
@@ -75,7 +74,7 @@ class ActorCritic(nn.Module):
 
 
 class GreedyAgent:
-    """What train_modern.evaluate expects: .q with eval()/train(), and act(stacks, eps)."""
+    """What agents.evaluate.evaluate expects: .q, .device and act(stacks, eps)."""
 
     def __init__(self, net: ActorCritic, device: str):
         self.q, self.device = net, device
@@ -224,4 +223,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    os._exit(0)  # see train_modern.py
+    os._exit(0)  # see train/modern.py

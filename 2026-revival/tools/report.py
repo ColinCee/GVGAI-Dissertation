@@ -1,6 +1,6 @@
 """Build the comparison tables from results/*.json and the 2018 data.
 
-    uv run python report.py            # writes results/summary.md
+    uv run python -m tools.report            # writes results/summary.md
 
 Runs are grouped by name without the seed suffix; seeds are averaged, win-% range shown.
 Superseded runs (results/superseded/) are left out.
@@ -13,9 +13,9 @@ from pathlib import Path
 
 import numpy as np
 
-from gvgai.games import GAMES
+from gvgai.games import GAMES, ROOT
 
-HERE = Path(__file__).resolve().parent
+HERE = ROOT
 RESULTS = HERE / "results"
 CURVES = RESULTS / "curves"  # training logs of the runs whose curves are reported; the rest were not kept
 NAMES = {"aliens": "Aliens", "chase": "Chase", "deceptizelda": "Deceptizelda",

@@ -1,6 +1,6 @@
 # GVGAI DQN dissertation, 2018 → 2026: results
 
-What happened when the 2018 dissertation (DQN and its improvements on four GVGAI games) was rebuilt on today's software and hardware, re-run exactly, and then compared with today's methods. Full tables: [results/summary.md](results/summary.md) (regenerate with `uv run python report.py`). Every speed change: [IMPROVEMENTS.md](IMPROVEMENTS.md). Setup and caveats: [README.md](README.md).
+What happened when the 2018 dissertation (DQN and its improvements on four GVGAI games) was rebuilt on today's software and hardware, re-run exactly, and then compared with today's methods. Full tables: [results/summary.md](results/summary.md) (regenerate with `uv run python -m tools.report`). Every speed change: [IMPROVEMENTS.md](IMPROVEMENTS.md). Setup and caveats: [README.md](README.md).
 
 ## Headlines
 

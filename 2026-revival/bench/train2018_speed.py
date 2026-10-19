@@ -13,8 +13,8 @@ HERE = Path(__file__).resolve().parents[1]
 if __name__ == "__main__":
     device = sys.argv[1] if len(sys.argv) > 1 else "cuda"
     name = f"bench-2018-{device}"
-    subprocess.run([sys.executable, "-u", "train2018.py", "--game", "aliens", "--episodes", "400", "--seed", "0",
-                    "--eval-games", "2", "--device", device, "--threads", "1", "--name", name],
+    subprocess.run([sys.executable, "-u", "-m", "train.ddqn2018", "--game", "aliens", "--episodes", "400",
+                    "--seed", "0", "--eval-games", "2", "--device", device, "--threads", "1", "--name", name],
                    cwd=HERE, capture_output=True, check=False)  # fmt: skip
     rows = list(csv.DictReader((HERE / "runs" / name / "episodes.csv").read_text().splitlines()))
     trained = [r for r in rows if r["warmup"] == "0"]

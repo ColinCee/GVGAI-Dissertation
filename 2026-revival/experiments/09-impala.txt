@@ -1,9 +1,9 @@
 # IMPALA residual encoder, Aliens: first probe (one 5M run per method; 3 seeds at 2018's ticks)
-train_modern.py --game aliens --preset dqn-impala --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-impala-long-s0
-train_modern.py --game aliens --preset dqn-impala --ticks 1014134 --seed 0 --name aliens-dqn-impala-b18-s0
-train_modern.py --game aliens --preset dqn-impala --ticks 1014134 --seed 1 --name aliens-dqn-impala-b18-s1
-train_modern.py --game aliens --preset dqn-impala --ticks 1014134 --seed 2 --name aliens-dqn-impala-b18-s2
-train_modern.py --game aliens --preset rainbow-impala --ticks 5000000 --early-stop --seed 0 --name aliens-rainbow-impala-long-s0
-train_modern.py --game aliens --preset rainbow-impala --ticks 1014134 --seed 0 --name aliens-rainbow-impala-b18-s0
-train_modern.py --game aliens --preset rainbow-impala --ticks 1014134 --seed 1 --name aliens-rainbow-impala-b18-s1
-train_modern.py --game aliens --preset rainbow-impala --ticks 1014134 --seed 2 --name aliens-rainbow-impala-b18-s2
+-m train.modern --game aliens --preset dqn-impala --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-impala-long-s0
+-m train.modern --game aliens --preset dqn-impala --ticks 1014134 --seed 0 --name aliens-dqn-impala-b18-s0
+-m train.modern --game aliens --preset dqn-impala --ticks 1014134 --seed 1 --name aliens-dqn-impala-b18-s1
+-m train.modern --game aliens --preset dqn-impala --ticks 1014134 --seed 2 --name aliens-dqn-impala-b18-s2
+-m train.modern --game aliens --preset rainbow-impala --ticks 5000000 --early-stop --seed 0 --name aliens-rainbow-impala-long-s0
+-m train.modern --game aliens --preset rainbow-impala --ticks 1014134 --seed 0 --name aliens-rainbow-impala-b18-s0
+-m train.modern --game aliens --preset rainbow-impala --ticks 1014134 --seed 1 --name aliens-rainbow-impala-b18-s1
+-m train.modern --game aliens --preset rainbow-impala --ticks 1014134 --seed 2 --name aliens-rainbow-impala-b18-s2
