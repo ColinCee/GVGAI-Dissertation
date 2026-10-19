@@ -31,7 +31,10 @@ def job(game: str, setup: str, ticks: int, seed: int) -> tuple[str, str]:
 
 
 def curve(name: str) -> tuple[float, float]:
-    rows = list(csv.DictReader((HERE / "runs" / name / "episodes.csv").read_text().splitlines()))
+    log = HERE / "runs" / name / "episodes.csv"
+    if not log.exists():  # training logs of old runs were not kept
+        return float("nan"), float("nan")
+    rows = list(csv.DictReader(log.read_text().splitlines()))
     tail = rows[-max(1, len(rows) // 4) :]
     return float(np.mean([float(r["score"]) for r in tail])), 100 * float(np.mean([int(r["win"]) for r in tail]))
 

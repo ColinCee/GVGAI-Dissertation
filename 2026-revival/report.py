@@ -17,6 +17,7 @@ from gvgai.games import GAMES
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE / "results"
+CURVES = RESULTS / "curves"  # training logs of the runs whose curves are reported; the rest were not kept
 NAMES = {"aliens": "Aliens", "chase": "Chase", "deceptizelda": "Deceptizelda",
          "waferthinmints2018": "Wafer Thin Mints"}  # fmt: skip
 
@@ -127,8 +128,8 @@ def main() -> None:
     for name, run in ABLATION_2026.items():
         rep = CURVES_2018.get(name)
         rep_s = " / ".join(f"{b:.0f}" for b in rep) if rep else "– (figure only)"
-        curves = [win_blocks([int(x["win"]) for x in read_csv(HERE / "runs" / r["name"] / "episodes.csv")])
-                  for r in g.get(run, []) if (HERE / "runs" / r["name"] / "episodes.csv").exists()]  # fmt: skip
+        curves = [win_blocks([int(x["win"]) for x in read_csv(CURVES / f"{r['name']}.csv")])
+                  for r in g.get(run, []) if (CURVES / f"{r['name']}.csv").exists()]  # fmt: skip
         cur_s = " / ".join(f"{b:.0f}" for b in np.mean(curves, axis=0)) if curves else "–"
         out.append(f"| {name} | {rep_s} | {cur_s} | {cell(g.get(run, []))} |")
 
