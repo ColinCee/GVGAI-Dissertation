@@ -58,7 +58,8 @@ def main() -> None:
             ln = re.sub(r"--seed \d+", f"--seed {seed}", ln)
             ln = re.sub(r"--name \S+", f"--name {g}-best-s{seed}", ln)
             out.append(ln + " --eval-games 100")
-    OUT.write_text("\n".join(out) + "\n")
+    if not a.dry:
+        OUT.write_text("\n".join(out) + "\n")
     print("\n".join(out))
 
 

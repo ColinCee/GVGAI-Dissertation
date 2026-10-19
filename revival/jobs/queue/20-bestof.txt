@@ -1,0 +1,17 @@
+# Best 5M setup per game, at 10M ticks, 3 seeds, 100 eval games (written by bestof.py)
+# aliens: aliens-rainbow-long (57.0, 93% at 5M)
+train_modern.py --game aliens --preset rainbow --ticks 10000000 --early-stop --seed 0 --name aliens-best-s0 --eval-games 100
+train_modern.py --game aliens --preset rainbow --ticks 10000000 --early-stop --seed 1 --name aliens-best-s1 --eval-games 100
+train_modern.py --game aliens --preset rainbow --ticks 10000000 --early-stop --seed 2 --name aliens-best-s2 --eval-games 100
+# chase: chase-dqn-long (0.6, 0% at 5M)
+train_modern.py --game chase --preset dqn --ticks 10000000 --early-stop --seed 0 --name chase-best-s0 --eval-games 100
+train_modern.py --game chase --preset dqn --ticks 10000000 --early-stop --seed 1 --name chase-best-s1 --eval-games 100
+train_modern.py --game chase --preset dqn --ticks 10000000 --early-stop --seed 2 --name chase-best-s2 --eval-games 100
+# deceptizelda: deceptizelda-rainbow-long (2.0, 100% at 5M)
+train_modern.py --game deceptizelda --preset rainbow --ticks 10000000 --early-stop --seed 0 --name deceptizelda-best-s0 --eval-games 100
+train_modern.py --game deceptizelda --preset rainbow --ticks 10000000 --early-stop --seed 1 --name deceptizelda-best-s1 --eval-games 100
+train_modern.py --game deceptizelda --preset rainbow --ticks 10000000 --early-stop --seed 2 --name deceptizelda-best-s2 --eval-games 100
+# waferthinmints2018: waferthinmints2018-dqn-long (9.5, 41% at 5M)
+train_modern.py --game waferthinmints2018 --preset dqn --ticks 10000000 --early-stop --seed 0 --name waferthinmints2018-best-s0 --eval-games 100
+train_modern.py --game waferthinmints2018 --preset dqn --ticks 10000000 --early-stop --seed 1 --name waferthinmints2018-best-s1 --eval-games 100
+train_modern.py --game waferthinmints2018 --preset dqn --ticks 10000000 --early-stop --seed 2 --name waferthinmints2018-best-s2 --eval-games 100

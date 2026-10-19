@@ -1,0 +1,17 @@
+{
+ "name": "mcts-waferthinmints2018",
+ "agent": "MCTS 40 ms",
+ "game": "waferthinmints2018",
+ "seed": 0,
+ "levels": [
+  0,
+  1,
+  2
+ ],
+ "eval": {
+  "games": 51,
+  "mean_score": 9.72549019607843,
+  "win_rate": 0.7450980392156863,
+  "iters_per_move": 596.0823529411765
+ }
+}
