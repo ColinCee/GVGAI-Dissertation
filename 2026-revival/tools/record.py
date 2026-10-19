@@ -251,11 +251,14 @@ public class RecordMCTS {
         frames = new BufferedOutputStream(new FileOutputStream(a[3] + ".rgb"), 1 << 20);
         PrintWriter log = new PrintWriter(new FileWriter(a[3] + ".log"));
         StateObservation start = g.getObservation();
+        StringBuilder names = new StringBuilder("ACTIONS");
+        for (Types.ACTIONS act : start.getAvailableActions()) names.append(" ").append(act);
         AbstractPlayer mcts = new tracks.singlePlayer.advanced.sampleMCTS.Agent(start, new ElapsedCpuTimer()) {
             public SingleMCTSPlayer getPlayer(StateObservation so, ElapsedCpuTimer t) {
                 return new SingleMCTSPlayer(new Random(searchSeed), num_actions, actions);
             }
         };
+        log.println(names);
         AbstractPlayer p = new AbstractPlayer() {
             public Types.ACTIONS act(StateObservation so, ElapsedCpuTimer t) {
                 frame();  // drawn after the previous tick
@@ -294,8 +297,8 @@ def play_mcts(iters: int, search_seed: int, game: str, level: int, seed: int) ->
         _, win, score, _, w, h = lines[-1].split()
         raw = np.fromfile(Path(tmp) / "out.rgb", np.uint8)
     frames = list(raw.reshape(-1, int(h), int(w), 3))
-    moves = [ln.split() for ln in lines[:-1]]
-    names = sorted({m[1] for m in moves[1:]})
+    names = lines[0].split()[1:]  # the game's actions, in the engine's order (as GvgaiEnv's)
+    moves = [ln.split() for ln in lines[1:-1]]
     decisions = [{"tick": int(t), "action": a, "score": float(s)} for t, a, s in moves]
     # the game's tick counter reads 1 on the first frame the client sees (as GvgaiEnv's reset); align
     for d in decisions:
