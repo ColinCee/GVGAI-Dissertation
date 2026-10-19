@@ -9,6 +9,8 @@ rainbow_atari.py (MIT, https://github.com/vwxyzjn/cleanrl). Differences that mat
 """
 
 import math
+import os
+import tempfile
 from dataclasses import dataclass
 
 import numpy as np
@@ -337,6 +339,9 @@ class ModernAgent:
             # Fuses the small steps between layers into fewer kernels, inside the CUDA graph below (which
             # already removes launch costs): Rainbow update 1.4x, IMPALA 1.2x, Nature 1.1x. Not autotuned:
             # that adds 12% on IMPALA but its first compile can pass the engine's 500 s limit on one move.
+            # Each process its own compile cache: runs starting together raced on the shared one and loaded
+            # half-written kernels.
+            os.environ.setdefault("TORCHINDUCTOR_CACHE_DIR", tempfile.mkdtemp(prefix="inductor-"))
             for net in (self.q, self.target):
                 net.compile()
         self.replay = GpuReplay(n_envs, cfg.buffer_decisions, h, w, cfg, device)
