@@ -1,0 +1,17 @@
+{
+ "name": "mcts-chase-i200",
+ "agent": "MCTS 200 iterations",
+ "game": "chase",
+ "seed": 0,
+ "levels": [
+  0,
+  1,
+  2
+ ],
+ "eval": {
+  "games": 51,
+  "mean_score": 3.4705882352941178,
+  "win_rate": 0.058823529411764705,
+  "iters_per_move": 200.10392156862744
+ }
+}

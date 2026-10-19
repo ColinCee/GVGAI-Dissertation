@@ -79,6 +79,7 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 | Rainbow, IMPALA network | **54.7 (85%)** | 78% | 58.7 (93%) |
 | Rainbow, IMPALA + 2018's reward | 43.4 (95%) | 69% | – |
 | PPO (policy gradient, not Q-learning) | 37.6 (82%) = holding shoot | 72% | 45.9 (83%) |
+| PPO, reward only ±1 at the game's end (no score) | 39.4 (78%) | 89% | 43.5 (**94%**, 88–100), held-out 84% |
 | DQN, 2× / 4× more updates per tick | 47.2 (35%) / 53.0 (70%) | 57% / 46% | – |
 | Rainbow, 2× / 4× more updates per tick | 46.8 (63%) / 51.0 (65%) | 73% / 65% | – |
 | DQN / Rainbow trained on all 5 levels | – | – | 55.8 (79%) / 56.0 (81%); "held-out" 83% / 77%, but those levels were seen |
@@ -86,6 +87,7 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 
 - **At 2018's budget, a bigger network or more updates per tick both add ~11–14 points** over modern DQN (39.5 → 52.7 / 53.0). The IMPALA network costs 2–3× the wall time per tick (9–11 min per 1M-tick run vs 3–5), so at equal compute the comparison is closer than the table suggests. More updates per tick make wins unstable (35–70%).
 - **PPO learns "hold shoot"** on Aliens' training levels at 2018's budget (game for game the same as the baseline), and still wins 72% of held-out games. At 5M ticks it scores 45.9, above the baseline. Its 100% on Deceptizelda says little: holding right also wins every game.
+- **PPO rewarded only for the outcome** (+1 win, −1 loss, nothing for points) does not settle on holding shoot, and at 5M ticks wins 94% of games, clearly above the baseline (82%) and level with the best DQN (96%), at a lower score (43.5 vs 62.5): it plays to win, not to score.
 - **Beyond ~5M ticks Aliens plateaus** around 57–62 points, still well short of MCTS's 78.
 - **Not tested:** PPO with the IMPALA network; equal-compute comparisons; 2018's 4-frame stacks with modern agents.
 

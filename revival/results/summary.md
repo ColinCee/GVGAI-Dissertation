@@ -102,6 +102,8 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | aliens-dqn-rr1.0-b18 | 3 | 53.0 (70%, 54–84) | 33.0 (46%, 30–54) | 1.01M | 7 min |
 | aliens-ppo-b18 | 3 | 37.6 (82%, 78–86) | 35.0 (72%, 64–80) | 1.01M | 2 min |
 | aliens-ppo-long | 3 | 45.9 (83%, 76–92) | 37.6 (82%, 80–84) | 4.99M | 9 min |
+| aliens-ppo-outcome-only-b18 | 3 | 39.4 (78%, 74–82) | 39.3 (89%, 82–98) | 1.01M | 2 min |
+| aliens-ppo-outcome-only-long | 3 | 43.5 (94%, 88–100) | 37.9 (84%, 76–90) | 4.98M | 11 min |
 | aliens-ppo-reward2018-b18 | 3 | 37.6 (82%, 78–86) | 37.0 (82%, 82–82) | 1.01M | 2 min |
 | aliens-rainbow-alllevels-long | 3 | 56.0 (81%, 70–88) | 43.8 (77%, 76–80) | 4.17M | 20 min |
 | aliens-rainbow-b18 | 3 | 43.2 (66%, 62–72) | 39.1 (89%, 82–100) | 1.01M | 3 min |
