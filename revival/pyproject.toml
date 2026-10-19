@@ -2,7 +2,7 @@
 name = "gvgai-revival"
 version = "0.1.0"
 description = "2026 rerun of the 2018 GVGAI DQN dissertation"
-requires-python = ">=3.14"
+requires-python = ">=3.14,<3.15"  # 3.15: no torch.compile yet
 dependencies = [
     "gymnasium>=1.2",
     "numpy>=2.5",
