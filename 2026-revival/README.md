@@ -22,12 +22,13 @@ The 2018 dissertation rebuilt on 2026 software: the GVGAI engine made ~75× fast
 | `batch.py` | Runs a list of commands a few at a time, skipping finished ones |
 | `report.py` | Builds [results/summary.md](results/summary.md) from `results/*.json` |
 | `experiments/` | The run lists behind every reported number: `uv run python batch.py experiments/<file>.txt` |
-| `results/` | One JSON per run (evaluation, timing, config, commit); `results/2018/` the 2018 training data |
+| `results/` | One JSON per run (evaluation, timing, config, commit); `results/curves/` the training logs behind reported curves; `results/2018/` the 2018 training data |
 | `gvgai/` | The Python side of the engine: env, many games at once, shared game list |
 | `engine/` | GVGAI_GYM's Java engine and games (commit `15e0a86`) with this project's speed changes |
 | `tests/` | Golden replay of the engine, action repeat, replay sampling |
 | `bench/` | The measurements cited in IMPROVEMENTS.md |
-| `runs/` | Per-run training logs and checkpoints (not in git) |
+| `runs/` | Per-run training logs and checkpoints, created by each run (not in git; this round's 57 GB were deleted, keeping the reported curves in `results/curves/`) |
+| `weights/` | Trained networks kept for showing agents play: the best modern DQN, the IMPALA DQN and the 2018 agent replay, all on Aliens (not in git, 45 MB) |
 
 ## Engine changes
 
