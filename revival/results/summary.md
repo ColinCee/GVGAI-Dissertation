@@ -13,8 +13,11 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | Modern DQN, 2018's ticks | 39.5 (57%, 42–84) | 0.0 (0%, 0–0) | 1.3 (67%, 0–100) | 7.7 (52%, 34–70) |
 | Modern DQN + 2018's reward, 2018's ticks | 39.4 (85%, 80–88) | – | – | 7.5 (59%, 32–86) |
 | Rainbow, 2018's ticks | 43.2 (66%, 62–72) | 0.0 (0%, 0–0) | 1.0 (42%, 0–100) | 7.4 (57%, 42–86) |
+| Rainbow, IMPALA network, 2018's ticks | 54.7 (85%, 82–90) | – | – | – |
+| PPO, 2018's ticks | 37.6 (82%, 78–86) | 0.0 (0%, 0–0) | 2.0 (100%, 100–100) | 6.3 (73%, 72–74) |
 | Modern DQN, up to 5M ticks | 58.6 (89%, 84–94) | 0.6 (0%, 0–0) | 2.0 (100%, 100–100) | 9.5 (41%, 38–44) |
 | Rainbow, up to 5M ticks | 57.0 (93%, 90–98) | 0.0 (0%, 0–0) | 2.0 (100%, 100–100) | 9.5 (35%, 20–60) |
+| Best 5M setup, up to 10M ticks, 100 eval games | 58.0 (95%, 93–98) | 0.8 (0%, 0–0) | 2.0 (100%, 100–100) | 10.2 (31%, 24–37) |
 
 ## Held-out levels 3–4 (never trained on)
 
@@ -23,8 +26,11 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | Modern DQN, 2018's ticks | 35.1 (61%, 28–78) | 0.0 (0%, 0–0) | 1.3 (67%, 0–100) | 7.8 (51%, 38–68) |
 | Modern DQN + 2018's reward, 2018's ticks | 25.9 (31%, 2–48) | – | – | 7.4 (55%, 20–92) |
 | Rainbow, 2018's ticks | 39.1 (89%, 82–100) | 0.0 (0%, 0–0) | 1.0 (46%, 0–100) | 6.8 (59%, 38–86) |
+| Rainbow, IMPALA network, 2018's ticks | 40.7 (78%, 70–94) | – | – | – |
+| PPO, 2018's ticks | 35.0 (72%, 64–80) | 0.0 (0%, 0–0) | 2.0 (100%, 100–100) | 5.8 (77%, 66–86) |
 | Modern DQN, up to 5M ticks | 35.8 (69%, 46–80) | 0.1 (0%, 0–0) | 2.0 (100%, 100–100) | 9.7 (37%, 34–42) |
 | Rainbow, up to 5M ticks | 37.7 (70%, 64–82) | 0.0 (0%, 0–0) | 2.0 (100%, 100–100) | 9.8 (39%, 28–54) |
+| Best 5M setup, up to 10M ticks, 100 eval games | 39.9 (80%, 71–93) | 0.0 (0%, 0–0) | 2.0 (100%, 100–100) | 10.2 (32%, 21–43) |
 
 ## 2018's ablation on Aliens: win % per 500 training games
 

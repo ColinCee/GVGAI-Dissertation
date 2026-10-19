@@ -38,8 +38,11 @@ ROWS_2026 = [
     ("Modern DQN, 2018's ticks", "{g}-dqn-b18"),
     ("Modern DQN + 2018's reward, 2018's ticks", "{g}-dqn-reward2018-b18"),
     ("Rainbow, 2018's ticks", "{g}-rainbow-b18"),
+    ("Rainbow, IMPALA network, 2018's ticks", "{g}-rainbow-impala-b18"),
+    ("PPO, 2018's ticks", "{g}-ppo-b18"),
     ("Modern DQN, up to 5M ticks", "{g}-dqn-long"),
     ("Rainbow, up to 5M ticks", "{g}-rainbow-long"),
+    ("Best 5M setup, up to 10M ticks, 100 eval games", "{g}-best"),
 ]
 
 # 2018 report: Aliens win % per 500 training games for each variant.
