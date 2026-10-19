@@ -55,6 +55,8 @@ PRESETS = {
     "rainbow-impala": lambda: _with(rainbow(), encoder="impala"),
     "dqn-reward2018-impala": lambda: ModernConfig(outcome_reward=True, loss_penalty=0.5, encoder="impala"),
     "rainbow-reward2018-impala": lambda: _with(rainbow(), outcome_reward=True, loss_penalty=0.5, encoder="impala"),
+    "dqn-impala-outcome-only": lambda: ModernConfig(encoder="impala", outcome_reward=True, score_scale=0.0),
+    "dqn-impala-outcome-score01": lambda: ModernConfig(encoder="impala", outcome_reward=True, score_scale=0.1),
     "dqn-outcome5": lambda: ModernConfig(outcome_reward=True, win_reward=5.0, loss_reward=-5.0),
     "dqn-outcome10": lambda: ModernConfig(outcome_reward=True, win_reward=10.0, loss_reward=-10.0),
     "dqn-loss-only": lambda: ModernConfig(outcome_reward=True, win_reward=0.0, loss_reward=-1.0),

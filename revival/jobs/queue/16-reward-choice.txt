@@ -1,0 +1,10 @@
+# Which reward to choose: outcome only vs outcome + 0.1 x score, on the two best Aliens agents, 5M ticks, 3 seeds
+train_modern.py --game aliens --preset dqn-impala-outcome-only --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-impala-outcome-only-long-s0
+train_modern.py --game aliens --preset dqn-impala-outcome-only --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-impala-outcome-only-long-s1
+train_modern.py --game aliens --preset dqn-impala-outcome-only --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-impala-outcome-only-long-s2
+train_modern.py --game aliens --preset dqn-impala-outcome-score01 --ticks 5000000 --early-stop --seed 0 --name aliens-dqn-impala-outcome-score01-long-s0
+train_modern.py --game aliens --preset dqn-impala-outcome-score01 --ticks 5000000 --early-stop --seed 1 --name aliens-dqn-impala-outcome-score01-long-s1
+train_modern.py --game aliens --preset dqn-impala-outcome-score01 --ticks 5000000 --early-stop --seed 2 --name aliens-dqn-impala-outcome-score01-long-s2
+train_ppo.py --game aliens --ticks 5000000 --seed 0 --outcome-score 0.1 --name aliens-ppo-outcome-score01-long-s0
+train_ppo.py --game aliens --ticks 5000000 --seed 1 --outcome-score 0.1 --name aliens-ppo-outcome-score01-long-s1
+train_ppo.py --game aliens --ticks 5000000 --seed 2 --outcome-score 0.1 --name aliens-ppo-outcome-score01-long-s2

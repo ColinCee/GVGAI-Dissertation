@@ -53,6 +53,7 @@ class ModernConfig:
     win_reward: float = 1.0  # outcome values when outcome_reward is on
     loss_reward: float = -1.0
     loss_penalty: float = 0.0
+    score_scale: float = 1.0  # weight of score changes; 0 with outcome_reward: the outcome is the only reward
     penalty_decay: float = 1.0  # <1: a move k moves before the loss gets loss_penalty * decay**k
     grad_clip: float = 10.0
     action_repeat: int = 4
@@ -217,7 +218,7 @@ class GpuReplay:
         for e in range(self.n):
             ended = bool(term[e] or trunc[e])
             es.append(e), ts.append(self.t_host[e]), frames.append(obs[e]), acts.append(int(action[e]))
-            r = float(np.sign(reward[e])) if self.cfg.clip_reward else float(reward[e])
+            r = self.cfg.score_scale * (float(np.sign(reward[e])) if self.cfg.clip_reward else float(reward[e]))
             if self.cfg.outcome_reward and ended:
                 # 2018 replaced the last move's score change with the outcome (+1 / -1)
                 r = self.cfg.win_reward if won[e] else self.cfg.loss_reward
