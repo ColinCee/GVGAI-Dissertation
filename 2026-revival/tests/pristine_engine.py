@@ -28,7 +28,7 @@ def main() -> None:
     now = HERE.relative_to(REPO).as_posix()
     diff = ["git", "diff", "--name-only", f"{IMPORT_COMMIT}:revival/engine/src/tracks", f"HEAD:{now}/engine/src/tracks"]
     changed = subprocess.run(diff, cwd=REPO, capture_output=True, check=True, text=True).stdout.split()
-    assert changed == ["LearningMachine.java"], changed
+    assert "LearningMachine.java" in changed, changed  # the other changes are the speed work it must not have
     shutil.copy(
         HERE / "engine" / "src" / "tracks" / "LearningMachine.java", OUT / "src" / "tracks" / "LearningMachine.java"
     )

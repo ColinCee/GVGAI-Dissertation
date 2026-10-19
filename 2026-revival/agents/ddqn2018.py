@@ -61,7 +61,7 @@ class Config:
 def preprocess(rgb: np.ndarray) -> np.ndarray:
     """2018's State.resize_image: greyscale, then halve with Lanczos."""
     img = Image.fromarray(rgb).convert("L")
-    return np.asarray(img.resize((img.width // DOWNSCALE, img.height // DOWNSCALE), Image.LANCZOS), np.uint8)
+    return np.asarray(img.resize((img.width // DOWNSCALE, img.height // DOWNSCALE), Image.Resampling.LANCZOS), np.uint8)
 
 
 class QNet(nn.Module):
