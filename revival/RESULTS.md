@@ -36,7 +36,7 @@ All rows: 50 evaluation games, greedy, levels 0–2 (Deceptizelda: 0 and 2, see 
 
 \* 2018's reward = ±1 for the game's outcome plus −0.5 on every move of a lost game: outcome shaping that uses knowledge of the game, not part of the standard methods.
 
-† Seed 0 plays the same 50 games as holding shoot, game for game; all three seeds have learned that policy on the training levels.
+† Seed 0 plays the same 50 games as holding shoot, game for game; seeds 1–2 (different evaluation games) match PPO with the 2018 reward game for game, which points to the same fixed policy.
 
 ‡ Picked from the runs finished before the night (Aliens and Deceptizelda: Rainbow; Chase and Wafer: DQN), so the night's variants, including the IMPALA network, were not candidates.
 
@@ -86,7 +86,7 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 \* Seeds 1–2 were still training at the time of writing.
 
 - **At 2018's budget, a bigger network or more updates per tick both add ~11–14 points** over modern DQN (39.5 → 52.7 / 53.0). The IMPALA network costs 2–3× the wall time per tick (9–11 min per 1M-tick run vs 3–5), so at equal compute the comparison is closer than the table suggests. More updates per tick make wins unstable (35–70%).
-- **PPO learns "hold shoot"** on Aliens' training levels at 2018's budget (game for game the same as the baseline), and still wins 72% of held-out games. At 5M ticks it scores 45.9, above the baseline. It "solves" Deceptizelda the same way: holding right wins every game.
+- **PPO learns "hold shoot"** on Aliens' training levels at 2018's budget (game for game the same as the baseline), and still wins 72% of held-out games. At 5M ticks it scores 45.9, above the baseline. Its 100% on Deceptizelda says little: holding right also wins every game.
 - **Beyond ~5M ticks Aliens plateaus** around 57–62 points, still well short of MCTS's 78.
 - **Not tested:** PPO with the IMPALA network; equal-compute comparisons; 2018's 4-frame stacks with modern agents.
 
