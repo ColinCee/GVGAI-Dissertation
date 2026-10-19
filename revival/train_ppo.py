@@ -207,8 +207,9 @@ def main() -> None:
     agent = GreedyAgent(net, dev)
     ev = evaluate(agent, a.game, a.envs, a.eval_games, levels, a.seed + 7, cfg.action_repeat)
     ev_held = evaluate(agent, a.game, a.envs, a.eval_games, (3, 4), a.seed + 8, cfg.action_repeat)
+    agent = "ppo-reward2018" if a.reward2018 else "ppo-outcome-only" if a.outcome_only else "ppo"
     result = {
-        "name": a.name, "agent": "ppo-reward2018" if a.reward2018 else "ppo-outcome-only" if a.outcome_only else "ppo", "game": a.game, "seed": a.seed,
+        "name": a.name, "agent": agent, "game": a.game, "seed": a.seed,
         "train_ticks": ticks, "train_wall_s": train_wall, "updates": updates, "envs": a.envs, "config": asdict(cfg),
         "eval": ev, "eval_heldout": ev_held, "budget_ticks": a.ticks, "commit": commit,
     }  # fmt: skip
