@@ -69,6 +69,22 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 - **The remaining score gap is strategy.** In won games the 2018 agent averages 54.3 points and DQN + penalty 42.7: the 2018 agent also shoots the protective bases.
 - **Wafer Thin Mints is a trade-off by design**: eating scores points and risks death; surviving to tick 1500 wins. With the penalty, Rainbow and PPO learn to survive and eat little (91–97% wins, 2–3 points; holding any direction gets 100% at 1.6); without it, agents eat more (~10 points, ~35–40% wins); DQN with the penalty sits between (7.5 / 59%). Only MCTS gets both (9.7 / 75%).
 
+## Choosing the reward (Aliens, 5M ticks, 3 seeds)
+
+| Reward | DQN, standard network | Unseen levels | PPO | Unseen levels |
+|---|---|---|---|---|
+| Score changes only (standard) | 58.6 (89%) | 69% | 45.9 (83%) | 82% |
+| Score + ±1 outcome | 57.9 (92%) | 72% | – | – |
+| 2018's reward (outcome + −0.5 penalty) | 48.2 (91%) | 23% | – | – |
+| **±1 outcome only** (no points) | 44.5 (**100%**, every seed) | **100%** | 43.5 (94%) | 84% |
+| ±1 outcome only, 3-step returns | 44.6 (98%) | 72% | – | – |
+| **±1 outcome + 0.1 × score changes** | **60.1 (98%)** | 94% | 48.8 (90%) | 84% |
+
+- **Reward the outcome.** With the outcome as the only reward, DQN wins every evaluation game on every seed, on the training levels and on unseen ones. Adding a tenth of the score as a tie-break keeps 98% wins and gives the highest score of any agent on the standard network (60.1). This beats every shaped reward tried, including 2018's, and needs no knowledge of the game.
+- **It needs the training.** At 2018's budget the plain outcome was the worst reward (45% wins): one signal at the end of a ~150-move game takes millions of ticks to learn from. That is why 2018's per-move penalty helped then, and why it isn't needed now.
+- **Fading the signal with distance from the loss** is what the discount already does; passing it back faster with 3-step returns didn't help here (98% vs 100%, held-out 72%).
+- **Recommended setup:** ±1 outcome + 0.1 × score, DQN, 5M ticks (~17 min per run).
+
 ## Network, algorithm and training budget (Aliens)
 
 | Change | 2018's ticks: score (wins) | Held-out | Up to 5M ticks |
