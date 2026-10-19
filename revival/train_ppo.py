@@ -43,6 +43,7 @@ class PPOConfig:
     max_grad_norm: float = 0.5
     action_repeat: int = 4
     outcome_reward: bool = False  # the dissertation's reward, as in agents/modern.py
+    score_reward: bool = True  # False: the only reward is the game's outcome at its end
     loss_penalty: float = 0.0
 
 
@@ -93,10 +94,12 @@ def main() -> None:
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--name", required=True)
     p.add_argument("--reward2018", action="store_true", help="the dissertation's outcome reward and -0.5 penalty")
+    p.add_argument("--outcome-only", action="store_true", help="reward only the outcome: +1 win, -1 loss, at game end")
     p.add_argument("--eval-games", type=int, default=50)
     a = p.parse_args()
     commit = git_commit()
-    cfg = PPOConfig(outcome_reward=a.reward2018, loss_penalty=0.5 if a.reward2018 else 0.0)
+    cfg = PPOConfig(outcome_reward=a.reward2018 or a.outcome_only, score_reward=not a.outcome_only,
+                    loss_penalty=0.5 if a.reward2018 else 0.0)  # fmt: skip
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
     dev = "cuda"
@@ -135,7 +138,7 @@ def main() -> None:
                 buf_s[t], buf_a[t], buf_logp[t], buf_v[t] = s, act, dist.log_prob(act), v
                 obs, r, term, trunc, info = env.step(act.cpu().numpy())
                 ended = term | trunc
-                r = np.sign(r).astype(np.float32)
+                r = np.sign(r).astype(np.float32) if cfg.score_reward else np.zeros(n, np.float32)
                 won = info["final_info"]["win"] if ended.any() else None
                 for e in range(n):
                     ep_moves[e].append(t)
@@ -205,7 +208,7 @@ def main() -> None:
     ev = evaluate(agent, a.game, a.envs, a.eval_games, levels, a.seed + 7, cfg.action_repeat)
     ev_held = evaluate(agent, a.game, a.envs, a.eval_games, (3, 4), a.seed + 8, cfg.action_repeat)
     result = {
-        "name": a.name, "agent": "ppo-reward2018" if a.reward2018 else "ppo", "game": a.game, "seed": a.seed,
+        "name": a.name, "agent": "ppo-reward2018" if a.reward2018 else "ppo-outcome-only" if a.outcome_only else "ppo", "game": a.game, "seed": a.seed,
         "train_ticks": ticks, "train_wall_s": train_wall, "updates": updates, "envs": a.envs, "config": asdict(cfg),
         "eval": ev, "eval_heldout": ev_held, "budget_ticks": a.ticks, "commit": commit,
     }  # fmt: skip
