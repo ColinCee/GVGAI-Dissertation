@@ -6,10 +6,11 @@ What happened when the 2018 dissertation (DQN and its improvements on four GVGAI
 
 1. **Same agent, same 1M game ticks: ~12 h in 2018 → ~25 min today** in practice (23–34 min for the three Aliens runs, on a machine shared with other runs), **~11 min** on a quiet machine (benchmark). Modern agents do the same budget in **3–11 min**.
 2. **The 2018 results reproduce on Aliens and Wafer Thin Mints** (Aliens learning curve 8 / 30 / 57 / 69% wins per 500 games vs the report's 4 / 22 / 58 / 68; Wafer 10.2 / 35% vs 10.2 / 33%; the DQN → DDQN ablation too). Deceptizelda varies between seeds (79%, 38–100, vs 2018's single 99%) and Chase is near zero either way (0.2 vs 0.7). MCTS at 40 ms per move matches 2018 on all four games.
-3. **New: win rate is a weak measure on three of the four games, because pressing one button wins.** Holding "shoot" all game wins 82% of Aliens games (36.3 points); holding "right" wins every Deceptizelda game; holding any direction wins every Wafer Thin Mints game (by surviving without eating). The 2018 agent's 81% on Aliens and 99% on Deceptizelda, and several 2026 results below, are at or near these baselines. **Score above the baseline** is what shows skill: on Aliens, anything above ~36 points.
-4. **On Aliens' score, today's methods clearly beat 2018 given more experience:** 58–62 points at 5–10M ticks against the 2018 agent's 50 (and 36 for holding shoot). At 2018's budget they roughly match it: Rainbow with a bigger network (IMPALA, 2018) gets 54.7 / 85% vs 50.1 / 81%, within noise, and at 2–3× the wall time per tick; four times more updates per tick gives DQN the same score (53.0).
+3. **New: on three games, holding one button matches most agents.** Holding "shoot" wins 82% of Aliens games (36.3 points); holding "right" wins every Deceptizelda game; holding any direction wins every Wafer Thin Mints game, by surviving without eating. Scores are trivial too: random play gets 10.8 on Wafer, more than any agent. Chase has no meaningful result at all. **Aliens score is the one clear measure of skill**, and there the 2018 agent's 50 points is well above the baseline (36): the one 2018-budget result that clearly is.
+4. **On Aliens' score, today's methods clearly beat 2018 given more experience:** 58 points at 5–10M ticks (62 from one IMPALA seed; two more finish ~09:45) against the 2018 agent's 50 (and 36 for holding shoot). At 2018's budget they roughly match it: Rainbow with a bigger network (IMPALA, 2018) gets 54.7 / 85% vs 50.1 / 81%, within noise, and at 2–3× the wall time per tick; four times more updates per tick gives DQN the same score (53.0).
 5. **The 2018 reward's win-rate gains are mostly the trivial strategy.** Its −0.5 penalty on every move of a lost game lifts DQN's Aliens wins from 57% to 85% but not its score (39.4, close to holding shoot's 36.3). PPO, with or without the penalty, learns exactly "hold shoot" on the training levels (identical games to the baseline). On Wafer the penalty drives Rainbow and PPO to the survive-don't-eat strategy (91–97% wins, 2–3 points).
-6. **Chase stays unsolved**: no agent wins a game, and random play (1.5 points) outscores every agent except Rainbow after 20M ticks (1.7). **MCTS still beats every learning agent on score** (Aliens 77.8 vs ≤62), with no training.
+6. **Deceptizelda is not solved by anyone.** Every agent, 2018 and 2026, takes the small exit (2 points: key + door); the human took the large one (10 points). That also explains the 2018 report's "DDQN beat MCTS here": both took the small exit, MCTS less reliably.
+7. **Chase stays unsolved**: no agent wins a game, and random play (1.5 points) outscores every agent except Rainbow after 20M ticks (1.7). **MCTS still beats every learning agent on score** (Aliens 77.8 vs ≤62), with no training.
 
 ## What was compared
 
@@ -38,7 +39,7 @@ All rows: 50 evaluation games, greedy, levels 0–2 (Deceptizelda: 0 and 2, see 
 
 † Seed 0 plays the same 50 games as holding shoot, game for game; seeds 1–2 (different evaluation games) match PPO with the 2018 reward game for game, which points to the same fixed policy.
 
-‡ Picked from the runs finished before the night (Aliens and Deceptizelda: Rainbow; Chase and Wafer: DQN), so the night's variants, including the IMPALA network, were not candidates.
+‡ On Wafer neither axis shows skill (random play scores 10.8, holding a direction wins 100%); only MCTS does well on both (9.7 / 75%). Picked from the runs finished before the night (Aliens and Deceptizelda: Rainbow; Chase and Wafer: DQN), so the night's variants, including the IMPALA network, were not candidates.
 
 Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 points; seed-to-seed spread is often wider (the ranges).
 
@@ -83,7 +84,7 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 | DQN / Rainbow trained on all 5 levels | – | – | 55.8 (79%) / 56.0 (81%); "held-out" 83% / 77%, but those levels were seen |
 | Rainbow to 10M ticks (stopped at ~7.7M) | – | – | 58.0 (95%), held-out 80% |
 
-\* Seeds 1–2 were still training at the time of writing.
+\* Seeds 1–2 finish around 09:45; this table will change.
 
 - **At 2018's budget, a bigger network or more updates per tick both add ~11–14 points** over modern DQN (39.5 → 52.7 / 53.0). The IMPALA network costs 2–3× the wall time per tick (9–11 min per 1M-tick run vs 3–5), so at equal compute the comparison is closer than the table suggests. More updates per tick make wins unstable (35–70%).
 - **PPO learns "hold shoot"** on Aliens' training levels at 2018's budget (game for game the same as the baseline), and still wins 72% of held-out games. At 5M ticks it scores 45.9, above the baseline. Its 100% on Deceptizelda says little: holding right also wins every game.
