@@ -1,0 +1,17 @@
+{
+ "name": "mcts-chase-i50",
+ "agent": "MCTS 50 iterations",
+ "game": "chase",
+ "seed": 0,
+ "levels": [
+  0,
+  1,
+  2
+ ],
+ "eval": {
+  "games": 51,
+  "mean_score": 3.9215686274509802,
+  "win_rate": 0.1568627450980392,
+  "iters_per_move": 50.01568627450981
+ }
+}

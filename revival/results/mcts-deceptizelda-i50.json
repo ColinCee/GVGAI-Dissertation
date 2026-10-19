@@ -1,0 +1,16 @@
+{
+ "name": "mcts-deceptizelda-i50",
+ "agent": "MCTS 50 iterations",
+ "game": "deceptizelda",
+ "seed": 0,
+ "levels": [
+  0,
+  2
+ ],
+ "eval": {
+  "games": 50,
+  "mean_score": 1.98,
+  "win_rate": 0.84,
+  "iters_per_move": 50.29
+ }
+}
