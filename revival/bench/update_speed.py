@@ -5,6 +5,7 @@ uv run python bench/update_speed.py dqn rainbow
 
 import sys
 import time
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -15,9 +16,9 @@ from agents.modern import ModernAgent  # noqa: E402
 from train_modern import PRESETS  # noqa: E402
 
 if __name__ == "__main__":
-    for preset in sys.argv[1:] or ["dqn"]:
+    for preset, compiled in [(p, c) for p in sys.argv[1:] or ["dqn"] for c in (False, True)]:
         n, h, w = 8, 55, 150
-        agent = ModernAgent(n, h, w, 3, PRESETS[preset](), "cuda", 0)
+        agent = ModernAgent(n, h, w, 3, replace(PRESETS[preset](), compile=compiled), "cuda", 0)
         rng = np.random.default_rng(0)
         for _ in range(5000):
             obs = rng.integers(0, 255, (n, h, w), dtype=np.uint8)
@@ -31,4 +32,5 @@ if __name__ == "__main__":
         for _ in range(500):
             agent.update(0.5)
         torch.cuda.synchronize()
-        print(f"{preset}: {(time.perf_counter() - t0) / 500 * 1000:.2f} ms per update", flush=True)
+        ms = (time.perf_counter() - t0) / 500 * 1000
+        print(f"{preset}{' compiled' if compiled else ''}: {ms:.2f} ms per update", flush=True)

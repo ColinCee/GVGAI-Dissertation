@@ -56,6 +56,7 @@ class ModernConfig:
     score_scale: float = 1.0  # weight of score changes; 0 with outcome_reward: the outcome is the only reward
     penalty_decay: float = 1.0  # <1: a move k moves before the loss gets loss_penalty * decay**k
     grad_clip: float = 10.0
+    compile: bool = True  # torch.compile the learner's networks on the GPU
     action_repeat: int = 4
     amp: bool = True  # bf16 network passes on the GPU
     scale_input: bool = True  # pixels / 255 (2018 fed raw 0-255 values)
@@ -332,6 +333,12 @@ class ModernAgent:
         self.target.load_state_dict(self.q.state_dict())
         cuda = str(device).startswith("cuda")
         self.opt = torch.optim.Adam(self.q.parameters(), lr=cfg.lr, eps=cfg.adam_eps, fused=cuda, capturable=cuda)
+        if cuda and cfg.compile:
+            # Fuses the small steps between layers into fewer kernels, inside the CUDA graph below (which
+            # already removes launch costs): Rainbow update 1.4x, IMPALA 1.2x, Nature 1.1x. Not autotuned:
+            # that adds 12% on IMPALA but its first compile can pass the engine's 500 s limit on one move.
+            for net in (self.q, self.target):
+                net.compile()
         self.replay = GpuReplay(n_envs, cfg.buffer_decisions, h, w, cfg, device)
         self.updates = 0
         self.beta0 = cfg.per_beta

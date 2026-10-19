@@ -1,0 +1,16 @@
+{
+ "name": "mcts-deceptizelda-i200",
+ "agent": "MCTS 200 iterations",
+ "game": "deceptizelda",
+ "seed": 0,
+ "levels": [
+  0,
+  2
+ ],
+ "eval": {
+  "games": 50,
+  "mean_score": 1.96,
+  "win_rate": 0.96,
+  "iters_per_move": 201.86599999999999
+ }
+}

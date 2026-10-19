@@ -85,6 +85,9 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | aliens-dqn-outcome-b18 | 3 | 40.5 (45%, 18–66) | 25.8 (31%, 24–38) | 1.01M | 2 min |
 | aliens-dqn-outcome-g997-b18 | 3 | 38.1 (32%, 16–62) | 28.7 (29%, 0–84) | 1.01M | 2 min |
 | aliens-dqn-outcome-long | 3 | 57.9 (92%, 90–94) | 35.4 (72%, 62–84) | 5.00M | 12 min |
+| aliens-dqn-outcome-only-nstep-scr5m | 3 | 44.6 (98%, 96–100) | 35.4 (72%, 44–88) | 5.00M | 16 min |
+| aliens-dqn-outcome-only-scr5m | 3 | 44.5 (100%, 100–100) | 41.6 (100%, 100–100) | 5.00M | 17 min |
+| aliens-dqn-outcome-score01-scr5m | 3 | 60.1 (98%, 96–100) | 40.4 (94%, 92–96) | 5.00M | 18 min |
 | aliens-dqn-outcome10-b18 | 3 | 40.7 (61%, 46–70) | 28.1 (36%, 16–54) | 1.01M | 3 min |
 | aliens-dqn-outcome5-b18 | 3 | 36.5 (54%, 30–68) | 34.1 (54%, 34–64) | 1.01M | 3 min |
 | aliens-dqn-penalty-decay-b18 | 3 | 41.6 (75%, 70–80) | 25.0 (41%, 12–62) | 1.01M | 2 min |
@@ -100,10 +103,12 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | aliens-dqn-reward2018-raw-mse-b18 | 3 | 44.4 (87%, 78–92) | 35.3 (79%, 60–96) | 1.01M | 2 min |
 | aliens-dqn-rr0.5-b18 | 3 | 47.2 (35%, 10–72) | 35.5 (57%, 42–66) | 1.01M | 4 min |
 | aliens-dqn-rr1.0-b18 | 3 | 53.0 (70%, 54–84) | 33.0 (46%, 30–54) | 1.01M | 7 min |
+| aliens-dqn-scr1.01413m | 3 | 42.4 (62%, 40–78) | 34.7 (65%, 46–76) | 1.01M | 3 min |
 | aliens-ppo-b18 | 3 | 37.6 (82%, 78–86) | 35.0 (72%, 64–80) | 1.01M | 2 min |
 | aliens-ppo-long | 3 | 45.9 (83%, 76–92) | 37.6 (82%, 80–84) | 4.99M | 9 min |
 | aliens-ppo-outcome-only-b18 | 3 | 39.4 (78%, 74–82) | 39.3 (89%, 82–98) | 1.01M | 2 min |
 | aliens-ppo-outcome-only-long | 3 | 43.5 (94%, 88–100) | 37.9 (84%, 76–90) | 4.98M | 11 min |
+| aliens-ppo-outcome-score-0.1-scr5m | 3 | 48.8 (90%, 76–100) | 40.9 (84%, 72–98) | 4.98M | 15 min |
 | aliens-ppo-reward2018-b18 | 3 | 37.6 (82%, 78–86) | 37.0 (82%, 82–82) | 1.01M | 2 min |
 | aliens-rainbow-alllevels-long | 3 | 56.0 (81%, 70–88) | 43.8 (77%, 76–80) | 4.17M | 20 min |
 | aliens-rainbow-b18 | 3 | 43.2 (66%, 62–72) | 39.1 (89%, 82–100) | 1.01M | 3 min |
@@ -115,6 +120,7 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | aliens-rainbow-reward2018-long | 3 | 43.5 (91%, 88–94) | 30.0 (49%, 44–56) | 3.67M | 19 min |
 | aliens-rainbow-rr0.5-b18 | 3 | 46.8 (63%, 50–70) | 37.9 (73%, 50–86) | 1.01M | 9 min |
 | aliens-rainbow-rr1.0-b18 | 3 | 51.0 (65%, 48–78) | 34.0 (65%, 58–74) | 1.01M | 16 min |
+| aliens-rainbow-scr1.01413m | 2 | 42.1 (66%, 62–70) | 39.1 (89%, 88–90) | 1.01M | 3 min |
 | chase-best | 3 | 0.8 (0%, 0–0) | 0.0 (0%, 0–0) | 5.67M | 13 min |
 | chase-ddqn2018 | 3 | 0.2 (0%, 0–0) | – | 3.32M | 63 min |
 | chase-dqn-b18 | 3 | 0.0 (0%, 0–0) | 0.0 (0%, 0–0) | 1.77M | 5 min |

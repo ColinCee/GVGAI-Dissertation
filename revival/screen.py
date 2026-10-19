@@ -48,7 +48,8 @@ def main() -> None:
     path = HERE / "runs" / "screens" / f"{a.game}-{a.ticks}.txt"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(cmd for js in jobs.values() for _, cmd in js) + "\n")
-    subprocess.run([sys.executable, "-u", "batch.py", str(path), "--parallel", str(a.parallel)], cwd=HERE, check=True)
+    # no check: failed runs show as "failed" in the table
+    subprocess.run([sys.executable, "-u", "batch.py", str(path), "--parallel", str(a.parallel)], cwd=HERE)
     print(f"\n{a.game}, {a.ticks / 1e6:g}M ticks, {a.seeds} seeds. Last quarter of training | evaluation (50 games)")
     print("| Setup | Training score | Training wins | Eval score | Eval wins | Minutes per run |")
     print("|---|---|---|---|---|---|")

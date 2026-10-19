@@ -5,7 +5,7 @@ Plan: [../PLAN.md](../PLAN.md). The 2018 code is frozen under tags `2018-dqn`, `
 ## Setup (Windows)
 
 1. [uv](https://docs.astral.sh/uv/) and JDK 25 (Temurin zip unpacked to `D:\Java\jdk-25.0.4.1+1`; set `GVGAI_JDK` if elsewhere).
-2. `uv sync` in this folder (Python 3.15, PyTorch from PyTorch's CUDA 13 index).
+2. `uv sync` in this folder (Python 3.14, the newest `torch.compile` supports; PyTorch from PyTorch's CUDA 13 index).
 3. `uv run python smoke.py --game aliens --episodes 5 --repeat 4`. The engine compiles itself on first use ([engine/build.py](engine/build.py)).
 4. Before committing: `uv run ruff format . && uv run ruff check .`; `uv run ty check` is advisory.
 
