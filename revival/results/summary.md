@@ -125,6 +125,8 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | chase-ddqn2018 | 3 | 0.2 (0%, 0–0) | – | 3.32M | 63 min |
 | chase-dqn-b18 | 3 | 0.0 (0%, 0–0) | 0.0 (0%, 0–0) | 1.77M | 5 min |
 | chase-dqn-long | 3 | 0.6 (0%, 0–0) | 0.1 (0%, 0–0) | 4.75M | 12 min |
+| chase-dqn-outcome-only-scr5m | 3 | 0.0 (0%, 0–0) | 0.0 (0%, 0–0) | 5.00M | 13 min |
+| chase-dqn-outcome-score01-scr5m | 3 | 0.0 (0%, 0–0) | 0.0 (0%, 0–0) | 5.00M | 12 min |
 | chase-dqn-reward2018-long | 3 | 0.0 (0%, 0–0) | 0.0 (0%, 0–0) | 3.50M | 8 min |
 | chase-ppo-b18 | 3 | 0.0 (0%, 0–0) | 0.0 (0%, 0–0) | 1.77M | 3 min |
 | chase-ppo-reward2018-b18 | 3 | 0.0 (0%, 0–0) | 0.0 (0%, 0–0) | 1.77M | 3 min |
@@ -137,6 +139,8 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | deceptizelda-ddqn2018 | 3 | 1.6 (79%, 38–100) | – | 0.69M | 7 min |
 | deceptizelda-dqn-b18 | 3 | 1.3 (67%, 0–100) | 1.3 (67%, 0–100) | 0.85M | 4 min |
 | deceptizelda-dqn-long | 3 | 2.0 (100%, 100–100) | 2.0 (100%, 100–100) | 3.25M | 10 min |
+| deceptizelda-dqn-outcome-only-scr5m | 3 | 2.0 (100%, 100–100) | 2.0 (100%, 100–100) | 5.00M | 42 min |
+| deceptizelda-dqn-outcome-score01-scr5m | 3 | 2.0 (100%, 100–100) | 2.0 (100%, 100–100) | 5.00M | 43 min |
 | deceptizelda-dqn-reward2018-long | 3 | 1.9 (92%, 76–100) | 1.9 (88%, 64–100) | 3.25M | 10 min |
 | deceptizelda-ppo-b18 | 3 | 2.0 (100%, 100–100) | 2.0 (100%, 100–100) | 0.81M | 3 min |
 | deceptizelda-ppo-reward2018-b18 | 3 | 2.0 (100%, 100–100) | 2.0 (100%, 100–100) | 0.81M | 3 min |
@@ -152,6 +156,8 @@ Average score (win %) over 50 evaluation games, greedy, levels 0–2 (Deceptizel
 | waferthinmints2018-dqn-outcome-b18 | 3 | 9.1 (47%, 38–52) | 9.3 (46%, 44–50) | 1.60M | 3 min |
 | waferthinmints2018-dqn-outcome-g997-b18 | 3 | 5.7 (73%, 56–82) | 5.4 (79%, 68–96) | 1.60M | 3 min |
 | waferthinmints2018-dqn-outcome-long | 3 | 9.5 (42%, 34–50) | 9.8 (40%, 28–52) | 4.67M | 9 min |
+| waferthinmints2018-dqn-outcome-only-scr5m | 3 | 4.2 (90%, 88–92) | 4.7 (87%, 82–90) | 5.00M | 10 min |
+| waferthinmints2018-dqn-outcome-score01-scr5m | 3 | 7.8 (67%, 66–68) | 6.9 (68%, 62–74) | 5.00M | 10 min |
 | waferthinmints2018-dqn-outcome10-b18 | 3 | 8.5 (59%, 46–72) | 8.1 (62%, 48–72) | 1.60M | 3 min |
 | waferthinmints2018-dqn-outcome5-b18 | 3 | 9.2 (43%, 32–60) | 8.9 (44%, 32–66) | 1.60M | 3 min |
 | waferthinmints2018-dqn-penalty-decay-b18 | 3 | 7.4 (51%, 34–68) | 7.6 (56%, 48–62) | 1.60M | 3 min |

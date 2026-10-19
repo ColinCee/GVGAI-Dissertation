@@ -85,6 +85,18 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 - **Fading the signal with distance from the loss** is what the discount already does; passing it back faster with 3-step returns didn't help here (98% vs 100%, held-out 72%).
 - **Recommended setup:** ±1 outcome + 0.1 × score, DQN, 5M ticks (~17 min per run).
 
+The same two rewards on the other games (DQN, 5M ticks, 3 seeds):
+
+| Game | Outcome only | Outcome + 0.1 × score | Score only | Trivial baseline | MCTS |
+|---|---|---|---|---|---|
+| Wafer Thin Mints | 4.2 (90%) | 7.8 (67%) | 9.5 (41%) | 1.6 (100%), any direction | 9.7 (75%) |
+| Deceptizelda | 2.0 (100%) | 2.0 (100%) | 2.0 (100%) | 2.0 (100%), hold right | 1.9 (90%) |
+| Chase | 0.0 (0%) | 0.0 (0%) | 0.6 (0%) | 0.0 (0%) | 3.5 (10%) |
+
+- **Wafer: the weight on score is a dial between surviving and eating.** Outcome only survives (90%); a tenth of the score trades wins for points (7.8 / 67%), the closest any learning agent gets to MCTS on both.
+- **Deceptizelda: still the small exit, every game.** A tie-break of 0.1 × 10 = 1 point for the big exit doesn't make the agent explore far enough to find it: an exploration problem, not a reward one.
+- **Chase: no reward helps.** No agent ever wins, so the outcome reward never fires.
+
 ## Network, algorithm and training budget (Aliens)
 
 | Change | 2018's ticks: score (wins) | Held-out | Up to 5M ticks |
