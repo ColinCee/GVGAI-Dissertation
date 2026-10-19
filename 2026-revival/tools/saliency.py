@@ -1,8 +1,8 @@
 """Where the 2018 agent looks: a recording with a saliency map drawn over the screen.
 
 For each decision, gradient × input of the chosen move's value says which pixels on screen would change that
-value most (the gradient alone is a diffuse fog on this network). Summed over the 4 frames, blurred a little and
-scaled by the game's 99th percentile, it is drawn in tomato over the colour frame and held until the next decision.
+value most (the gradient alone is a diffuse fog on this network). Kept per input frame, blurred a little and scaled by
+the game's 99th percentile, it is drawn in tomato over the frame it belongs to.
 CPU only.
 
     uv run python -m tools.saliency --weights weights/aliens-ddqn2018-s0-agent.pt --level 0 --seed 2 --out <dir>
@@ -24,7 +24,7 @@ TOMATO = np.array([233, 88, 52], np.float32)
 def saliency(net: torch.nn.Module, stack: np.ndarray, action: int) -> np.ndarray:
     x = torch.from_numpy(stack[None]).float().requires_grad_(True)
     net(x)[0, action].backward()
-    return (x.grad[0] * x[0]).abs().sum(0).detach().numpy()  # gradient × input: only pixels with something on them
+    return (x.grad[0] * x[0]).abs().detach().numpy()  # gradient × input, per input frame: (4, h, w)
 
 
 def main() -> None:
@@ -44,22 +44,27 @@ def main() -> None:
     h, w = rec["stacks"][0].shape[1:]
     net = load_2018(a.weights, h, w, len(names))
     maps = [saliency(net, s, names.index(d["action"])) for s, d in zip(rec["stacks"], decs, strict=True)]
+    share = np.stack([m.sum((1, 2)) / m.sum() for m in maps]).mean(0)
+    print("attribution by input frame, oldest first:", np.round(share, 3))
     top = float(np.percentile(np.stack(maps), 99))
     fh, fw = frames[0].shape[:2]
-    heat = []
-    for m in maps:
-        img = Image.fromarray(np.clip(m / top * 255, 0, 255).astype(np.uint8))
-        img = img.resize((fw, fh), Image.Resampling.BILINEAR)
-        heat.append(np.asarray(img.filter(ImageFilter.GaussianBlur(2)), np.float32)[..., None] / 255)
 
-    out_frames, k = [], -1
+    def heat(m: np.ndarray) -> np.ndarray:
+        img = Image.fromarray(np.clip(m / top * 255, 0, 255).astype(np.uint8))
+        img = img.resize((fw, fh), Image.Resampling.BILINEAR).filter(ImageFilter.GaussianBlur(2))
+        return np.asarray(img, np.float32)[..., None] / 255
+
+    # Each video frame gets the heat of its own pixels, from the decision whose 4-frame input included it
+    # (the stack is the frames at ticks t-3..t for a decision on tick t), so nothing is drawn where an
+    # object used to be.
+    owner = {d["tick"] - 3 + c: (k, c) for k, d in enumerate(decs) for c in range(4)}
+    out_frames = []
     for t, f in enumerate(frames):
-        while k + 1 < len(decs) and decs[k + 1]["tick"] < t:
-            k += 1
-        if k < 0:
+        if t not in owner:
             out_frames.append(f)
             continue
-        alpha = np.clip(heat[k] * 0.85, 0, 0.85)
+        k, c = owner[t]
+        alpha = np.clip(heat(maps[k][c]) * 0.85, 0, 0.85)
         out_frames.append((f * (1 - alpha) + TOMATO * alpha).astype(np.uint8))
 
     encode(out_frames, out / f"{a.name}.mp4", a.fps, ["-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "28",
@@ -69,7 +74,7 @@ def main() -> None:
     Image.fromarray(out_frames[mid].repeat(2, 0).repeat(2, 1)).save(out / f"{a.name}.png", optimize=True)
     info = {"game": a.game, "level": a.level, "seed": a.seed, "weights": a.weights, "win": rec["win"],
             "score": rec["score"], "ticks": rec["ticks"], "fps": a.fps, "scale": "99th percentile of all maps",
-            "method": "|input × d Q(chosen move) / d input| summed over the 4 frames, Gaussian blur 2 px"}  # fmt: skip
+            "method": "|input × dQ/dinput| per input frame, drawn on that frame; blur 2 px"}  # fmt: skip
     (out / f"{a.name}.json").write_text(json.dumps(info, indent=1))
     print(info)
 
