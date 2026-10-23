@@ -57,6 +57,13 @@ PRESETS = {
     "dqn-penalty-decay": lambda: ModernConfig(outcome_reward=True, loss_penalty=0.5, penalty_decay=0.97),
     # loss -1; a win 0.5 to 1 by its score, against random play's score (set from the baseline below)
     "dqn-outcome-saturating": lambda: ModernConfig(outcome_reward=True, score_scale=0.0, win_score_ref=-1.0),
+    # winning and scoring together (23 Oct 2026): outcome + 0.1 x score, varied one thing at a time
+    "dqn-outcome-score01-n10": lambda: ModernConfig(outcome_reward=True, score_scale=0.1, n_step=10),
+    "dqn-outcome-score01-n20": lambda: ModernConfig(outcome_reward=True, score_scale=0.1, n_step=20),
+    "dqn-outcome-score01-ar2": lambda: ModernConfig(outcome_reward=True, score_scale=0.1, action_repeat=2),
+    "dqn-outcome-score01-impala": lambda: ModernConfig(outcome_reward=True, score_scale=0.1, encoder="impala"),
+    "dqn-outcome-score005": lambda: ModernConfig(outcome_reward=True, score_scale=0.05),
+    "dqn-outcome-score02": lambda: ModernConfig(outcome_reward=True, score_scale=0.2),
 }
 
 
