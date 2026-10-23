@@ -1,0 +1,3 @@
+-m train.modern --game aliens --preset dqn-outcome-saturating --ticks 5000000 --buffer 500000 --seed 0 --name aliens-dqn-outcome-saturating-scr5m-s0
+-m train.modern --game aliens --preset dqn-outcome-saturating --ticks 5000000 --buffer 500000 --seed 1 --name aliens-dqn-outcome-saturating-scr5m-s1
+-m train.modern --game aliens --preset dqn-outcome-saturating --ticks 5000000 --buffer 500000 --seed 2 --name aliens-dqn-outcome-saturating-scr5m-s2

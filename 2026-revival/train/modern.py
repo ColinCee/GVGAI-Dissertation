@@ -55,7 +55,15 @@ PRESETS = {
     "dqn-outcome10": lambda: ModernConfig(outcome_reward=True, win_reward=10.0, loss_reward=-10.0),
     "dqn-loss-only": lambda: ModernConfig(outcome_reward=True, win_reward=0.0, loss_reward=-1.0),
     "dqn-penalty-decay": lambda: ModernConfig(outcome_reward=True, loss_penalty=0.5, penalty_decay=0.97),
+    # loss -1; a win 0.5 to 1 by its score, against random play's score (set from the baseline below)
+    "dqn-outcome-saturating": lambda: ModernConfig(outcome_reward=True, score_scale=0.0, win_score_ref=-1.0),
 }
+
+
+def random_play_score(game: str) -> float:
+    """Mean score of random play on the game, from results/baseline-<game>-random.json."""
+    ev = json.loads((ROOT / "results" / f"baseline-{game}-random.json").read_text())["eval"]
+    return float(ev["mean_score"] if "mean_score" in ev else ev["score"])
 
 
 def flattened(history: list[tuple[int, float, int]], ticks: int, min_ticks: int = 3_000_000) -> bool:
@@ -92,6 +100,8 @@ def main() -> None:
 
     commit = git_commit()
     cfg = PRESETS[a.preset]()
+    if cfg.win_score_ref < 0:  # the saturating win reward's reference: random play on this game
+        cfg.win_score_ref = random_play_score(a.game)
     if a.buffer:
         cfg.buffer_decisions = a.buffer
     if a.replay_ratio is not None:

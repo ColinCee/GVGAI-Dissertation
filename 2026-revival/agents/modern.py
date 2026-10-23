@@ -57,6 +57,10 @@ class ModernConfig:
     loss_penalty: float = 0.0
     score_scale: float = 1.0  # weight of score changes; 0 with outcome_reward: the outcome is the only reward
     penalty_decay: float = 1.0  # <1: a move k moves before the loss gets loss_penalty * decay**k
+    # Saturating win reward: >0 makes a win worth 1 - 0.5 * c / (c + game score), with c this value
+    # (random play's score on the game), so every win is worth 0.5 to 1 and beats any loss, more
+    # points always help, and each extra point helps less. No score cap needed.
+    win_score_ref: float = 0.0
     grad_clip: float = 10.0
     compile: bool = True  # torch.compile the learner's networks on the GPU
     action_repeat: int = 4
@@ -210,6 +214,7 @@ class GpuReplay:
         self.t = torch.zeros(n, dtype=torch.long, **z)  # slots written per game (absolute)
         self.t_host = np.zeros(n, np.int64)
         self.ep_start = np.zeros(n, np.int64)
+        self.ep_score = np.zeros(n, np.float64)  # raw score so far this episode, for win_score_ref
         self.slot_ids = torch.arange(cap, **z)
         self.offs = torch.arange(-STACK + 1, 1, **z)
 
@@ -221,10 +226,14 @@ class GpuReplay:
         for e in range(self.n):
             ended = bool(term[e] or trunc[e])
             es.append(e), ts.append(self.t_host[e]), frames.append(obs[e]), acts.append(int(action[e]))
+            self.ep_score[e] += float(reward[e])
             r = self.cfg.score_scale * (float(np.sign(reward[e])) if self.cfg.clip_reward else float(reward[e]))
             if self.cfg.outcome_reward and ended:
                 # 2018 replaced the last move's score change with the outcome (+1 / -1)
                 r = self.cfg.win_reward if won[e] else self.cfg.loss_reward
+                if won[e] and self.cfg.win_score_ref > 0:
+                    c = self.cfg.win_score_ref
+                    r = 1.0 - 0.5 * c / (c + max(self.ep_score[e], 0.0))
             if self.cfg.loss_penalty and ended and not won[e]:  # a loss is the game's own: death or timeout
                 lost.append((e, int(self.ep_start[e]), int(self.t_host[e])))
             rews.append(r), terms.append(bool(term[e])), ends.append(ended), starts.append(self.ep_start[e])
@@ -235,6 +244,7 @@ class GpuReplay:
                 terms.append(False), ends.append(False), starts.append(self.ep_start[e]), fo.append(True)
                 self.t_host[e] += 1
                 self.ep_start[e] = self.t_host[e]
+                self.ep_score[e] = 0.0
         # one upload for all the small fields (separate torch.tensor calls cost ~0.2 ms each)
         dev = self.dev
         meta = upload(np.array([es, ts, acts, starts, terms, ends, fo], np.int64), dev)
