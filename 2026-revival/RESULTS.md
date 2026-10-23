@@ -79,10 +79,12 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 | **±1 outcome only** (no points) | 44.5 (**100%**, every seed) | **100%** | 43.5 (94%) | 84% |
 | ±1 outcome only, 3-step returns | 44.6 (98%) | 72% | – | – |
 | **±1 outcome + 0.1 × score changes** | **60.1 (98%)** | 94% | 48.8 (90%) | 84% |
+| −1 loss; a win 1 − 0.5c/(c + game score), c = random play (33.7) | 43.5 (99%) | 88% | – | – |
 
 - **Reward the outcome.** With the outcome as the only reward, DQN wins every evaluation game on every seed, on the training levels and on unseen ones. Adding a tenth of the score as a tie-break keeps 98% wins and gives the highest score of any agent on the standard network (60.1). This beats every shaped reward tried, including 2018's, and needs no knowledge of the game.
 - **It needs the training.** At 2018's budget the plain outcome was the worst reward (45% wins): one signal at the end of a ~150-move game takes millions of ticks to learn from. That is why 2018's per-move penalty helped then, and why it isn't needed now.
 - **Fading the signal with distance from the loss** is what the discount already does; passing it back faster with 3-step returns didn't help here (98% vs 100%, held-out 72%).
+- **Paying the score only at the end of a won game doesn't teach scoring** (saturating win reward, 23 Oct 2026): it plays like outcome only (43.5 vs 44.5 points, 99% wins). A 40- and a 60-point win differ by 0.05, which reaches the moves that earned the points only after ~150 steps of discounting; 0.1 × score pays each point when it happens.
 - **Recommended setup:** ±1 outcome + 0.1 × score, DQN, 5M ticks (~17 min per run).
 
 The same two rewards on the other games (DQN, 5M ticks, 3 seeds):
