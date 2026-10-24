@@ -6,7 +6,8 @@
 
 A game is anything running from a steamapps/common or Epic Games folder, or League or Valorant.
 A paused run keeps its GPU memory and its lease, and its train_wall_s includes the pause, so
-don't quote speeds from a run that was paused.
+don't quote speeds from a run that was paused. tools.batch's --max-minutes counts paused time too:
+set it well above the run's own time (every frame + IMPALA alone takes about 3 hours).
 """
 
 import argparse
