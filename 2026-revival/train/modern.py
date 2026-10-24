@@ -68,6 +68,7 @@ PRESETS = {
     "dqn-outcome-score01-ar1": lambda: ModernConfig(outcome_reward=True, score_scale=0.1, action_repeat=1),
     "dqn-outcome-score005-ar2": lambda: ModernConfig(outcome_reward=True, score_scale=0.05, action_repeat=2),
     "dqn-outcome-score01-ar2-impala": lambda: ModernConfig(outcome_reward=True, score_scale=0.1, action_repeat=2, encoder="impala"),
+    "dqn-outcome-score01-ar1-impala": lambda: ModernConfig(outcome_reward=True, score_scale=0.1, action_repeat=1, encoder="impala"),
 }
 
 

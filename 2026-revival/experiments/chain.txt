@@ -1,0 +1,37 @@
+# The greedy chain (24 Oct 2026): each step keeps the winner of the step before and changes one thing.
+# One commit, 100 test games and 5 seeds for every row. Pick rule: AGENTS.md.
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --seed 0 --name aliens-chain-2018-s0 --device cuda --threads 1
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --seed 1 --name aliens-chain-2018-s1 --device cuda --threads 1
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --seed 2 --name aliens-chain-2018-s2 --device cuda --threads 1
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --seed 3 --name aliens-chain-2018-s3 --device cuda --threads 1
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --seed 4 --name aliens-chain-2018-s4 --device cuda --threads 1
+-m train.modern --game aliens --preset dqn --ticks 1014134 --buffer 500000 --eval-games 100 --seed 0 --name aliens-chain-dqn-1m-s0
+-m train.modern --game aliens --preset dqn --ticks 1014134 --buffer 500000 --eval-games 100 --seed 1 --name aliens-chain-dqn-1m-s1
+-m train.modern --game aliens --preset dqn --ticks 1014134 --buffer 500000 --eval-games 100 --seed 2 --name aliens-chain-dqn-1m-s2
+-m train.modern --game aliens --preset dqn --ticks 1014134 --buffer 500000 --eval-games 100 --seed 3 --name aliens-chain-dqn-1m-s3
+-m train.modern --game aliens --preset dqn --ticks 1014134 --buffer 500000 --eval-games 100 --seed 4 --name aliens-chain-dqn-1m-s4
+-m train.modern --game aliens --preset dqn --ticks 5000000 --buffer 500000 --eval-games 100 --seed 0 --name aliens-chain-dqn-5m-s0
+-m train.modern --game aliens --preset dqn --ticks 5000000 --buffer 500000 --eval-games 100 --seed 1 --name aliens-chain-dqn-5m-s1
+-m train.modern --game aliens --preset dqn --ticks 5000000 --buffer 500000 --eval-games 100 --seed 2 --name aliens-chain-dqn-5m-s2
+-m train.modern --game aliens --preset dqn --ticks 5000000 --buffer 500000 --eval-games 100 --seed 3 --name aliens-chain-dqn-5m-s3
+-m train.modern --game aliens --preset dqn --ticks 5000000 --buffer 500000 --eval-games 100 --seed 4 --name aliens-chain-dqn-5m-s4
+-m train.modern --game aliens --preset dqn-outcome-score01 --ticks 5000000 --buffer 500000 --eval-games 100 --seed 0 --name aliens-chain-score01-s0
+-m train.modern --game aliens --preset dqn-outcome-score01 --ticks 5000000 --buffer 500000 --eval-games 100 --seed 1 --name aliens-chain-score01-s1
+-m train.modern --game aliens --preset dqn-outcome-score01 --ticks 5000000 --buffer 500000 --eval-games 100 --seed 2 --name aliens-chain-score01-s2
+-m train.modern --game aliens --preset dqn-outcome-score01 --ticks 5000000 --buffer 500000 --eval-games 100 --seed 3 --name aliens-chain-score01-s3
+-m train.modern --game aliens --preset dqn-outcome-score01 --ticks 5000000 --buffer 500000 --eval-games 100 --seed 4 --name aliens-chain-score01-s4
+-m train.modern --game aliens --preset dqn-outcome-score01-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 0 --name aliens-chain-score01-impala-s0
+-m train.modern --game aliens --preset dqn-outcome-score01-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 1 --name aliens-chain-score01-impala-s1
+-m train.modern --game aliens --preset dqn-outcome-score01-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 2 --name aliens-chain-score01-impala-s2
+-m train.modern --game aliens --preset dqn-outcome-score01-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 3 --name aliens-chain-score01-impala-s3
+-m train.modern --game aliens --preset dqn-outcome-score01-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 4 --name aliens-chain-score01-impala-s4
+-m train.modern --game aliens --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 0 --name aliens-chain-score01-ar2-impala-s0
+-m train.modern --game aliens --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 1 --name aliens-chain-score01-ar2-impala-s1
+-m train.modern --game aliens --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 2 --name aliens-chain-score01-ar2-impala-s2
+-m train.modern --game aliens --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 3 --name aliens-chain-score01-ar2-impala-s3
+-m train.modern --game aliens --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 4 --name aliens-chain-score01-ar2-impala-s4
+-m train.modern --game aliens --preset dqn-outcome-score01-ar1-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 0 --name aliens-chain-score01-ar1-impala-s0
+-m train.modern --game aliens --preset dqn-outcome-score01-ar1-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 1 --name aliens-chain-score01-ar1-impala-s1
+-m train.modern --game aliens --preset dqn-outcome-score01-ar1-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 2 --name aliens-chain-score01-ar1-impala-s2
+-m train.modern --game aliens --preset dqn-outcome-score01-ar1-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 3 --name aliens-chain-score01-ar1-impala-s3
+-m train.modern --game aliens --preset dqn-outcome-score01-ar1-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 4 --name aliens-chain-score01-ar1-impala-s4
