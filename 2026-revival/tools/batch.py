@@ -4,8 +4,9 @@
 
 Each line of the run list is the arguments to `python`, run from this folder, e.g.
 `-m train.ddqn2018 --game chase --seed 1 --name chase-ddqn2018-s1 --device cuda`.
-Wrap in `lease run` for the GPU; a stopped batch picks up where it left off (train2018 resumes from
-its checkpoint).
+Wrap in `lease run` for the GPU; a stopped batch picks up where it left off (both trainers resume
+from their checkpoints). A run whose log goes quiet for --hang-minutes is killed as hung, unless
+tools.pause has paused it, and started once more from its checkpoint.
 """
 
 import argparse
@@ -30,7 +31,7 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("jobs")
     p.add_argument("--parallel", type=int, default=4)
-    p.add_argument("--max-minutes", type=float, default=120, help="kill a run that takes longer (hang guard)")
+    p.add_argument("--hang-minutes", type=float, default=30, help="kill a run whose log is quiet this long")
     p.add_argument(
         "--low-priority", action="store_true", help="idle priority (and its game servers): for while Colin games"
     )
@@ -43,7 +44,9 @@ def main() -> None:
     beat.touch()
     env = {**os.environ, "GVGAI_HEARTBEAT": str(beat)}
     running: dict[str, subprocess.Popen] = {}
-    started: dict[str, float] = {}
+    args: dict[str, list[str]] = {}
+    quiet_since: dict[str, float] = {}
+    retried: set[str] = set()
     failed = []
     while todo or running:
         while todo and len(running) < a.parallel:
@@ -53,21 +56,34 @@ def main() -> None:
             running[n] = subprocess.Popen([sys.executable, "-u", *j], cwd=HERE, stdout=log, stderr=subprocess.STDOUT,
                                           stdin=subprocess.DEVNULL, env=env,
                                           creationflags=IDLE if a.low_priority else 0)  # fmt: skip
-            started[n] = time.time()
+            args[n] = j
             print(f"start {n}", flush=True)
         time.sleep(5)
         beat.touch()
+        paused = (HERE / "runs" / "paused").exists()  # see tools/pause.py
         for n, pr in list(running.items()):
-            if pr.poll() is None and time.time() - started[n] > a.max_minutes * 60:
-                print(f"TIMEOUT {n} after {a.max_minutes:.0f} min: killing it and its game servers", flush=True)
+            log_age = time.time() - (HERE / "runs" / f"{n}.log").stat().st_mtime
+            if paused:
+                quiet_since.pop(n, None)  # a paused run is quiet on purpose; its clock starts again after
+            elif log_age > 60:
+                quiet_since.setdefault(n, time.time() - log_age)
+            else:
+                quiet_since.pop(n, None)
+            if pr.poll() is None and n in quiet_since and time.time() - quiet_since[n] > a.hang_minutes * 60:
+                print(f"HUNG {n}: no output for {a.hang_minutes:.0f} min, killing it and its game servers", flush=True)
                 subprocess.run(["taskkill", "/T", "/F", "/PID", str(pr.pid)], capture_output=True)
                 pr.wait()
             if pr.poll() is not None:
                 ok = pr.returncode == 0 and (HERE / "results" / f"{n}.json").exists()
                 print(f"{'done' if ok else 'FAILED'} {n} (exit {pr.returncode})", flush=True)
-                if not ok:
-                    failed.append(n)
                 del running[n]
+                quiet_since.pop(n, None)
+                if not ok and n not in retried and (HERE / "runs" / n / "checkpoint").exists():
+                    retried.add(n)
+                    todo.insert(0, args[n])
+                    print(f"retrying {n} from its checkpoint", flush=True)
+                elif not ok:
+                    failed.append(n)
     print(f"finished; failed: {failed or 'none'}")
     sys.exit(1 if failed else 0)
 
