@@ -1,0 +1,2 @@
+-m train.modern --game aliens --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 1 --name aliens-dqn-outcome-score01-ar2-impala-e100-s1
+-m train.modern --game aliens --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --buffer 500000 --eval-games 100 --seed 2 --name aliens-dqn-outcome-score01-ar2-impala-e100-s2

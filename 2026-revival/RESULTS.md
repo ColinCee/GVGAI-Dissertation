@@ -99,6 +99,29 @@ The same two rewards on the other games (DQN, 5M ticks, 3 seeds):
 - **Deceptizelda: still the small exit, every game.** A tie-break of 0.1 × 10 = 1 point for the big exit doesn't make the agent explore far enough to find it: an exploration problem, not a reward one.
 - **Chase: no reward helps.** No agent ever wins, so the outcome reward never fires.
 
+## Winning and scoring together (Aliens, 5M ticks, 3 seeds, 100 test games each, 23–24 Oct 2026)
+
+All rewarded ±1 for the outcome plus a weight × score changes; one thing changed per row.
+
+| Change from the base (0.1 × score, a move every 4 ticks, standard network) | Score | Wins | Held-out wins | Wall time per run |
+|---|---|---|---|---|
+| Base | 59.0 | 98.7% | 87% | 14 min |
+| Score weight 0.05 | 56.5 | 100% | 86% | 7–12 min |
+| Score weight 0.2 | 59.6 | 97.7% | 89% | 11–13 min |
+| 10-step returns | 45.6 | 83.0% | 55% | 13–19 min |
+| 20-step returns | 42.8 | 85.7% | 57% | 17 min |
+| IMPALA network | 62.9 | 100% | 99% | 23–29 min |
+| A move every 2 ticks | 76.4 | 95.7% | 97% | 23 min |
+| A move every 2 ticks, 0.05 × score | 68.9 | 94.3% | 96% | 23–30 min |
+| **A move every tick** | **78.7** | **99.7%** | **100%** | 46–59 min |
+| **A move every 2 ticks + IMPALA** | **82.6** | **99.7%** | **100%** | 52–54 min |
+| MCTS, no training (reference) | 77.8 | 100% | – | – |
+
+- **How often the agent acts was the missing piece.** Holding each move for 4 ticks capped the score near 60; acting every tick or every 2 matches or beats MCTS (77.8) on the same 5M ticks, the first learning agents to do so. Colin's guess: some positions and shots can't be reached when every move lasts 4 ticks.
+- **The best setup** (a move every 2 ticks + IMPALA, 82.6 points, 99.7% wins, 100% held-out) beats MCTS on score; it costs about 4× the wall time of the base.
+- **Longer n-step returns hurt** (83–86% wins): with an outcome reward they add variance rather than speed.
+- **The score weight barely matters** between 0.05 and 0.2.
+
 ## Network, algorithm and training budget (Aliens)
 
 | Change | 2018's ticks: score (wins) | Held-out | Up to 5M ticks |
