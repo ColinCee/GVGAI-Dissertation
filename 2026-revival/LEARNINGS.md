@@ -9,7 +9,7 @@ Written in October 2026, for whoever opens this again in 2034 or later. What to 
 3. `uv run python tests/golden.py check`: every recorded game must replay identically. This is the guarantee that the engine is still the 2018 games. A failure names the game, the first differing tick and whether the *state* (positions, score, game over) or only the *pixels* differ. State differences mean the games changed: stop there. Pixel-only differences are most likely a newer JDK drawing sprites slightly differently; the learning agents see pixels, so re-record (`tests/golden.py record`) only after checking a few frames by eye.
 4. `uv run python tests/replay_check.py` and `tests/repeat_check.py`: replay sampling and action repeat are exact.
 5. A short run: `uv run python -m train.modern --game aliens --preset dqn --ticks 100000 --eval-games 8 --name check` (about a minute in 2026; `results/check.json` appears at the end).
-6. A real number to compare against: `uv run python -m tools.screen dqn-outcome-score01 --ticks 5000000 --seeds 3` gave Aliens 60.1 points / 98% wins (training-curve 58.5 / 98%) in ~17 min per run.
+6. A real number to compare against: `uv run python -m tools.screen dqn-outcome-score01 --ticks 5000000 --seeds 3` gave Aliens 60.1 points / 98% wins (training-curve 58.5 / 98%) in ~17 min per run; the best setup, `-m tools.batch experiments/evening2.txt` (preset `dqn-outcome-score01-ar2-impala`), gave 82.6 / 99.7% in ~53 min per run. RESULTS.md, "Speed", lists the speed benchmarks to rerun.
 7. Tag the state you start from; tags here: `2018-*` (the 2018 code), `imp-NN` (each speed step), `batch-N` (result batches), `revival-2026` (the end of this round).
 
 ## Environment, October 2026
@@ -40,7 +40,7 @@ All timings in RESULTS.md and IMPROVEMENTS.md are on this machine; they mean not
 1. **Check what a trivial policy scores first.** Holding one button wins 82% of Aliens games, every Deceptizelda game and every Wafer Thin Mints game. Several "good" results, in 2018 and in 2026, were that policy. `baselines/trivial.py` runs these in a few minutes; run it before trusting any win rate on a new game.
 2. **Reward the outcome, given enough experience.** +1 win / −1 loss (optionally + 0.1 × score) beat every hand-shaped reward at 5M ticks and held up on unseen levels. 2018's −0.5 penalty on every move of a lost game was the right fix for 2018's tiny budget, not a general one.
 3. **Most of 2018's 12 hours was waiting.** A 25 ms sleep per tick (for human viewers), PNG files written and re-read every tick, one sample at a time through the network. None of it was learning.
-4. **MCTS needs almost no search on these games** (10 iterations per move: Aliens 75 points / 100% wins) and still beats every learning agent on score.
+4. **How often the agent acts mattered more than the method.** A move every 4 ticks (Atari's default) capped Aliens near 60 points; every tick or every 2 reached 79–83 at ~100% wins, level with or above MCTS (77.8), which needs almost no search on these games (10 iterations per move: 75 points / 100% wins).
 5. **Exploration is the open problem.** Nothing learned Deceptizelda's big exit (10 points) or a single win on Chase.
 
 ## How it was made fast, and where the time goes now
@@ -67,6 +67,8 @@ Full log with tags: [IMPROVEMENTS.md](IMPROVEMENTS.md). One game went from 34 to
 
 ## What I'd do next
 
+- A larger outcome (±10) with 0.1 × score, so a game's points (~+4) can never outweigh a death: the ~1% of games the best setups lose are all deaths taken while scoring (RESULTS.md, "Winning and scoring together").
+- Why held-out levels lag with a light score weight (0.05: 86%, one seed 73%) while a move every tick holds 100%.
 - An exploration bonus (Random Network Distillation) for Deceptizelda's big exit and Chase.
 - An equal-compute comparison (the IMPALA network costs 2–3× the wall time per tick; this project compared at equal ticks).
 - PPO with the IMPALA network; more GVGAI games, to see whether the trivial-policy problem is common.

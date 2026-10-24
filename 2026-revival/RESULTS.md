@@ -7,10 +7,10 @@ What happened when the 2018 dissertation (DQN and its improvements on four GVGAI
 1. **Same agent, same 1M game ticks: ~12 h in 2018 → ~25 min today** in practice (23–34 min for the three Aliens runs, on a machine shared with other runs), **~11 min** on a quiet machine (benchmark). Modern agents do the same budget in **3–11 min**.
 2. **The 2018 results reproduce on Aliens and Wafer Thin Mints** (Aliens learning curve 8 / 30 / 57 / 69% wins per 500 games vs the report's 4 / 22 / 58 / 68; Wafer 10.2 / 35% vs 10.2 / 33%; the DQN → DDQN ablation too). Deceptizelda varies between seeds (79%, 38–100, vs 2018's single 99%) and Chase is near zero either way (0.2 vs 0.7). MCTS at 40 ms per move matches 2018 on all four games.
 3. **New: on three games, holding one button matches most agents.** Holding "shoot" wins 82% of Aliens games (36.3 points); holding "right" wins every Deceptizelda game; holding any direction wins every Wafer Thin Mints game, by surviving without eating. Scores are trivial too: random play gets 10.8 on Wafer, more than any agent. Chase has no meaningful result at all. **Aliens score is the one clear measure of skill**, and there the 2018 agent's 50 points is well above the baseline (36), as are 2026 agents with a bigger network or more updates per tick (51–55) at the same budget.
-4. **On Aliens' score, today's methods clearly beat 2018 given more experience:** 58–62 points at 5–10M ticks (best: DQN with the IMPALA network, 62.5 / 96% over 3 seeds) against the 2018 agent's 50 (and 36 for holding shoot). At 2018's budget they roughly match it: Rainbow with a bigger network (IMPALA, 2018) gets 54.7 / 85% vs 50.1 / 81%, within noise, and at 2–3× the wall time per tick; four times more updates per tick gives DQN the same score (53.0).
+4. **On Aliens' score, today's methods clearly beat 2018 given more experience:** 58–62 points at 5–10M ticks with a move every 4 ticks, and 79–83 at ~100% wins with a move every tick or every 2 (best: ±1 outcome + 0.1 × score, IMPALA network, a move every 2 ticks: 82.6 / 99.7% over 3 seeds × 100 games), against the 2018 agent's 50 (and 36 for holding shoot). At 2018's budget they roughly match it: Rainbow with a bigger network (IMPALA, 2018) gets 54.7 / 85% vs 50.1 / 81%, within noise, and at 2–3× the wall time per tick; four times more updates per tick gives DQN the same score (53.0).
 5. **The 2018 reward's win-rate gains are mostly the trivial strategy.** Its −0.5 penalty on every move of a lost game lifts DQN's Aliens wins from 57% to 85% but not its score (39.4, close to holding shoot's 36.3). PPO, with or without the penalty, learns exactly "hold shoot" on the training levels (identical games to the baseline). On Wafer the penalty drives Rainbow and PPO to the survive-don't-eat strategy (91–97% wins, 2–3 points).
 6. **Deceptizelda is not solved by anyone.** Every agent, 2018 and 2026, takes the small exit (2 points: key + door); the human took the large one (10 points). That also explains the 2018 report's "DDQN beat MCTS here": both took the small exit, MCTS less reliably.
-7. **Chase stays unsolved**: no agent wins a game, and random play (1.5 points) outscores every agent except Rainbow after 20M ticks (1.7). **MCTS still beats every learning agent on score** (Aliens 77.8 vs ≤62), with no training.
+7. **Chase stays unsolved**: no agent wins a game, and random play (1.5 points) outscores every agent except Rainbow after 20M ticks (1.7). **MCTS (77.8 on Aliens, no training) beats every learning agent that acts every 4 ticks (≤63)**; acting every tick (78.7) or every 2 with IMPALA (82.6) matches or beats it.
 
 ## What was compared
 
@@ -120,7 +120,7 @@ All rewarded ±1 for the outcome plus a weight × score changes; one thing chang
 - **How often the agent acts was the missing piece.** Holding each move for 4 ticks capped the score near 60; acting every tick or every 2 matches or beats MCTS (77.8) on the same 5M ticks, the first learning agents to do so. Colin's guess: some positions and shots can't be reached when every move lasts 4 ticks.
 - **The best setup** (a move every 2 ticks + IMPALA, 82.6 points, 99.7% wins, 100% held-out) beats MCTS on score; it costs about 4× the wall time of the base.
 - **Longer n-step returns hurt** (83–86% wins): with an outcome reward they add variance rather than speed.
-- **The score weight barely matters** between 0.05 and 0.2.
+- **The score weight barely matters** between 0.05 and 0.2 for score, but sets how often it dies: on the training levels, out of 300 games, 0 deaths at 0.05 (and with outcome only), 4 at 0.1, 7 at 0.2. Every loss of the best setups is a death mid-game (a bomb onto a ship sitting still and shooting), never the 2000-tick timeout: with ~40 points a game worth ~+4 at 0.1 × score, a death (−1) after scoring still nets more than playing safe. `uv run python -m tools.losses <run> [--heldout]` replays a run's test games and saves the last frames of each loss.
 
 ## Network, algorithm and training budget (Aliens)
 
@@ -168,12 +168,35 @@ Suggestive only (one seed, ±10 points): 3-step returns look like the piece that
 
 ## Speed
 
+2018 recorded only one number, "approximately 12 hours" for a 2,000-episode DQN run, on a different PC (i7-2700K, GTX 980, 16 GB DDR3), with no split between the game and the learning. Everything below was measured on the 2026 machine ([LEARNINGS.md](LEARNINGS.md), "Environment"), so a later revisit can rerun the same commands and compare like with like.
+
 | | 2018 | 2026 |
 |---|---|---|
-| One game, engine alone, ticks/s | ≤40 (a 25 ms pause every tick was built in; 34 measured) | ~2,600 |
+| One game, engine alone, ticks/s | ≤40 (a 25 ms pause every tick was built in; 34 measured on the 2026 PC) | ~2,600 |
 | Training, ticks/s | ~23 (1M ticks in ~12 h) | 2018 agent ~600–1,500 per run; modern agents ~9,000 per run, ~16,000 with 3 at once |
 | One 1M-tick run | ~12 h | 3–11 min |
 | This whole project's training (241 runs, 554M ticks) | ~280 days of non-stop training | ~15 h of wall clock (39 h of run time, 3 runs at once) |
+
+**To re-measure** (quiet machine, nothing else running):
+
+| What | Command | October 2026 |
+|---|---|---|
+| One game, today's engine (random play, 4-tick repeat) | `uv run python bench/game_speed.py` | 2,590 ticks/s |
+| 2018 agent, a whole training run | `uv run python bench/train2018_speed.py cuda` / `cpu` | 1,550 / 821 ticks/s: 11 / 20 min per 1M ticks |
+| Of that 11 min | game alone (1M ÷ 2,590) vs the rest | 6.4 min game, 4.3 min agent |
+| Modern DQN update | `uv run python bench/update_speed.py` | 0.60 ms (standard network) |
+
+Each engine step from 34 to 2,590 ticks/s, with its benchmark and commit tag, is a row in [IMPROVEMENTS.md](IMPROVEMENTS.md).
+
+**Per training setup**, Aliens, 5M ticks, 3 runs at once on the one GPU (results/*-e100-*.json):
+
+| Setup (±1 outcome + 0.1 × score) | Decisions | Ticks/s per run | Wall time per run | Score / wins |
+|---|---|---|---|---|
+| A move every 4 ticks, standard network | 1.25M | ~6,100 | 14 min | 59.0 / 98.7% |
+| A move every 4 ticks, IMPALA | 1.25M | ~2,900–3,600 | 23–29 min | 62.9 / 100% |
+| A move every 2 ticks, standard network | 2.5M | ~3,600 | 23 min | 76.4 / 95.7% |
+| A move every tick, standard network | 5M | ~1,400–1,800 | 46–59 min | 78.7 / 99.7% |
+| A move every 2 ticks, IMPALA | 2.5M | ~1,550–1,600 | 52–54 min | 82.6 / 99.7% |
 
 ## Caveats
 
