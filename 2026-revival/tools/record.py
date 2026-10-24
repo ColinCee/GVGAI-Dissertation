@@ -148,9 +148,9 @@ def play_2018(spec: str, game: str, level: int, seed: int) -> dict:
                            "decision every 4 ticks; weights from the last target sync, as its evaluation"}  # fmt: skip
 
 
-def play_repeat(policy, names: list[str], env: GvgaiEnv, level: int, q_net=None) -> dict:
+def play_repeat(policy, names: list[str], env: GvgaiEnv, level: int, q_net=None, repeat: int = 4) -> dict:
     """modern / hold / random: the evaluation's loop (agents/evaluate.py) one tick at a time. A stack starts as
-    the first frame repeated; each decision holds its action 4 ticks (the server's repeat stops at game end,
+    the first frame repeated; each decision holds its action `repeat` ticks (the server's repeat stops at game end,
     tests/repeat_check.py shows the two are identical)."""
     obs, _ = env.reset(options={"level": level})
     frames = [obs.copy()]
@@ -171,7 +171,7 @@ def play_repeat(policy, names: list[str], env: GvgaiEnv, level: int, q_net=None)
         if q is not None:
             d["q"] = [round(float(v), 4) for v in q]
         decisions.append(d)
-        for _ in range(4):
+        for _ in range(repeat):
             obs, _, term, trunc, info = env.step(a)
             frames.append(obs.copy())
             if term or trunc:
@@ -187,9 +187,10 @@ def play_modern(path: str, preset: str, game: str, level: int, seed: int) -> dic
     env = GvgaiEnv(game, levels=(level,), engine_seed=seed)
     h, w = gray_half(env.comm.sso.image).shape
     net = load_modern(path, preset, h, w, env.n_actions)
-    out = play_repeat(None, list(env.action_names), env, level, q_net=net)
+    repeat = PRESETS[preset]().action_repeat
+    out = play_repeat(None, list(env.action_names), env, level, q_net=net, repeat=repeat)
     out["agent_notes"] = (f"modern DQN preset {preset}: gray-half frames, stack of 4 decision frames, action "
-                          "held 4 ticks; fp32 on the CPU (its evaluation ran bf16 on the GPU, so a near-tie "
+                          f"held {repeat} ticks; fp32 on the CPU (its evaluation ran bf16 on the GPU, so a near-tie "
                           "can go the other way)")  # fmt: skip
     return out
 
