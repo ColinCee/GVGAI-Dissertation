@@ -117,7 +117,7 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 - **It needs the training.** At 2018's budget the plain outcome was the worst reward (45% wins): one signal at the end of a ~150-move game takes millions of ticks to learn from. That is why 2018's per-move penalty helped then, and why it isn't needed now.
 - **Fading the signal with distance from the loss** is what the discount already does; passing it back faster with 3-step returns didn't help here (98% vs 100%, held-out 72%).
 - **Paying the score only at the end of a won game doesn't teach scoring** (saturating win reward, 23 Oct 2026): it plays like outcome only (43.5 vs 44.5 points, 99% wins). A 40- and a 60-point win differ by 0.05, which reaches the moves that earned the points only after ~150 steps of discounting; 0.1 × score pays each point when it happens.
-- **Recommended reward:** ±1 outcome + 0.1 × score (the setup built on it is in the overnight check). At 5 seeds, 0.2 × score scores 1.6 more (p = 0.047, a later code version), a loose end.
+- **Recommended reward:** ±1 outcome + 0.1 × score (the setup built on it is in the overnight check). At 5 seeds, 0.2 × score scores 1.6 more (p = 0.047), but with 0.05 and 0.2 both tested against 0.1, Holm needs p < 0.025, so it's a tie and 0.1 stays.
 
 The same two rewards on the other games (DQN, 5M ticks, 3 seeds):
 
