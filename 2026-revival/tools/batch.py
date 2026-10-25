@@ -47,6 +47,7 @@ def main() -> None:
     args: dict[str, list[str]] = {}
     quiet_since: dict[str, float] = {}
     retried: set[str] = set()
+    last_paused = 0.0  # when tools/pause.py last had runs paused
     failed = []
     while todo or running:
         while todo and len(running) < a.parallel:
@@ -61,12 +62,15 @@ def main() -> None:
         time.sleep(5)
         beat.touch()
         paused = (HERE / "runs" / "paused").exists()  # see tools/pause.py
+        if paused:
+            last_paused = time.time()
         for n, pr in list(running.items()):
             log_age = time.time() - (HERE / "runs" / f"{n}.log").stat().st_mtime
             if paused:
-                quiet_since.pop(n, None)  # a paused run is quiet on purpose; its clock starts again after
+                quiet_since.pop(n, None)  # a paused run is quiet on purpose
             elif log_age > 60:
-                quiet_since.setdefault(n, time.time() - log_age)
+                # its quiet time counts from its last output or the end of the pause, whichever is later
+                quiet_since.setdefault(n, max(time.time() - log_age, last_paused))
             else:
                 quiet_since.pop(n, None)
             if pr.poll() is None and n in quiet_since and time.time() - quiet_since[n] > a.hang_minutes * 60:

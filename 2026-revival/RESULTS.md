@@ -4,9 +4,11 @@ What happened when the 2018 dissertation (DQN and its improvements on four GVGAI
 
 ## Headlines
 
+The Aliens numbers the blog uses are the overnight check below (5 seeds, one code version, 100 test games each). The sections after it are earlier batches, mostly 3 seeds and 50 games, kept as dated records; where they disagree, the overnight check stands.
+
 1. **Same agent, same 1M game ticks: ~12 h in 2018 → ~25 min today** in practice (23–34 min for the three Aliens runs, on a machine shared with other runs), **~11 min** on a quiet machine (benchmark). Modern agents do the same budget in **3–11 min**.
 2. **The 2018 results reproduce on Aliens and Wafer Thin Mints** (Aliens learning curve 8 / 30 / 57 / 69% wins per 500 games vs the report's 4 / 22 / 58 / 68; Wafer 10.2 / 35% vs 10.2 / 33%; the DQN → DDQN ablation too). Deceptizelda varies between seeds (79%, 38–100, vs 2018's single 99%) and Chase is near zero either way (0.2 vs 0.7). MCTS at 40 ms per move matches 2018 on all four games.
-3. **New: on three games, holding one button matches most agents.** Holding "shoot" wins 82% of Aliens games (36.3 points); holding "right" wins every Deceptizelda game; holding any direction wins every Wafer Thin Mints game, by surviving without eating. Scores are trivial too: random play gets 10.8 on Wafer, more than any agent. Chase has no meaningful result at all. **Aliens score is the one clear measure of skill**, and there the 2018 agent's 50 points is well above the baseline (36), as are 2026 agents with a bigger network or more updates per tick (51–55) at the same budget.
+3. **New: on three games, holding one button matches most agents.** Holding "shoot" wins 82.4% of Aliens games (37.3 points, on the agents' 500 test games); holding "right" wins every Deceptizelda game; holding any direction wins every Wafer Thin Mints game, by surviving without eating. Scores are trivial too: random play gets 10.8 on Wafer, more than any agent. Chase has no meaningful result at all. **Aliens score is the one clear measure of skill**, and there the 2018 agent's 50 points is well above the baseline (36), as are 2026 agents with a bigger network or more updates per tick (51–55) at the same budget.
 4. **On Aliens' score, today's methods clearly beat 2018 given more experience:** 58–62 points at 5–10M ticks with a move every 4 ticks, and 79–83 at ~100% wins with a move every tick or every 2 (best: ±1 outcome + 0.1 × score, IMPALA network, a move every 2 ticks: 82.7 / 99.0% over 5 seeds × 100 games, each step of that chain significant by Welch's t-test), against the 2018 agent's 46.9 / 72.8% over 5 seeds (and 37.3 / 82.4% for holding shoot on the same 500 games). See the overnight check below. At 2018's budget they roughly match it: Rainbow with a bigger network (IMPALA, 2018) gets 54.7 / 85% vs 50.1 / 81%, within noise, and at 2–3× the wall time per tick; four times more updates per tick gives DQN the same score (53.0).
 5. **The 2018 reward's win-rate gains are mostly the trivial strategy.** Its −0.5 penalty on every move of a lost game lifts DQN's Aliens wins from 57% to 85% but not its score (39.4, close to holding shoot's 36.3). PPO, with or without the penalty, learns exactly "hold shoot" on the training levels (identical games to the baseline). On Wafer the penalty drives Rainbow and PPO to the survive-don't-eat strategy (91–97% wins, 2–3 points).
 6. **Deceptizelda is not solved by anyone.** Every agent, 2018 and 2026, takes the small exit (2 points: key + door); the human took the large one (10 points). That also explains the 2018 report's "DDQN beat MCTS here": both took the small exit, MCTS less reliably.
@@ -30,7 +32,7 @@ Every setup the blog's part 2 shows, run again side by side: `experiments/verify
 | DQN, 5M, outcome + 0.1 × score | 58.9 (57.1–60.2) | 98.8% (97–100) | 93% | 12–13 min |
 | … + IMPALA | 62.0 (59.2–64.2) | 100.0% (100–100) | 97% | 25–26 min |
 | … + IMPALA + a move every 2 ticks | 82.7 (82.4–83.2) | 99.0% (97–100) | 100% | 43–47 min |
-| … + IMPALA + a move every tick | 82.5 (82.2–82.9) | 100% (100–100) | 100% | 113–114 min (3 earlier seeds paused for games) |
+| … + IMPALA + a move every tick | 82.5 (82.2–82.9) | 100% (100–100) | 100% | 113–114 min (seeds 0–2 ran earlier, on a version with the same learning code, paused at times for games) |
 | Holding shoot (no learning) | 37.3 (36.4–38.3) | 82.4% (80–85) | – | – |
 | DQN, 5M, outcome + 0.05 × score | 55.6 | 99.4% | – | – |
 | DQN, 5M, outcome + 0.2 × score | 60.6 | 98.8% | – | – |
@@ -40,7 +42,7 @@ Every setup the blog's part 2 shows, run again side by side: `experiments/verify
 - **The 2018 agent is noisier than 3 seeds showed**: these 5 runs average 72.8% wins (65–82) and 46.9 points, against 81.3% and 50.1 from the first 3; its 8 runs together span 65–92%. Holding shoot (82%) now sits at the top of its range.
 - **The bigger network's gain holds up**: 62.0 points (59.2–64.2) against 58.9 (57.1–60.2), Welch p = 0.025, so the greedy chain (AGENTS.md) keeps it. Every other step decides the same way as before: more practice p = 0.013 (wins), the outcome + score reward p = 0.001 (wins), a move every 2 ticks p < 0.001 (score); DQN vs Rainbow at 5M (p ≈ 0.7) is a tie.
 - **A move every tick + IMPALA ties a move every 2 ticks** at 5 seeds (wins p = 0.19, score p = 0.24), at about 2½× the training time, so the chain keeps every 2 ticks.
-- **PPO's wins don't rise with 5M ticks** (82.4% → 69.4%, 54–84, Welch p = 0.085, a tie), though its score does (37.3 → 45.2). The best setup loses 5 games in 500 (0, 2, 0, 3, 0). Holding shoot's 82% is from 50 games; PPO at 1M, which learned to do just that, wins 82.4% over 500.
+- **PPO's wins don't rise with 5M ticks** (82.4% → 69.4%, 54–84, Welch p = 0.085, a tie), though its score does (37.3 → 45.2). The best setup loses 5 games in 500 (0, 2, 0, 3, 0). PPO at 1M plays exactly like holding shoot: the same score in every one of the 500 test games.
 
 ## What was compared
 
@@ -115,7 +117,7 @@ Noise: with 3 seeds × 50 games, a win rate's standard error is about ±4–5 po
 - **It needs the training.** At 2018's budget the plain outcome was the worst reward (45% wins): one signal at the end of a ~150-move game takes millions of ticks to learn from. That is why 2018's per-move penalty helped then, and why it isn't needed now.
 - **Fading the signal with distance from the loss** is what the discount already does; passing it back faster with 3-step returns didn't help here (98% vs 100%, held-out 72%).
 - **Paying the score only at the end of a won game doesn't teach scoring** (saturating win reward, 23 Oct 2026): it plays like outcome only (43.5 vs 44.5 points, 99% wins). A 40- and a 60-point win differ by 0.05, which reaches the moves that earned the points only after ~150 steps of discounting; 0.1 × score pays each point when it happens.
-- **Recommended setup:** ±1 outcome + 0.1 × score, DQN, 5M ticks (~17 min per run).
+- **Recommended reward:** ±1 outcome + 0.1 × score (the setup built on it is in the overnight check). At 5 seeds, 0.2 × score scores 1.6 more (p = 0.047, a later code version), a loose end.
 
 The same two rewards on the other games (DQN, 5M ticks, 3 seeds):
 
@@ -149,9 +151,9 @@ All rewarded ±1 for the outcome plus a weight × score changes; one thing chang
 | MCTS, no training (reference) | 77.8 | 100% | – | – |
 
 - **How often the agent acts was the missing piece.** Holding each move for 4 ticks capped the score near 60; acting every tick or every 2 matches or beats MCTS (77.8) on the same 5M ticks, the first learning agents to do so. Colin's guess: some positions and shots can't be reached when every move lasts 4 ticks.
-- **The best setup** (a move every 2 ticks + IMPALA, 82.6 points, 99.7% wins, 100% held-out) beats MCTS on score; it costs about 4× the wall time of the base. A move every tick + IMPALA ties it (82.2–82.4 against 81.9–83.3, all 300 games won) at over 3× its time, so the greedy chain (AGENTS.md) keeps every 2 ticks.
+- **The best setup** (a move every 2 ticks + IMPALA) beats MCTS on score; it costs about 3.5× the wall time of the base. At 5 seeds (the overnight check) it is 82.7 / 99.0%, and a move every tick + IMPALA ties it at about 2½× its time, so the greedy chain (AGENTS.md) keeps every 2 ticks.
 - **Longer n-step returns hurt** (83–86% wins): with an outcome reward they add variance rather than speed.
-- **The score weight barely matters**, for score or for losses: at 5 seeds (the overnight check) 0.05, 0.1 and 0.2 lose 3, 6 and 6 games in 500, so the earlier 0 / 4 / 7 in 300 (3 seeds) was noise. Losses replayed with `uv run python -m tools.losses <run> [--heldout]` on the earlier runs were all deaths mid-game (a bomb onto a ship sitting still and shooting), never the 2000-tick timeout; on the overnight runs a replay is a fresh play of the same games (play isn't bit-for-bit repeatable, LEARNINGS.md), and replaying the best setup's 5 runs lost 2 of 500, both deaths mid-game with the ship standing still under a falling bomb.
+- **The score weight doesn't set the loss rate**: at 5 seeds (the overnight check) 0.05, 0.1 and 0.2 lose 3, 6 and 6 games in 500, so the earlier 0 / 4 / 7 in 300 (3 seeds) was noise. For score, 0.2 is 1.6 above 0.1 (p = 0.047) and 0.05 is 3.3 below it (p = 0.07). Losses replayed with `uv run python -m tools.losses <run> [--heldout]` on the earlier runs were all deaths mid-game (a bomb onto a ship sitting still and shooting), never the 2000-tick timeout; on the overnight runs a replay is a fresh play of the same games (play isn't bit-for-bit repeatable, LEARNINGS.md), and replaying the best setup's 5 runs lost 2 of 500 (its evaluation lost 5), both deaths mid-game with the ship standing still under a falling bomb.
 
 ## Network, algorithm and training budget (Aliens)
 
