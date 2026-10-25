@@ -46,6 +46,7 @@ def main() -> None:
     running: dict[str, subprocess.Popen] = {}
     args: dict[str, list[str]] = {}
     quiet_since: dict[str, float] = {}
+    started: dict[str, float] = {}
     retried: set[str] = set()
     last_paused = 0.0  # when tools/pause.py last had runs paused
     failed = []
@@ -58,6 +59,7 @@ def main() -> None:
                                           stdin=subprocess.DEVNULL, env=env,
                                           creationflags=IDLE if a.low_priority else 0)  # fmt: skip
             args[n] = j
+            started[n] = time.time()
             print(f"start {n}", flush=True)
         time.sleep(5)
         beat.touch()
@@ -69,8 +71,9 @@ def main() -> None:
             if paused:
                 quiet_since.pop(n, None)  # a paused run is quiet on purpose
             elif log_age > 60:
-                # its quiet time counts from its last output or the end of the pause, whichever is later
-                quiet_since.setdefault(n, max(time.time() - log_age, last_paused))
+                # its quiet time counts from its last output, the end of the pause or its own start, whichever
+                # is latest (a rerun appends to the old run's log, whose last write can be hours old)
+                quiet_since.setdefault(n, max(time.time() - log_age, last_paused, started[n]))
             else:
                 quiet_since.pop(n, None)
             if pr.poll() is None and n in quiet_since and time.time() - quiet_since[n] > a.hang_minutes * 60:
