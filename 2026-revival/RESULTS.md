@@ -12,6 +12,29 @@ What happened when the 2018 dissertation (DQN and its improvements on four GVGAI
 6. **Deceptizelda is not solved by anyone.** Every agent, 2018 and 2026, takes the small exit (2 points: key + door); the human took the large one (10 points). That also explains the 2018 report's "DDQN beat MCTS here": both took the small exit, MCTS less reliably.
 7. **Chase stays unsolved**: no agent wins a game, and random play (1.5 points) outscores every agent except Rainbow after 20M ticks (1.7). **MCTS (77.8 on Aliens, no training) beats every learning agent that acts every 4 ticks (≤63)**; acting every tick (78.7) or every 2 with IMPALA (82.6) matches or beats it.
 
+## The overnight check (Aliens, 5 seeds, one code version, 100 test games each, 25 Oct 2026)
+
+Every setup the blog's part 2 shows, run again side by side: `experiments/verify.txt`, results `aliens-v-*`. Three at a time on one GPU, so wall times run high.
+
+| Setup | Score (range) | Wins (range) | Held-out wins | Wall time per run |
+|---|---|---|---|---|
+| 2018 agent, 1M ticks | 46.9 (39.4–51.9) | 72.8% (65–82) | – | 27–29 min |
+| DQN, 1M | 39.9 (33.3–45.4) | 51.2% (30–78) | 57% | 2–2 min |
+| Rainbow, 1M | 42.7 (39.4–45.0) | 64.2% (47–82) | 89% | 3–3 min |
+| PPO, 1M | 37.3 (36.4–38.3) | 82.4% (80–85) | 62% | 3–3 min |
+| DQN, 5M (points reward) | 56.3 (51.1–58.5) | 89.0% (85–92) | 74% | 16–18 min |
+| Rainbow, 5M | 57.3 (56.3–59.2) | 88.0% (83–94) | 73% | 19–22 min |
+| PPO, 5M | 45.2 (39.7–49.2) | 69.4% (54–84) | 84% | 12–17 min |
+| DQN, 5M, outcome only | 44.1 (41.0–45.4) | 99.6% (99–100) | 97% | 11–12 min |
+| DQN, 5M, 2018 reward | 49.0 (46.5–50.7) | 95.8% (94–98) | 39% | 10–11 min |
+| DQN, 5M, outcome + 0.1 × score | 58.9 (57.1–60.2) | 98.8% (97–100) | 93% | 12–13 min |
+| … + IMPALA | 62.0 (59.2–64.2) | 100.0% (100–100) | 97% | 25–26 min |
+| … + IMPALA + a move every 2 ticks | 82.7 (82.4–83.2) | 99.0% (97–100) | 100% | 43–47 min |
+
+- **The 2018 agent is noisier than 3 seeds showed**: these 5 runs average 72.8% wins (65–82) and 46.9 points, against 81.3% and 50.1 from the first 3; its 8 runs together span 65–92%. Holding shoot (82%) now sits at the top of its range.
+- **The bigger network's gain is borderline**: 62.0 points (59.2–64.2) against 58.9 (57.1–60.2), one run each overlapping, so under the greedy rule (AGENTS.md) it is a tie (Welch p = 0.025). `experiments/verify-strict.txt` is the moves step on the standard network, for the strict chain.
+- **PPO at 5M wins less, not more** (69.4%, 54–84), and the best setup loses 5 games in 500 (0, 2, 0, 3, 0).
+
 ## What was compared
 
 All rows: 50 evaluation games, greedy, levels 0–2 (Deceptizelda: 0 and 2, see caveats). 2026 rows are the mean of 3 seeds; the range is win % across seeds. "2018's ticks" = the game ticks 2018 used for that game.
