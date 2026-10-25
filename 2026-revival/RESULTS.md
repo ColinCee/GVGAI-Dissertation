@@ -35,6 +35,8 @@ Every setup the blog's part 2 shows, run again side by side: `experiments/verify
 | DQN, 5M, outcome + 0.05 × score | 55.6 | 99.4% | – | – |
 | DQN, 5M, outcome + 0.2 × score | 60.6 | 98.8% | – | – |
 
+- **Nothing moved significantly between the earlier runs and these**: for all 14 setups run both ways, wins and score differ by p > 0.05 (Welch), in both directions, so the 3-seed numbers were noisier, not wrong.
+- **Holding shoot and the modern agents share their 500 test games** (engine seed = run seed + 7); the 2018 agent is tested on other games drawn from the same levels, so its comparisons are unpaired.
 - **The 2018 agent is noisier than 3 seeds showed**: these 5 runs average 72.8% wins (65–82) and 46.9 points, against 81.3% and 50.1 from the first 3; its 8 runs together span 65–92%. Holding shoot (82%) now sits at the top of its range.
 - **The bigger network's gain holds up**: 62.0 points (59.2–64.2) against 58.9 (57.1–60.2), Welch p = 0.025, so the greedy chain (AGENTS.md) keeps it. Every other step decides the same way as before: more practice p = 0.013 (wins), the outcome + score reward p = 0.001 (wins), a move every 2 ticks p < 0.001 (score); DQN vs Rainbow at 5M (p ≈ 0.7) is a tie.
 - **A move every tick + IMPALA ties a move every 2 ticks** at 5 seeds (wins p = 0.19, score p = 0.24), at about 2½× the training time, so the chain keeps every 2 ticks.
@@ -149,7 +151,7 @@ All rewarded ±1 for the outcome plus a weight × score changes; one thing chang
 - **How often the agent acts was the missing piece.** Holding each move for 4 ticks capped the score near 60; acting every tick or every 2 matches or beats MCTS (77.8) on the same 5M ticks, the first learning agents to do so. Colin's guess: some positions and shots can't be reached when every move lasts 4 ticks.
 - **The best setup** (a move every 2 ticks + IMPALA, 82.6 points, 99.7% wins, 100% held-out) beats MCTS on score; it costs about 4× the wall time of the base. A move every tick + IMPALA ties it (82.2–82.4 against 81.9–83.3, all 300 games won) at over 3× its time, so the greedy chain (AGENTS.md) keeps every 2 ticks.
 - **Longer n-step returns hurt** (83–86% wins): with an outcome reward they add variance rather than speed.
-- **The score weight barely matters**, for score or for losses: at 5 seeds (the overnight check) 0.05, 0.1 and 0.2 lose 3, 6 and 6 games in 500, so the earlier 0 / 4 / 7 in 300 (3 seeds) was noise. Losses replayed with `uv run python -m tools.losses <run> [--heldout]` on the earlier runs were all deaths mid-game (a bomb onto a ship sitting still and shooting), never the 2000-tick timeout; on the overnight runs the replay no longer reproduces the evaluation (it says so), so that is unchecked there.
+- **The score weight barely matters**, for score or for losses: at 5 seeds (the overnight check) 0.05, 0.1 and 0.2 lose 3, 6 and 6 games in 500, so the earlier 0 / 4 / 7 in 300 (3 seeds) was noise. Losses replayed with `uv run python -m tools.losses <run> [--heldout]` on the earlier runs were all deaths mid-game (a bomb onto a ship sitting still and shooting), never the 2000-tick timeout; on the overnight runs a replay is a fresh play of the same games (play isn't bit-for-bit repeatable, LEARNINGS.md), and replaying the best setup's 5 runs lost 2 of 500, both deaths mid-game with the ship standing still under a falling bomb.
 
 ## Network, algorithm and training budget (Aliens)
 

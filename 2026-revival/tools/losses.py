@@ -1,11 +1,15 @@
-"""Replay a trained run's evaluation and report how each lost game ended.
+"""Replay a trained run's test games and show how each lost game ended.
 
-    uv run python -m tools.losses aliens-dqn-outcome-score01-ar1-e100-s0 [--heldout] [--device cpu]
+    uv run python -m tools.losses aliens-dqn-outcome-score01-ar1-e100-s0 [--heldout] [--device cuda]
 
 Rebuilds the agent from results/<name>.json, loads runs/<name>/q.pt and plays the same games as the
 run's evaluation (same seed, levels and number of games). For each game: level, score, ticks, and
 how it ended (win, death, or the 2000-tick timeout). The last frames of each lost game are saved to
 runs/<name>/lost-<i>.png (newest on the right) to look at.
+
+A replay is a fresh play of the same games, not a copy of the evaluation: play isn't bit-for-bit
+repeatable (agents/evaluate.py), so some games end differently. How the evaluation's own games ended
+is in results/<name>.json (`ends`, `ticks`) for runs from 25 Oct 2026 on.
 """
 
 import argparse
@@ -28,7 +32,7 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("name")
     p.add_argument("--heldout", action="store_true")
-    p.add_argument("--device", default="cpu")
+    p.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     a = p.parse_args()
     res = json.loads((ROOT / "results" / f"{a.name}.json").read_text())
     names = {f.name for f in fields(ModernConfig)}
@@ -73,9 +77,9 @@ def main() -> None:
             stacks.push(obs, ended)
     env.close()
     rows = rows[:games]
-    same = [int(r["how"] == "win") for r in rows] == ev["wins"]
-    print(f"{a.name} {'held-out' if a.heldout else 'training'} levels: {sum(r['how'] == 'win' for r in rows)}/{len(rows)} won"
-          f" (matches the run's own evaluation: {same})")  # fmt: skip
+    won = sum(r["how"] == "win" for r in rows)
+    print(f"{a.name} {'held-out' if a.heldout else 'training'} levels, replayed: {won}/{len(rows)} won"
+          f" (the run's own evaluation: {sum(ev['wins'])}/{len(ev['wins'])})")  # fmt: skip
     wins = [r for r in rows if r["how"] == "win"]
     print(f"wins: mean {np.mean([r['ticks'] for r in wins]):.0f} ticks, longest {max(r['ticks'] for r in wins)}")
     for i, r in enumerate(rows):

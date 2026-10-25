@@ -1,5 +1,10 @@
 """What the trainers share: frame stacks on the GPU, finished-game records, and the greedy evaluation
-every agent is scored with (50 games, a fixed seed, the game's levels)."""
+every modern agent and baseline is scored with (a fixed engine seed per run, the game's levels).
+
+The games are the same for the same seed, but the agent's play is not bit-for-bit repeatable: a
+compiled network or a different cuDNN algorithm shifts its values slightly, near-ties flip, and a
+game can end differently (about 80% of an Aliens evaluation's scores change, its win rate doesn't).
+So the evaluation records how each game ended and how long it took, rather than relying on a replay."""
 
 import numpy as np
 import torch
@@ -42,16 +47,21 @@ def evaluate(agent, game: str, n_envs: int, games: int, levels, seed: int, repea
     stacks = Stacks(obs, agent.device)
     per_env = -(-games // n_envs)
     done_count = np.zeros(n_envs, np.int64)
+    ticks = np.zeros(n_envs, np.int64)
     rows: list[dict] = []
     agent.q.eval()
     while (done_count < per_env).any():
         a = agent.act(stacks.array(), 0.0)
         obs, _, term, trunc, info = env.step(a)
+        ticks += info["ticks"]
         ended = term | trunc
         for e, r in zip(np.flatnonzero(ended), finished(info, ended), strict=True):
             if done_count[e] < per_env:
+                r["ticks"] = int(ticks[e])
+                r["how"] = "win" if r["win"] else ("timeout" if trunc[e] else "death")
                 rows.append(r)
             done_count[e] += 1
+            ticks[e] = 0
         stacks.push(obs, ended)
     agent.q.train()
     env.close()
@@ -61,4 +71,5 @@ def evaluate(agent, game: str, n_envs: int, games: int, levels, seed: int, repea
         "mean_score": float(np.mean([r["score"] for r in rows])),
         "win_rate": float(np.mean([r["win"] for r in rows])),
         "scores": [float(r["score"]) for r in rows], "wins": [int(r["win"]) for r in rows],
+        "ticks": [r["ticks"] for r in rows], "ends": [r["how"] for r in rows],
     }  # fmt: skip
