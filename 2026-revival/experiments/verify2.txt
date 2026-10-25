@@ -1,0 +1,14 @@
+# Validation for part 2 (25 Oct 2026): every frame + IMPALA up to 5 seeds, and the score weights
+# behind the death counts (0.05 and 0.2; 0.1 is aliens-v-score01) at 5 seeds on this code.
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score01-ar1-impala --seed 3 --name aliens-dqn-outcome-score01-ar1-impala-e100-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score01-ar1-impala --seed 4 --name aliens-dqn-outcome-score01-ar1-impala-e100-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score005 --seed 0 --name aliens-v-score005-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score02 --seed 0 --name aliens-v-score02-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score005 --seed 1 --name aliens-v-score005-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score02 --seed 1 --name aliens-v-score02-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score005 --seed 2 --name aliens-v-score005-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score02 --seed 2 --name aliens-v-score02-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score005 --seed 3 --name aliens-v-score005-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score02 --seed 3 --name aliens-v-score02-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score005 --seed 4 --name aliens-v-score005-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-outcome-score02 --seed 4 --name aliens-v-score02-s4
