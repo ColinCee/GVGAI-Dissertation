@@ -85,6 +85,7 @@ def main() -> None:
                 elif not ok:
                     failed.append(n)
     print(f"finished; failed: {failed or 'none'}")
+    beat.unlink(missing_ok=True)
     sys.exit(1 if failed else 0)
 
 

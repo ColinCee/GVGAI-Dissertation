@@ -1,8 +1,8 @@
 """Training runs started by tools/batch.py stop when the batch is stopped (e.g. `lease free --force --stop-job`).
 
 Killing a process on Windows doesn't kill its children, so tools/batch.py touches a file every few seconds
-and runs check it; if it's stale for a minute, the batch is gone and the run exits (train2018 resumes
-from its last checkpoint next time).
+and runs check it; if it's stale for a minute, the batch is gone and the run exits (both trainers
+resume from their last checkpoint next time).
 """
 
 import os

@@ -64,6 +64,7 @@ Full log with tags: [IMPROVEMENTS.md](IMPROVEMENTS.md). One game went from 34 to
 - **Results record the commit at the start of a run**, not the end; a commit made while a run trains is not the code it ran.
 - **The golden test** compares every tick's state and pixels. Re-recording from `tests/pristine_engine.py` in October 2026 gave identical ticks, but the games the test cuts off before they end were labelled `NO_WINNER` instead of `PLAYER_LOSES`. The recorded files keep the original labels, which the current engine matches. Results don't depend on it: evaluation and 2018's reward count every game without a win as a loss. Cause not investigated.
 - **Early stopping** must not stop on a plateau before ~3M ticks: Rainbow's curve flattens and then climbs again.
+- **A fixed time limit killed healthy runs**: tools.batch used to kill any run past 2 hours, and three 3-hour runs (a move every tick + IMPALA) died at 70% with nothing saved. The guard is now on a run's log going quiet, paused runs are exempt, and `train.modern` checkpoints every 20 minutes like `train.ddqn2018`.
 
 ## What I'd do next
 
