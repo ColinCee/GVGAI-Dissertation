@@ -115,10 +115,11 @@ All rewarded ±1 for the outcome plus a weight × score changes; one thing chang
 | A move every 2 ticks, 0.05 × score | 68.9 | 94.3% | 96% | 23–30 min |
 | **A move every tick** | **78.7** | **99.7%** | **100%** | 46–59 min |
 | **A move every 2 ticks + IMPALA** | **82.6** | **99.7%** | **100%** | 52–54 min |
+| A move every tick + IMPALA | 82.3 | 100% | 100% | ~3 h (paused at times for games) |
 | MCTS, no training (reference) | 77.8 | 100% | – | – |
 
 - **How often the agent acts was the missing piece.** Holding each move for 4 ticks capped the score near 60; acting every tick or every 2 matches or beats MCTS (77.8) on the same 5M ticks, the first learning agents to do so. Colin's guess: some positions and shots can't be reached when every move lasts 4 ticks.
-- **The best setup** (a move every 2 ticks + IMPALA, 82.6 points, 99.7% wins, 100% held-out) beats MCTS on score; it costs about 4× the wall time of the base.
+- **The best setup** (a move every 2 ticks + IMPALA, 82.6 points, 99.7% wins, 100% held-out) beats MCTS on score; it costs about 4× the wall time of the base. A move every tick + IMPALA ties it (82.2–82.4 against 81.9–83.3, all 300 games won) at over 3× its time, so the greedy chain (AGENTS.md) keeps every 2 ticks.
 - **Longer n-step returns hurt** (83–86% wins): with an outcome reward they add variance rather than speed.
 - **The score weight barely matters** between 0.05 and 0.2 for score, but sets how often it dies: on the training levels, out of 300 games, 0 deaths at 0.05 (and with outcome only), 4 at 0.1, 7 at 0.2. Every loss of the best setups is a death mid-game (a bomb onto a ship sitting still and shooting), never the 2000-tick timeout: with ~40 points a game worth ~+4 at 0.1 × score, a death (−1) after scoring still nets more than playing safe. `uv run python -m tools.losses <run> [--heldout]` replays a run's test games and saves the last frames of each loss.
 
