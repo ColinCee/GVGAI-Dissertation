@@ -19,9 +19,9 @@ Every setup the blog's part 2 shows, run again side by side: `experiments/verify
 | Setup | Score (range) | Wins (range) | Held-out wins | Wall time per run |
 |---|---|---|---|---|
 | 2018 agent, 1M ticks | 46.9 (39.4–51.9) | 72.8% (65–82) | – | 27–29 min |
-| DQN, 1M | 39.9 (33.3–45.4) | 51.2% (30–78) | 57% | 2–2 min |
-| Rainbow, 1M | 42.7 (39.4–45.0) | 64.2% (47–82) | 89% | 3–3 min |
-| PPO, 1M | 37.3 (36.4–38.3) | 82.4% (80–85) | 62% | 3–3 min |
+| DQN, 1M | 39.9 (33.3–45.4) | 51.2% (30–78) | 57% | 2 min |
+| Rainbow, 1M | 42.7 (39.4–45.0) | 64.2% (47–82) | 89% | 3 min |
+| PPO, 1M | 37.3 (36.4–38.3) | 82.4% (80–85) | 62% | 3 min |
 | DQN, 5M (points reward) | 56.3 (51.1–58.5) | 89.0% (85–92) | 74% | 16–18 min |
 | Rainbow, 5M | 57.3 (56.3–59.2) | 88.0% (83–94) | 73% | 19–22 min |
 | PPO, 5M | 45.2 (39.7–49.2) | 69.4% (54–84) | 84% | 12–17 min |
