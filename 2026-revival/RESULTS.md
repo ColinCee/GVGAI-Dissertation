@@ -44,6 +44,18 @@ Every setup the blog's part 2 shows, run again side by side: `experiments/verify
 - **A move every tick + IMPALA ties a move every 2 ticks** at 5 seeds (wins p = 0.19, score p = 0.24), at about 2½× the training time, so the chain keeps every 2 ticks.
 - **PPO's wins don't rise with 5M ticks** (82.4% → 69.4%, 54–84, Welch p = 0.085, a tie), though its score does (37.3 → 45.2). The best setup loses 5 games in 500 (0, 2, 0, 3, 0). PPO at 1M plays exactly like holding shoot: the same score in every one of the 500 test games.
 
+## The Rainbow branch (Aliens, 5 seeds, 100 test games each, 25 Oct 2026)
+
+The same chain with Rainbow in place of DQN: `experiments/verify-rainbow.txt`, results `aliens-v-rainbow-*` (seed 0 of the last row rerun after a compile-cache crash).
+
+| Setup | DQN score / wins | Rainbow score / wins | Welch p (wins, score) |
+|---|---|---|---|
+| 5M, outcome + 0.1 × score | 58.9 / 98.8% | 50.1 / 98.4% | 0.59, < 0.001 |
+| … + IMPALA | 62.0 / 100.0% | 60.0 / 97.8% | 0.004, 0.11 |
+| … + IMPALA + a move every 2 ticks | 82.7 / 99.0% | 75.7 / 98.8% | 0.79, 0.036 |
+
+- **Rainbow never beats DQN on this chain**: it ties or loses on wins and scores lower at every step, so keeping the simpler DQN at step 1 cost nothing.
+
 ## What was compared
 
 All rows: 50 evaluation games, greedy, levels 0–2 (Deceptizelda: 0 and 2, see caveats). 2026 rows are the mean of 3 seeds; the range is win % across seeds. "2018's ticks" = the game ticks 2018 used for that game.
