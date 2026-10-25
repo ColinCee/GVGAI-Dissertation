@@ -33,7 +33,7 @@ Every setup the blog's part 2 shows, run again side by side: `experiments/verify
 
 - **The 2018 agent is noisier than 3 seeds showed**: these 5 runs average 72.8% wins (65–82) and 46.9 points, against 81.3% and 50.1 from the first 3; its 8 runs together span 65–92%. Holding shoot (82%) now sits at the top of its range.
 - **The bigger network's gain holds up**: 62.0 points (59.2–64.2) against 58.9 (57.1–60.2), Welch p = 0.025, so the greedy chain (AGENTS.md) keeps it. Every other step decides the same way as before: more practice p = 0.013 (wins), the outcome + score reward p = 0.001 (wins), a move every 2 ticks p < 0.001 (score); DQN vs Rainbow at 5M (p ≈ 0.7) is a tie.
-- **PPO at 5M wins less, not more** (69.4%, 54–84), and the best setup loses 5 games in 500 (0, 2, 0, 3, 0).
+- **PPO's wins don't rise with 5M ticks** (82.4% → 69.4%, 54–84, Welch p = 0.085, a tie), though its score does (37.3 → 45.2). The best setup loses 5 games in 500 (0, 2, 0, 3, 0). Holding shoot's 82% is from 50 games; PPO at 1M, which learned to do just that, wins 82.4% over 500.
 
 ## What was compared
 

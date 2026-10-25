@@ -225,7 +225,11 @@ def main() -> None:
         t0 -= c["wall"]
         print(f"resumed at {ticks} ticks (resume {resumes})", flush=True)
     last_ckpt = time.perf_counter()
-    with open(run / "episodes.csv", "a" if resumes else "w", newline="") as f:
+    csv_path = run / "episodes.csv"
+    if resumes:  # drop rows written after the checkpoint
+        lines = csv_path.read_text().splitlines()[: episodes + 1]
+        csv_path.write_text("\n".join(lines) + "\n")
+    with open(csv_path, "a" if resumes else "w", newline="") as f:
         out = csv.writer(f)
         if not resumes:
             out.writerow(["episode", "score", "win", "level", "cum_ticks", "updates", "epsilon", "wall_s"])
