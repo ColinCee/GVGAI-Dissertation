@@ -1,0 +1,5 @@
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-per --ticks 5000000 --seed 0 --name aliens-v-dqn-per-5m-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-per --ticks 5000000 --seed 1 --name aliens-v-dqn-per-5m-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-per --ticks 5000000 --seed 2 --name aliens-v-dqn-per-5m-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-per --ticks 5000000 --seed 3 --name aliens-v-dqn-per-5m-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-per --ticks 5000000 --seed 4 --name aliens-v-dqn-per-5m-s4

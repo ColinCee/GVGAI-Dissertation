@@ -1,0 +1,5 @@
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-per-outcome-score01-ar2-impala --seed 0 --name aliens-v-per-score01-ar2-impala-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-per-outcome-score01-ar2-impala --seed 1 --name aliens-v-per-score01-ar2-impala-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-per-outcome-score01-ar2-impala --seed 2 --name aliens-v-per-score01-ar2-impala-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-per-outcome-score01-ar2-impala --seed 3 --name aliens-v-per-score01-ar2-impala-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset dqn-per-outcome-score01-ar2-impala --seed 4 --name aliens-v-per-score01-ar2-impala-s4

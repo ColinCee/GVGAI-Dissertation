@@ -86,6 +86,9 @@ PRESETS = {
     ),
     "dqn-outcome-score01-ar1-impala": lambda: ModernConfig(
         outcome_reward=True, score_scale=0.1, action_repeat=1, encoder="impala"
+    ),    # the final agent with prioritised replay put back, the 2018 agent's other trick (26 Oct 2026)
+    "dqn-per-outcome-score01-ar2-impala": lambda: ModernConfig(
+        outcome_reward=True, score_scale=0.1, action_repeat=2, encoder="impala", per=True
     ),
 }
 
