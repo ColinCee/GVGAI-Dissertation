@@ -1,11 +1,15 @@
 """Trivial baselines: one action held for the whole game, and uniform random play, on the agents' evaluation.
 
     uv run python -m baselines.trivial            # writes results/baseline-<game>-<policy>.json
+    uv run python -m baselines.trivial --game aliens --policy hold-use --games 100 --seeds 0-4
+                                                  # baseline-aliens-hold-use-e100-s<k>.json, one per seed
 
-Same levels, seeds (7) and 50 games as a seed-0 agent's evaluation, so a learned agent that matches a row
-exactly has learned that policy.
+By default, the same levels, seed (7) and 50 games as a seed-0 agent's evaluation, so a learned agent that
+matches a row exactly has learned that policy. With --seeds, seed k plays the test games of an agent run
+with --seed k (engine seed k + 7), so a baseline sits on exactly the games the agents are scored on.
 """
 
+import argparse
 import json
 
 import numpy as np
@@ -39,18 +43,32 @@ class Fixed:
 def main() -> None:
     from gvgai.vec import vector
 
-    for g in GAMES:
+    p = argparse.ArgumentParser()
+    p.add_argument("--game", default=None, help="one game (default: all)")
+    p.add_argument("--policy", default=None, help="e.g. hold-use or random (default: all)")
+    p.add_argument("--games", type=int, default=50)
+    p.add_argument("--seeds", default=None, help="agent seeds to match, e.g. 0-4 (default: seed 0, one file)")
+    a = p.parse_args()
+    seeds = None
+    if a.seeds:
+        lo, _, hi = a.seeds.partition("-")
+        seeds = range(int(lo), int(hi or lo) + 1)
+    for g in [a.game] if a.game else GAMES:
         lv = game_levels(g)
         env = vector(g, 1, 0, lv, 4)
         names = list(env.envs[0].action_names)
         n = len(names)
         env.close()
         for action in [*range(n), None]:
-            ev = evaluate(Fixed(action, n), g, 8, 50, lv, 7, 4)
             label = "random" if action is None else f"hold-{names[action].removeprefix('ACTION_').lower()}"
-            res = {"name": f"baseline-{g}-{label}", "agent": f"baseline {label}", "game": g, "eval": ev}
-            (ROOT / "results" / f"{res['name']}.json").write_text(json.dumps(res, indent=1))
-            print(f"{g} {label}: {ev['mean_score']:.1f} ({ev['win_rate']:.0%})", flush=True)
+            if a.policy and label != a.policy:
+                continue
+            for k in seeds if seeds is not None else [None]:
+                ev = evaluate(Fixed(action, n), g, 8, a.games, lv, 7 + (k or 0), 4)
+                name = f"baseline-{g}-{label}" + (f"-e{a.games}-s{k}" if k is not None else "")
+                res = {"name": name, "agent": f"baseline {label}", "game": g, "eval": ev}
+                (ROOT / "results" / f"{name}.json").write_text(json.dumps(res, indent=1))
+                print(f"{name}: {ev['mean_score']:.1f} ({ev['win_rate']:.0%})", flush=True)
 
 
 if __name__ == "__main__":
