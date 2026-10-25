@@ -32,7 +32,7 @@ Every setup the blog's part 2 shows, run again side by side: `experiments/verify
 | … + IMPALA + a move every 2 ticks | 82.7 (82.4–83.2) | 99.0% (97–100) | 100% | 43–47 min |
 
 - **The 2018 agent is noisier than 3 seeds showed**: these 5 runs average 72.8% wins (65–82) and 46.9 points, against 81.3% and 50.1 from the first 3; its 8 runs together span 65–92%. Holding shoot (82%) now sits at the top of its range.
-- **The bigger network's gain is borderline**: 62.0 points (59.2–64.2) against 58.9 (57.1–60.2), one run each overlapping, so under the greedy rule (AGENTS.md) it is a tie (Welch p = 0.025). `experiments/verify-strict.txt` is the moves step on the standard network, for the strict chain.
+- **The bigger network's gain holds up**: 62.0 points (59.2–64.2) against 58.9 (57.1–60.2), Welch p = 0.025, so the greedy chain (AGENTS.md) keeps it. Every other step decides the same way as before: more practice p = 0.013 (wins), the outcome + score reward p = 0.001 (wins), a move every 2 ticks p < 0.001 (score); DQN vs Rainbow at 5M (p ≈ 0.7) is a tie.
 - **PPO at 5M wins less, not more** (69.4%, 54–84), and the best setup loses 5 games in 500 (0, 2, 0, 3, 0).
 
 ## What was compared
