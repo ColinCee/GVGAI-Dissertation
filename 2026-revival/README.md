@@ -44,5 +44,5 @@ Python client changes: [gvgai/vendor/README.md](gvgai/vendor/README.md).
 
 - Budgets are in game ticks: "2018's ticks" is what 2018 used per game ([results/2018/budgets.json](results/2018/budgets.json)); long runs go to 5M with early stopping.
 - Evaluation: 100 games for every Aliens result the blog uses (50 in the earlier batches), greedy, levels 0–2, plus held-out levels 3–4. Deceptizelda uses levels 0 and 2 only: level 1 is a bigger map than 2018's network could take.
-- A 50-game win rate is ±10 points; 2018's two runs of the same agent differ by 10–17 points per 500-game block.
+- A 50-game win rate is ±10 points; 2018's three runs of the final agent (two training logs and the report's Table 5.3) differ by up to 14 points per 500-game block.
 - The 2000-tick limit counts as a loss in evaluation and in 2018's reward, and as a truncation (bootstrapped) for modern learners.

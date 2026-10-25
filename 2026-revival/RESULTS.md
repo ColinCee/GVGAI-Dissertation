@@ -206,7 +206,7 @@ Suggestive only (one seed, ±10 points): 3-step returns look like the piece that
 | | 2018 | 2026 |
 |---|---|---|
 | One game, engine alone, ticks/s | ≤40 (a 25 ms pause every tick was built in; 34 measured on the 2026 PC) | ~2,600 |
-| Training, ticks/s | ~23 (1M ticks in ~12 h) | 2018 agent ~600–1,500 per run; modern agents ~9,000 per run, ~16,000 with 3 at once |
+| Training, ticks/s | ~23 (2018's 2,000 DQN games, 1.18M ticks, in ~12 h: ~10 h per 1M ticks) | 2018 agent ~600–1,500 per run; modern agents ~9,000 per run, ~16,000 with 3 at once |
 | One 1M-tick run | ~12 h | 3–11 min |
 | This whole project's training (241 runs, 554M ticks) | ~280 days of non-stop training | ~15 h of wall clock (39 h of run time, 3 runs at once) |
 
@@ -233,7 +233,7 @@ Each engine step from 34 to 2,590 ticks/s, with its benchmark and commit tag, is
 
 ## Caveats
 
-- One seed per agent in 2018 versus 3 here; 2018's own two runs of the same agent differ by 10–17 win-% points, and a 50-game evaluation is ±10 points.
+- One seed per agent in 2018 versus 3 here; 2018's own three runs of the final agent differ by up to 14 win-% points, and a 50-game evaluation is ±10 points. The report's Table 6.1 win rates are training-time figures (Aliens: the last 500 of 2,000 training games of one run, still exploring at ε = 0.1), not a separate test.
 - Deceptizelda's level 1 is a bigger map than 2018's network could have played; all agents use levels 0 and 2.
 - Chase's only 2018 run used the old reward (no penalty); the replay does too.
 - Wafer Thin Mints: the engine's current rules differ from 2018's; the 2018 rules were rebuilt from the engine's history.
