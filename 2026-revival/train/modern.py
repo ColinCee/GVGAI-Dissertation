@@ -54,6 +54,14 @@ PRESETS = {
     "rainbow-impala": lambda: replace(rainbow(), encoder="impala"),
     "dqn-reward2018-impala": lambda: ModernConfig(outcome_reward=True, loss_penalty=0.5, encoder="impala"),
     "rainbow-reward2018-impala": lambda: replace(rainbow(), outcome_reward=True, loss_penalty=0.5, encoder="impala"),
+    # the chain's later steps on Rainbow instead of DQN (25 Oct 2026), to see if the tie at 5M ticks holds
+    "rainbow-outcome-score01": lambda: replace(rainbow(), outcome_reward=True, score_scale=0.1),
+    "rainbow-outcome-score01-impala": lambda: replace(
+        rainbow(), outcome_reward=True, score_scale=0.1, encoder="impala"
+    ),
+    "rainbow-outcome-score01-ar2-impala": lambda: replace(
+        rainbow(), outcome_reward=True, score_scale=0.1, encoder="impala", action_repeat=2
+    ),
     "dqn-outcome-only": lambda: ModernConfig(outcome_reward=True, score_scale=0.0),
     "dqn-outcome-score01": lambda: ModernConfig(outcome_reward=True, score_scale=0.1),
     "dqn-outcome-only-nstep": lambda: ModernConfig(outcome_reward=True, score_scale=0.0, n_step=3),

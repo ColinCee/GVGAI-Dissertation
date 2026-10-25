@@ -1,0 +1,16 @@
+# The chain on Rainbow (25 Oct 2026): the DQN chain's later steps, 5 seeds each, to compare with aliens-v-*.
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-ar2-impala --seed 0 --name aliens-v-rainbow-score01-ar2-impala-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-impala --seed 0 --name aliens-v-rainbow-score01-impala-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01 --seed 0 --name aliens-v-rainbow-score01-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-ar2-impala --seed 1 --name aliens-v-rainbow-score01-ar2-impala-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-impala --seed 1 --name aliens-v-rainbow-score01-impala-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01 --seed 1 --name aliens-v-rainbow-score01-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-ar2-impala --seed 2 --name aliens-v-rainbow-score01-ar2-impala-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-impala --seed 2 --name aliens-v-rainbow-score01-impala-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01 --seed 2 --name aliens-v-rainbow-score01-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-ar2-impala --seed 3 --name aliens-v-rainbow-score01-ar2-impala-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-impala --seed 3 --name aliens-v-rainbow-score01-impala-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01 --seed 3 --name aliens-v-rainbow-score01-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-ar2-impala --seed 4 --name aliens-v-rainbow-score01-ar2-impala-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01-impala --seed 4 --name aliens-v-rainbow-score01-impala-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --ticks 5000000 --preset rainbow-outcome-score01 --seed 4 --name aliens-v-rainbow-score01-s4
