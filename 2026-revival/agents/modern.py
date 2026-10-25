@@ -352,6 +352,8 @@ class ModernAgent:
             # Each process its own compile cache: runs starting together raced on the shared one and loaded
             # half-written kernels.
             os.environ.setdefault("TORCHINDUCTOR_CACHE_DIR", tempfile.mkdtemp(prefix="inductor-"))
+            # and Triton's kernel cache too: a Rainbow + IMPALA run loaded a half-written one (25 Oct 2026)
+            os.environ.setdefault("TRITON_CACHE_DIR", tempfile.mkdtemp(prefix="triton-"))
             for net in (self.q, self.target):
                 net.compile()
         self.replay = GpuReplay(n_envs, cfg.buffer_decisions, h, w, cfg, device)
