@@ -1,0 +1,62 @@
+# Overnight check of part 2 (25 Oct 2026): every setup the post shows, at one commit,
+# 5 seeds and 100 test games each, no early stop. Every frame + IMPALA already has 3 such seeds.
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --seed 0 --name aliens-v-score01-ar2-impala-s0
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --device cuda --threads 1 --seed 0 --name aliens-v-2018-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-impala --ticks 5000000 --seed 0 --name aliens-v-score01-impala-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 5000000 --seed 0 --name aliens-v-dqn-5m-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 5000000 --seed 0 --name aliens-v-rainbow-5m-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01 --ticks 5000000 --seed 0 --name aliens-v-score01-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-only --ticks 5000000 --seed 0 --name aliens-v-win-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-reward2018 --ticks 5000000 --seed 0 --name aliens-v-reward2018-s0
+-m train.ppo --game aliens --ticks 5000000 --eval-games 100 --seed 0 --name aliens-v-ppo-5m-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 1014134 --seed 0 --name aliens-v-dqn-1m-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 1014134 --seed 0 --name aliens-v-rainbow-1m-s0
+-m train.ppo --game aliens --ticks 1014134 --eval-games 100 --seed 0 --name aliens-v-ppo-1m-s0
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --seed 1 --name aliens-v-score01-ar2-impala-s1
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --device cuda --threads 1 --seed 1 --name aliens-v-2018-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-impala --ticks 5000000 --seed 1 --name aliens-v-score01-impala-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 5000000 --seed 1 --name aliens-v-dqn-5m-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 5000000 --seed 1 --name aliens-v-rainbow-5m-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01 --ticks 5000000 --seed 1 --name aliens-v-score01-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-only --ticks 5000000 --seed 1 --name aliens-v-win-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-reward2018 --ticks 5000000 --seed 1 --name aliens-v-reward2018-s1
+-m train.ppo --game aliens --ticks 5000000 --eval-games 100 --seed 1 --name aliens-v-ppo-5m-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 1014134 --seed 1 --name aliens-v-dqn-1m-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 1014134 --seed 1 --name aliens-v-rainbow-1m-s1
+-m train.ppo --game aliens --ticks 1014134 --eval-games 100 --seed 1 --name aliens-v-ppo-1m-s1
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --seed 2 --name aliens-v-score01-ar2-impala-s2
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --device cuda --threads 1 --seed 2 --name aliens-v-2018-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-impala --ticks 5000000 --seed 2 --name aliens-v-score01-impala-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 5000000 --seed 2 --name aliens-v-dqn-5m-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 5000000 --seed 2 --name aliens-v-rainbow-5m-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01 --ticks 5000000 --seed 2 --name aliens-v-score01-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-only --ticks 5000000 --seed 2 --name aliens-v-win-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-reward2018 --ticks 5000000 --seed 2 --name aliens-v-reward2018-s2
+-m train.ppo --game aliens --ticks 5000000 --eval-games 100 --seed 2 --name aliens-v-ppo-5m-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 1014134 --seed 2 --name aliens-v-dqn-1m-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 1014134 --seed 2 --name aliens-v-rainbow-1m-s2
+-m train.ppo --game aliens --ticks 1014134 --eval-games 100 --seed 2 --name aliens-v-ppo-1m-s2
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --seed 3 --name aliens-v-score01-ar2-impala-s3
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --device cuda --threads 1 --seed 3 --name aliens-v-2018-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-impala --ticks 5000000 --seed 3 --name aliens-v-score01-impala-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 5000000 --seed 3 --name aliens-v-dqn-5m-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 5000000 --seed 3 --name aliens-v-rainbow-5m-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01 --ticks 5000000 --seed 3 --name aliens-v-score01-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-only --ticks 5000000 --seed 3 --name aliens-v-win-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-reward2018 --ticks 5000000 --seed 3 --name aliens-v-reward2018-s3
+-m train.ppo --game aliens --ticks 5000000 --eval-games 100 --seed 3 --name aliens-v-ppo-5m-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 1014134 --seed 3 --name aliens-v-dqn-1m-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 1014134 --seed 3 --name aliens-v-rainbow-1m-s3
+-m train.ppo --game aliens --ticks 1014134 --eval-games 100 --seed 3 --name aliens-v-ppo-1m-s3
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-ar2-impala --ticks 5000000 --seed 4 --name aliens-v-score01-ar2-impala-s4
+-m train.ddqn2018 --game aliens --episodes 2000 --eval-games 100 --device cuda --threads 1 --seed 4 --name aliens-v-2018-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01-impala --ticks 5000000 --seed 4 --name aliens-v-score01-impala-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 5000000 --seed 4 --name aliens-v-dqn-5m-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 5000000 --seed 4 --name aliens-v-rainbow-5m-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-score01 --ticks 5000000 --seed 4 --name aliens-v-score01-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-outcome-only --ticks 5000000 --seed 4 --name aliens-v-win-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn-reward2018 --ticks 5000000 --seed 4 --name aliens-v-reward2018-s4
+-m train.ppo --game aliens --ticks 5000000 --eval-games 100 --seed 4 --name aliens-v-ppo-5m-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset dqn --ticks 1014134 --seed 4 --name aliens-v-dqn-1m-s4
+-m train.modern --game aliens --buffer 500000 --eval-games 100 --preset rainbow --ticks 1014134 --seed 4 --name aliens-v-rainbow-1m-s4
+-m train.ppo --game aliens --ticks 1014134 --eval-games 100 --seed 4 --name aliens-v-ppo-1m-s4
