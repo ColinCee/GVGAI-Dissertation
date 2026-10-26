@@ -8,6 +8,8 @@ Agents (each plays exactly as its evaluation does; only the frames kept for the 
 - `modern:<weights>:<preset>`: a train.modern network; greedy, the action held 4 ticks, a stack of 4 gray-half
   frames (computed here from the colour frame exactly as the engine's gvgai.grayHalf does);
 - `hold:<action>` (e.g. hold:use) and `random[:<rng seed>]`: baselines/trivial.py's players, 4 ticks per move;
+- `jev[:<model>[:warn]]`: baselines/jev.py's player (TypeSafe's Jev on a text state; needs TYPESAFE_API_KEY);
+- `rule`: baselines/jev.py's --rule (shoot, step away from bombs overhead; no model);
 - `mcts:<iterations>[:<search seed>]`: the engine's sampleMCTS with a fixed search budget, played inside the
   engine (it needs the forward model); its frames come from the engine itself.
 
@@ -213,6 +215,42 @@ def play_trivial(kind: str, arg: str, game: str, level: int, seed: int) -> dict:
         rng = np.random.default_rng(int(arg or 0))
         out = play_repeat(lambda: int(rng.integers(0, len(names))), names, env, level)
         out["agent_notes"] = f"uniform random move every 4 ticks, numpy default_rng({int(arg or 0)})"
+    return out
+
+
+def play_jev(model: str, warn: bool, game: str, level: int, seed: int) -> dict:
+    """baselines/jev.py's player: Jev picks each move from the text state, held 2 ticks as in its evaluation."""
+    import gvgai.env as genv
+    from baselines import jev
+
+    key = jev.api_key()
+    genv.ClientCommGYM.ClientCommGYM.SSO_TYPE = "BOTH"
+    env = GvgaiEnv(game, levels=(level,), light_obs=False, engine_seed=seed)
+    probs: list[dict] = []
+
+    def policy() -> int:
+        ans, _, _ = jev.ask(jev.describe(env.comm.sso, warn), key, model)
+        probs.append(ans["probabilities"])
+        return jev.MOVES[ans["choice"]]
+
+    out = play_repeat(policy, list(env.action_names), env, level, repeat=2)
+    for d, pr in zip(out["decisions"], probs, strict=True):
+        d["p"] = pr
+    out["agent_notes"] = (f"TypeSafe {model} on baselines/jev.py's text state{' with --warn' if warn else ''}, a move "
+                          "every 2 ticks, no training")  # fmt: skip
+    return out
+
+
+def play_rule(game: str, level: int, seed: int) -> dict:
+    """baselines/jev.py's --rule: shoot, step away from a bomb within 2 columns and 3 rows above; a move
+    every 2 ticks."""
+    import gvgai.env as genv
+    from baselines import jev
+
+    genv.ClientCommGYM.ClientCommGYM.SSO_TYPE = "BOTH"
+    env = GvgaiEnv(game, levels=(level,), light_obs=False, engine_seed=seed)
+    out = play_repeat(lambda: jev.rule(env.comm.sso), list(env.action_names), env, level, repeat=2)
+    out["agent_notes"] = "baselines/jev.py rule(): shoot, step away from bombs overhead, a move every 2 ticks"
     return out
 
 
@@ -547,7 +585,11 @@ def features(rec: dict, impala_path: str, impala_preset: str, out: Path, name: s
 
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--agent", help="ddqn2018:<pt> | modern:<pt>:<preset> | hold:<action> | random[:n] | mcts:<iters>")
+    p.add_argument(
+        "--agent",
+        help="ddqn2018:<pt> | modern:<pt>:<preset> | hold:<action> | random[:n] | mcts:<iters> | jev[:model[:warn]]"
+        " | rule",
+    )
     p.add_argument("--game", default="aliens")
     p.add_argument("--level", type=int, default=0)
     p.add_argument("--seed", type=int, default=0, help="engine seed")
@@ -577,6 +619,10 @@ def main() -> None:
         rec = play_modern(parts[1], parts[2], a.game, a.level, a.seed)
     elif kind in ("hold", "random"):
         rec = play_trivial(kind, parts[1] if len(parts) > 1 else "", a.game, a.level, a.seed)
+    elif kind == "jev":
+        rec = play_jev(parts[1] if len(parts) > 1 else "jev-latest", "warn" in parts[2:], a.game, a.level, a.seed)
+    elif kind == "rule":
+        rec = play_rule(a.game, a.level, a.seed)
     elif kind == "mcts":
         rec = play_mcts(int(parts[1]), int(parts[2]) if len(parts) > 2 else 0, a.game, a.level, a.seed)
     else:

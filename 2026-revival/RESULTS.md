@@ -68,6 +68,26 @@ The 2018 agent's other trick, put back: `experiments/verify-per.txt` (step 1 set
 - **Step 1: a tie after Holm.** Against the step's three other options, the 0.048 needs p < 0.025, so the simpler Double DQN stays.
 - **The final agent: worse.** Wins tie, score drops 1.9 (p = 0.007), and runs take 63 min instead of 44. Dropping PER was right for this chain.
 
+## Jev, a decision model, with no training (Aliens, 26 Oct 2026)
+
+[Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) (TypeSafe, `jev-latest`, which reported itself as `jev-1.14.0`) gets one API call per move: the game as text from the engine's sprite positions, one question, and the choices shoot / left / right, each with a probability back. The player plays the most likely one, a move every 2 ticks. It's `baselines/jev.py`, and every game's result and token count is in `results/jev/`. The games are the agents' own test games: block *k* is the 8 streams × 13 games that `agents/evaluate.py` plays for `--seed k`.
+
+| Run | Games | Won | Points | Tokens a call | Cost |
+|---|---|---|---|---|---|
+| Text state, block 0, streams 0–1 (`jev-latest-s0`) | 26 | 15 (57.7%) | 43.0 | 555 | $0.15 |
+| + a line naming the bombs within 2 columns of the ship (`--warn`, block 0) | 104 | 83 (79.8%) | 48.2 | 564 | $0.68 |
+| Same, state as a JSON object (`--warn --json --v1`, block 0) | 104 | 78 (75.0%) | 41.3 | 604 | $0.73 |
+| `jev-preview`, `--warn`, block 1, shield hits described correctly | 104 | 80 (76.9%) | 44.0 | 583 | $0.63 |
+| Holding shoot (saved baseline, 5 blocks of 100) | 500 | 82.4% | 37.3 | | free |
+| Rule: shoot, step away from a bomb within 2 columns and 3 rows above (`--rule`, 5 blocks) | 520 | 99.2% (96–100) | 42.2 | | free |
+
+- **Jev wins about as often as holding shoot and scores more.** One block per setup, so the win rates are ±8 points. Its points are above holding shoot's range on all 5 blocks (36.4–38.3).
+- **The `--warn` line was chosen after seeing streams 0–1**: on those 26 games it won 22 against 15 without it. On the 78 games after that it won 61.
+- **JSON state is no better:** the win gap could be luck (z = 0.8), and points are lower (Welch t = 4.0 per game).
+- **The rule uses the same positions and wins far more,** so the description does most of the work, not the model. Jev's 46% average for the move it picks also shows it's rarely sure.
+- **Cost and speed:** $2.19 for the 438 scored games, about $0.006 a game, and moves take 180–200 ms at the median.
+- **Caveats:** the engine doesn't replay games exactly (holding shoot twice on block 0's seeds won 93 and then 89 of 104), so the comparisons are by block, not game by game. Block 0's question said shield hits were "wasted", but they score 1 point. That's fixed for the preview run (`QUESTION` against `QUESTION_V1`).
+
 ## Why a trained agent outscores MCTS (Aliens, 51 games, 200 searches per move, 26 Oct 2026)
 
 MCTS (the engine's sampleMCTS) scores the same at 50, 200 or ~340 searches per move (77.8–77.9), so search budget isn't its limit. Its rollouts are random moves; looking further ahead makes it worse, not better:

@@ -46,6 +46,7 @@ class ClientCommGYM:
     """
      * Client communication, set up the socket for a given agent
     """
+    SSO_TYPE = LEARNING_SSO_TYPE.IMAGE  # BOTH also sends sprite positions (baselines/jev.py reads them)
 
     def __init__(self, game, version, lvl, pathStr):
         self.tempDir = tempfile.TemporaryDirectory()
@@ -358,7 +359,7 @@ class ClientCommGYM:
         ect.setMaxTimeMillis(CompetitionParameters.INITIALIZATION_TIME)
         #self.player.init(self.sso, ect.copy())
         #self.lastSsoType = self.player.lastSsoType
-        self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
+        self.lastSsoType = self.SSO_TYPE
         actions=self.actions()
 
         if ect.exceededMaxTime():
@@ -378,7 +379,7 @@ class ClientCommGYM:
         if (not action) or (action == ""):
             action = "ACTION_NIL"
         #self.lastSsoType = self.player.lastSsoType
-        self.lastSsoType = LEARNING_SSO_TYPE.IMAGE
+        self.lastSsoType = self.SSO_TYPE
 
 
         if ect.exceededMaxTime():
