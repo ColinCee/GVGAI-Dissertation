@@ -56,6 +56,18 @@ The same chain with Rainbow in place of DQN: `experiments/verify-rainbow.txt`, r
 
 - **Rainbow never beats DQN on this chain**: it ties or loses on wins and scores lower at every step, so keeping the simpler DQN at step 1 cost nothing.
 
+## Prioritised replay (Aliens, 5 seeds, 100 test games each, 26 Oct 2026)
+
+The 2018 agent's other trick, put back: `experiments/verify-per.txt` (step 1 settings) and `verify-per-final.txt` (the final agent), results `aliens-v-dqn-per-5m-*` and `aliens-v-per-score01-ar2-impala-*`. Same seeds, test games and learning code as the overnight check, a day later.
+
+| Setup | Without PER (score / wins) | With PER | Welch p (wins, score) |
+|---|---|---|---|
+| Double DQN, 5M, points reward | 56.3 / 89.0% | 58.9 / 93.0% | 0.048, 0.14 |
+| The final agent (IMPALA, outcome + 0.1 × score, a move every 2 ticks) | 82.7 / 99.0% | 80.8 / 99.6% | 0.42, 0.007 |
+
+- **Step 1: a tie after Holm.** Against the step's three other options, the 0.048 needs p < 0.025, so the simpler Double DQN stays.
+- **The final agent: worse.** Wins tie, score drops 1.9 (p = 0.007), and runs take 63 min instead of 44. Dropping PER was right for this chain.
+
 ## What was compared
 
 All rows: 50 evaluation games, greedy, levels 0–2 (Deceptizelda: 0 and 2, see caveats). 2026 rows are the mean of 3 seeds; the range is win % across seeds. "2018's ticks" = the game ticks 2018 used for that game.
