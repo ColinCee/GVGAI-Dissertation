@@ -68,6 +68,18 @@ The 2018 agent's other trick, put back: `experiments/verify-per.txt` (step 1 set
 - **Step 1: a tie after Holm.** Against the step's three other options, the 0.048 needs p < 0.025, so the simpler Double DQN stays.
 - **The final agent: worse.** Wins tie, score drops 1.9 (p = 0.007), and runs take 63 min instead of 44. Dropping PER was right for this chain.
 
+## Why a trained agent outscores MCTS (Aliens, 51 games, 200 searches per move, 26 Oct 2026)
+
+MCTS (the engine's sampleMCTS) scores the same at 50, 200 or ~340 searches per move (77.8–77.9), so search budget isn't its limit. Its rollouts are random moves; looking further ahead makes it worse, not better:
+
+| Rollout depth | Score | Wins |
+|---|---|---|
+| 10 (default) | 77.0 | 100% |
+| 30 | 71.6 | 100% |
+| 60 | 62.9 | 100% |
+
+Each step down is significant (Welch p < 0.001). A random rollout is a noisy judge of a move, and a longer one adds more noise than signal; the final agent's learned values (looking ~100 decisions ahead) judge moves better, hence 82.7. Run with `baselines/mcts.py --iters 200 --depth N`.
+
 ## What was compared
 
 All rows: 50 evaluation games, greedy, levels 0–2 (Deceptizelda: 0 and 2, see caveats). 2026 rows are the mean of 3 seeds; the range is win % across seeds. "2018's ticks" = the game ticks 2018 used for that game.

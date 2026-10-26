@@ -1,6 +1,6 @@
 {
  "name": "mcts-aliens-i200",
- "agent": "MCTS 200 iterations",
+ "agent": "MCTS 200 iterations, rollouts 10 deep",
  "game": "aliens",
  "seed": 0,
  "levels": [
@@ -10,8 +10,8 @@
  ],
  "eval": {
   "games": 51,
-  "mean_score": 77.76470588235294,
+  "mean_score": 77.0,
   "win_rate": 1.0,
-  "iters_per_move": 200.41372549019607
+  "iters_per_move": 200.4313725490196
  }
 }

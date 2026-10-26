@@ -29,6 +29,7 @@ def main() -> None:
     p.add_argument("--games", nargs="+", default=GAMES)
     p.add_argument("--ms", type=int, default=40)
     p.add_argument("--iters", type=int, default=0, help="fixed search budget per move instead of --ms")
+    p.add_argument("--depth", type=int, default=10, help="random moves each rollout looks ahead")
     p.add_argument("--seed", type=int, default=0)
     a = p.parse_args()
     classes = build.ensure_built()
@@ -40,23 +41,24 @@ def main() -> None:
         levels = game_levels(g)
         per_level = -(-50 // len(levels))
         budget = f"-Dgvgai.actionTime={a.ms if not a.iters else 10**8}"
-        cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", budget, f"-Dgvgai.mctsIters={a.iters}",
+        cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", budget, f"-Dgvgai.mctsIters={a.iters}", f"-Dgvgai.mctsDepth={a.depth}",
                "-Dgvgai.maxTicks=2000", "-cp", str(classes), "tracks.RunMCTS", str(d / f"{g}.txt"),
                str(d / f"{g}_lvl"), ",".join(map(str, levels)), str(per_level), str(a.seed)]  # fmt: skip
         # cwd: the engine loads sprites by relative path
         procs[g] = subprocess.Popen(cmd, cwd=HERE / "engine", stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                                     text=True)  # fmt: skip
+    tag = (f"-i{a.iters}" if a.iters else "") + (f"-d{a.depth}" if a.depth != 10 else "")
     for g, pr in procs.items():
         text, _ = pr.communicate()
         lines = [HEADER] + [ln for ln in text.splitlines() if ln[:1].isdigit()]
-        (out / f"{g}{'-i' + str(a.iters) if a.iters else ''}.csv").write_text("\n".join(lines) + "\n")
+        (out / f"{g}{tag}.csv").write_text("\n".join(lines) + "\n")
         rows = list(csv.DictReader(io.StringIO("\n".join(lines))))
         if not rows:
             print(f"{g}: no games finished")
             continue
         res = {
-            "name": f"mcts-{g}" + (f"-i{a.iters}" if a.iters else ""),
-            "agent": f"MCTS {a.iters} iterations" if a.iters else f"MCTS {a.ms} ms", "game": g, "seed": a.seed,
+            "name": f"mcts-{g}{tag}",
+            "agent": (f"MCTS {a.iters} iterations" if a.iters else f"MCTS {a.ms} ms") + f", rollouts {a.depth} deep", "game": g, "seed": a.seed,
             "levels": list(game_levels(g)),
             "eval": {
                 "games": len(rows),

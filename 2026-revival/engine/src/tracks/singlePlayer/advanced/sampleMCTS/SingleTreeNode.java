@@ -24,7 +24,8 @@ public class SingleTreeNode
 
     public int num_actions;
     Types.ACTIONS[] actions;
-    public int ROLLOUT_DEPTH = 10;
+    // -Dgvgai.mctsDepth=N: how many random moves a rollout looks ahead (the engine's default is 10)
+    public int ROLLOUT_DEPTH = Integer.getInteger("gvgai.mctsDepth", 10);
     public double K = Math.sqrt(2);
     public static long TOTAL_ITERS = 0;
     static final int ITERS = Integer.getInteger("gvgai.mctsIters", 0);  // read by tracks.RunMCTS to report search effort per move
