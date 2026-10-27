@@ -85,7 +85,7 @@ The 2018 agent's other trick, put back: `experiments/verify-per.txt` (step 1 set
 - **The `--warn` line was chosen after seeing streams 0–1**: on those 26 games it won 22 against 15 without it. On the 78 games after that it won 61.
 - **JSON state is no better:** the win gap could be luck (z = 0.8), and points are lower (Welch t = 4.0 per game).
 - **The rule uses the same positions and wins far more,** so the description does most of the work, not the model. Jev's 46% average for the move it picks also shows it's rarely sure.
-- **Cost and speed:** $2.19 for the 438 scored games, and about $2.23 in total once the test games and the recorded clips are added. That's about $0.006 a game, and moves take 180–200 ms at the median.
+- **Cost and speed:** $2.19 for the 338 scored games, and about $2.23 in total once the test games and the recorded clips are added. That's about $0.006 a game, and moves take 180–200 ms at the median.
 - **Caveats:** the engine doesn't replay games exactly (holding shoot twice on block 0's seeds won 93 and then 89 of 104), so the comparisons are by block, not game by game. Block 0's question said shield hits were "wasted", but they score 1 point. That's fixed for the preview run (`QUESTION` against `QUESTION_V1`).
 
 ## Why a trained agent outscores MCTS (Aliens, 51 games, 200 searches per move, 26 Oct 2026)
