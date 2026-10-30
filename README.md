@@ -4,6 +4,7 @@ Deep Q-learning agents playing four GVGAI games (Aliens, Chase, Deceptizelda, Wa
 
 | Folder | What | State |
 |---|---|---|
+| [2017-prototype/](2017-prototype/) | The first attempt from late 2017, on the GVGAI Java framework | Frozen; kept for history |
 | [2018-dissertation/](2018-dissertation/) | The 2018 code as it was on `master` (an older plain-DQN version) | Frozen; Python 3.6, Keras 2, TensorFlow 1; no longer installs |
 | [2026-revival/](2026-revival/) | The rebuild: the 2018 agent replayed exactly, today's methods, an engine ~75× faster per game | Runs on Windows with Python 3.14, PyTorch 2.14, JDK 25 |
 
