@@ -22,7 +22,7 @@ Written in October 2026, for whoever opens this again in 2034 or later. What to 
 | PyTorch | 2.14.1+cu130 (CUDA 13.0, cuDNN 9.24), wheel `torch-2.14.1+cu130-cp314-cp314-win_amd64.whl` from `https://download.pytorch.org/whl/cu130` |
 | Triton (for `torch.compile`) | `triton-windows` 3.8.0.post29 |
 | Others | numpy 2.5.4, gymnasium 1.4.0, Pillow 13.0.0; ruff 0.17.1, ty 0.0.89 |
-| Java | Temurin OpenJDK 25.0.4.1 LTS, unpacked to `D:\Java\jdk-25.0.4.1+1` (`GVGAI_JDK` overrides) |
+| Java | Temurin OpenJDK 25.0.4.1 LTS, unpacked to `D:\Java\jdk-25.0.4.1+1` (`GVGAI_JDK` overrides; else `JAVA_HOME`, then `java` on PATH) |
 | Engine | GVGAI_GYM commit `15e0a86`, vendored in `engine/` with this project's changes; built by `engine/build.py` into `engine/build/classes-<hash of the sources>` |
 
 All timings in RESULTS.md and IMPROVEMENTS.md are on this machine; they mean nothing on another one without re-measuring.
@@ -32,7 +32,7 @@ All timings in RESULTS.md and IMPROVEMENTS.md are on this machine; they mean not
 - **PyTorch's CUDA wheels.** Old CUDA builds disappear from download.pytorch.org over the years. `uv.lock` records the exact wheel URLs and hashes, and `pyproject.toml` the index (`pytorch-cu130`); if they are gone, point the index at a current CUDA build, `uv lock --upgrade`, and take the nearest PyTorch for a current Python and re-run the checklist. Nothing here depends on 2.14 specifically except `torch.compile` (optional: set `compile=False` in `ModernConfig`) and CUDA graphs (on since PyTorch 1.10).
 - **Python.** Raise `requires-python` and `target-version` in `pyproject.toml`, `uv sync`, run ruff and the checklist.
 - **Java.** The engine is plain Java with no dependencies, built by one `javac` call; point `GVGAI_JDK` at any recent JDK (only JDK 25 was tested).
-- **Windows-only bits.** `tools/batch.py` uses `taskkill` and Windows idle priority; `bench/heap_growth.py` asks PowerShell for memory; the JDK default path is a Windows path. The rest is portable.
+- **Windows-only bits.** `tools/batch.py` uses `taskkill` and Windows idle priority; `bench/heap_growth.py` asks PowerShell for memory. The rest is portable.
 - **2018 history.** The 2018 code needs Keras 2 / TensorFlow 1 on Python 3.6 and will not install; it is kept for reading. `agents/ddqn2018.py` is the runnable version. The 2018 report lives in a separate repository (Dissertation-Report); its training logs, which the reproduction and the per-game budgets rest on, are copied into `results/2018/`.
 
 ## What the project found (the short version)

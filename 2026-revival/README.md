@@ -4,7 +4,7 @@ The 2018 dissertation rebuilt on 2026 software: the GVGAI engine made ~75× fast
 
 ## Setup (Windows)
 
-1. [uv](https://docs.astral.sh/uv/), and JDK 25 (Temurin zip unpacked to `D:\Java\jdk-25.0.4.1+1`, or set `GVGAI_JDK`).
+1. [uv](https://docs.astral.sh/uv/), and JDK 25 (Temurin zip unpacked to `D:\Java\jdk-25.0.4.1+1`, or set `GVGAI_JDK`, `JAVA_HOME` or put `java` on PATH).
 2. `uv sync` in this folder: Python 3.14 (the newest `torch.compile` supports), PyTorch from PyTorch's CUDA 13 index. Exact versions are in `uv.lock`.
 3. `uv run python tests/golden.py check`: the engine compiles itself on first use ([engine/build.py](engine/build.py)) and must replay the recorded games identically.
 4. Before committing: `uv run ruff format . && uv run ruff check .`; `uv run ty check` is advisory (most of its warnings are gaps in PyTorch's type hints).

@@ -4,10 +4,26 @@ import hashlib
 import os
 import shutil
 import subprocess
+import sys
+from functools import cache
 from pathlib import Path
 
 ENGINE = Path(__file__).resolve().parent
-JDK = Path(os.environ.get("GVGAI_JDK", r"D:\Java\jdk-25.0.4.1+1"))
+DEFAULT_JDK = Path(r"D:\Java\jdk-25.0.4.1+1")
+
+
+@cache
+def jdk() -> Path:
+    """The JDK 25 folder: GVGAI_JDK, else the default folder, else JAVA_HOME, else the `java` on PATH."""
+    if env := os.environ.get("GVGAI_JDK"):
+        return Path(env)
+    if DEFAULT_JDK.exists():
+        return DEFAULT_JDK
+    if home := os.environ.get("JAVA_HOME"):
+        return Path(home)
+    if on_path := shutil.which("java"):
+        return Path(on_path).resolve().parent.parent
+    sys.exit("No JDK found: the engine needs JDK 25. Install it and set GVGAI_JDK or JAVA_HOME to its folder.")
 
 
 def _digest(src: Path, files: list[Path]) -> str:
@@ -33,7 +49,7 @@ def ensure_built(engine: Path = ENGINE) -> Path:
     tmp.mkdir(parents=True)
     argfile = tmp / "sources.txt"
     argfile.write_text("\n".join(f'"{f.as_posix()}"' for f in files))
-    javac = JDK / "bin" / "javac"
+    javac = jdk() / "bin" / "javac"
     subprocess.run([str(javac), "-nowarn", "-encoding", "UTF-8", "-d", str(tmp), f"@{argfile}"], check=True)
     (tmp / "ok").write_text("")
     try:
@@ -44,7 +60,7 @@ def ensure_built(engine: Path = ENGINE) -> Path:
 
 
 def java() -> str:
-    return str(JDK / "bin" / "java")
+    return str(jdk() / "bin" / "java")
 
 
 if __name__ == "__main__":
