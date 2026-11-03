@@ -1,5 +1,6 @@
 # Working on this repo
 
+- Checks: `cd 2026-revival && uv run ruff format --check . && uv run ruff check . && uv run python tests/golden.py check && uv run python tests/repeat_check.py` runs what CI runs. The engine tests need a JDK 25: set `GVGAI_JDK` to its folder when it is not at the default in `engine/build.py`.
 - `2018-dissertation/` and the `2018-*` tags are frozen; new work goes in `2026-revival/` (or a new dated folder for a later revival). Coming back after a long gap: [2026-revival/LEARNINGS.md](2026-revival/LEARNINGS.md) first.
 - Use the newest tooling everywhere; the point of the project is to be modern and fast. Python: the newest release PyTorch's compiler (`torch.compile`) supports, via uv (3.14 as of 19 Oct 2026; Colin chose this over 3.15 so training can be compiled), ruff for lint and format, ty for types. Java: latest LTS JDK, engine built by `engine/build.py` (no Gradle; agreed 18 Oct 2026).
 - Approved 18 Oct 2026: GPU runs go through `lease` without asking each time; commit locally to master as steps land, one commit (and an `imp-NN` tag for speed steps) per improvement; never push or publish (the repo is public).
