@@ -41,9 +41,10 @@ def main() -> None:
         levels = game_levels(g)
         per_level = -(-50 // len(levels))
         budget = f"-Dgvgai.actionTime={a.ms if not a.iters else 10**8}"
-        cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", budget, f"-Dgvgai.mctsIters={a.iters}", f"-Dgvgai.mctsDepth={a.depth}",
-               "-Dgvgai.maxTicks=2000", "-cp", str(classes), "tracks.RunMCTS", str(d / f"{g}.txt"),
-               str(d / f"{g}_lvl"), ",".join(map(str, levels)), str(per_level), str(a.seed)]  # fmt: skip
+        cmd = [build.java(), "-XX:+UseSerialGC", "-Xmx512m", budget, f"-Dgvgai.mctsIters={a.iters}",
+               f"-Dgvgai.mctsDepth={a.depth}", "-Dgvgai.maxTicks=2000", "-cp", str(classes), "tracks.RunMCTS",
+               str(d / f"{g}.txt"), str(d / f"{g}_lvl"), ",".join(map(str, levels)), str(per_level),
+               str(a.seed)]  # fmt: skip
         # cwd: the engine loads sprites by relative path
         procs[g] = subprocess.Popen(cmd, cwd=HERE / "engine", stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                                     text=True)  # fmt: skip
@@ -58,7 +59,9 @@ def main() -> None:
             continue
         res = {
             "name": f"mcts-{g}{tag}",
-            "agent": (f"MCTS {a.iters} iterations" if a.iters else f"MCTS {a.ms} ms") + f", rollouts {a.depth} deep", "game": g, "seed": a.seed,
+            "agent": (f"MCTS {a.iters} iterations" if a.iters else f"MCTS {a.ms} ms") + f", rollouts {a.depth} deep",
+            "game": g,
+            "seed": a.seed,
             "levels": list(game_levels(g)),
             "eval": {
                 "games": len(rows),

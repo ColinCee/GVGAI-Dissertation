@@ -1,0 +1,33 @@
+name: check
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: 2026-revival
+    steps:
+      - uses: actions/checkout@v5
+      - run: pipx install uv
+      - run: uv run --locked --only-group dev ruff format --check .
+      - run: uv run --locked --only-group dev ruff check .
+      # The engine tests need the game's Python side but not PyTorch (several GB of CUDA wheels), so install
+      # the locked versions without it. tests/replay_check.py needs a GPU and stays a local check.
+      - run: |
+          uv export --locked --no-emit-project --no-dev --prune torch --prune triton-windows -o "$RUNNER_TEMP/engine.txt"
+          uv venv "$RUNNER_TEMP/engine"
+          VIRTUAL_ENV="$RUNNER_TEMP/engine" uv pip install -r "$RUNNER_TEMP/engine.txt"
+      - name: golden replay and action repeat (JDK 25 from the runner image)
+        run: |
+          export GVGAI_JDK="$JAVA_HOME_25_X64"
+          "$RUNNER_TEMP/engine/bin/python" tests/golden.py check
+          "$RUNNER_TEMP/engine/bin/python" tests/repeat_check.py

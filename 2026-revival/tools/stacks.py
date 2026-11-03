@@ -35,7 +35,7 @@ def main() -> None:
         want = [d for d in json.loads(a.check.read_text())["decisions"] if d.get("q")]
         got = rec["decisions"]
         if len(want) != len(got) or any(
-            (w["tick"], w["action"], w["q"]) != (g["tick"], g["action"], g["q"]) for w, g in zip(want, got)
+            (w["tick"], w["action"], w["q"]) != (g["tick"], g["action"], g["q"]) for w, g in zip(want, got, strict=True)
         ):
             raise SystemExit(f"replay differs from {a.check}: {len(got)} decisions vs {len(want)}")
     n, frames, h, w = len(stacks), *stacks[0].shape
