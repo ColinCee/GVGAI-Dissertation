@@ -20,7 +20,7 @@ jobs:
       - run: pipx install uv
       - run: uv run --locked --only-group dev ruff format --check .
       - run: uv run --locked --only-group dev ruff check .
-      # The engine tests need the game's Python side but not PyTorch (several GB of CUDA wheels), so install
+      # The engine tests need the game's Python side but not PyTorch, so install
       # the locked versions without it. tests/replay_check.py needs a GPU and stays a local check.
       - run: |
           uv export --locked --no-emit-project --no-dev --prune torch --prune triton-windows -o "$RUNNER_TEMP/engine.txt"

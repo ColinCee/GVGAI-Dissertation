@@ -15,12 +15,22 @@ dependencies = [
 [dependency-groups]
 dev = ["ruff>=0.17", "ty>=0.0.89"]
 
+# CUDA torch on Windows, where training runs; CPU-only torch on Linux (CI and checks), which has no GPU and no room
+# for the CUDA wheels.
 [tool.uv.sources]
-torch = { index = "pytorch-cu130" }
+torch = [
+    { index = "pytorch-cu130", marker = "sys_platform == 'win32'" },
+    { index = "pytorch-cpu", marker = "sys_platform == 'linux'" },
+]
 
 [[tool.uv.index]]
 name = "pytorch-cu130"
 url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.ruff]
